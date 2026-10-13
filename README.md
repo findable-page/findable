@@ -1,33 +1,120 @@
 # seoscore-cli
 
-Scan a site from the terminal with [seoscore.tools](https://seoscore.tools) and save the same CSV the website offers. It also prints the scores and every failing check.
+A fast, unified open-source website auditor for **Traditional SEO**, **Answer Engine Optimization (AEO)**, and **Generative Engine Optimization (GEO)**.
 
-Unofficial: it calls the public `/api/scan` endpoint the website uses and is not affiliated with seoscore.tools. The endpoint is undocumented and may change or rate-limit you.
+Audits live URLs or local HTML files completely offline in Go, exports identical CSV reports matching [seoscore.tools](https://seoscore.tools), runs a local API daemon with modern Web UI, serves Model Context Protocol (MCP) tools for AI agents, and includes a deployable Cloudflare Worker backend.
+
+## Features
+
+- **100% Offline / Local Engine:** Evaluates 80+ checks in Go without rate limits or external dependencies.
+- **Tri-Family Scoring:** Traditional SEO (50%), AEO (25%), and GEO (25%) composite score.
+- **Model Context Protocol (MCP):** Native `-mcp` mode for Claude Desktop, Cursor, Hermes Agent, and Windsurf.
+- **Interactive Web UI:** Dark/Light theme, circular SVG score rings, interactive fix recommendations, and direct share links.
+- **Crawl Site (Beta):** Crawls internal links and provides page-by-page score tables.
+- **Dual Deployment:** Local API daemon (`-serve :8080`) or edge deployment on Cloudflare Workers (`worker/`).
 
 ## Install
 
-```
+```bash
 go install github.com/nadimtuhin/seoscore-cli@latest
 ```
 
-## Use
+## CLI Usage
 
-```
-seoscore-cli [-o dir] [-q] https://example.com
-```
+### 1. Single Page Audit
 
-- `-o dir`: where to save `seoscore-report-<host>-<date>.csv` (default `.`, created if missing)
-- `-q`: do not list failing checks
-
-Output:
-
-```
-overall 89  SEO 90  AEO 90  GEO 84
-FAIL SEO compression: No compression detected (gzip/brotli recommended)
-saved ./seoscore-report-example.com-2026-10-10.csv
+Audit a live URL:
+```bash
+seoscore-cli https://example.com
 ```
 
-On a 429 it waits 10 seconds and retries, up to 3 times. No dependencies beyond the Go standard library.
+Audit a local HTML file directly without any web server:
+```bash
+seoscore-cli ./path/to/page.html
+```
+
+With focus keyphrase:
+```bash
+seoscore-cli -k "cloud performance" https://example.com
+```
+
+### 2. Multi-Page Site Crawl
+
+```bash
+seoscore-cli -crawl -limit 20 https://example.com
+```
+
+### 3. Run Local REST API & Web UI
+
+```bash
+seoscore-cli -serve :8080
+```
+Open `http://localhost:8080` in your browser for the full web dashboard.
+
+---
+
+## Model Context Protocol (MCP) Tools
+
+Use `seoscore` directly inside Claude Desktop, Cursor, Windsurf, or Hermes Agent to audit sites and optimize content for AI search engines (Google AI Overviews, Perplexity, ChatGPT).
+
+### 1. Native Go CLI MCP Server (Zero Dependencies)
+
+Add to your `claude_desktop_config.json` or Cursor `settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "seoscore": {
+      "command": "seoscore-cli",
+      "args": ["-mcp"]
+    }
+  }
+}
+```
+
+### 2. Node / NPX MCP Runner
+
+```json
+{
+  "mcpServers": {
+    "seoscore": {
+      "command": "npx",
+      "args": ["-y", "seoscore-mcp"]
+    }
+  }
+}
+```
+
+### Available MCP Tools & Prompts
+
+- `audit_page`: Audits a URL or local file path for SEO, AEO, and GEO signals.
+- `audit_html_content`: Audits raw HTML markup in-memory without any network requests.
+- `crawl_site`: Crawls up to N internal pages and returns per-page scores and aggregate statistics.
+- `generate_csv_report`: Returns a full CSV report string formatted according to seoscore.tools.
+- `seo_audit_prompt`: Structured prompt template generating prioritized technical, AEO, and GEO fixes.
+
+---
+
+## Free Cloudflare Edge API
+
+A production-ready edge API is deployable via Wrangler or accessible directly:
+
+- **Live Endpoint:** `https://seoscore-api.nadimtuhin.workers.dev`
+- **Audit Endpoint:** `POST https://seoscore-api.nadimtuhin.workers.dev/api/scan`
+
+```bash
+curl -s -X POST https://seoscore-api.nadimtuhin.workers.dev/api/scan \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","keyphrase":"example"}'
+```
+
+To deploy your own instance:
+```bash
+cd worker
+npx wrangler deploy
+```
+
+---
 
 ## License
 
