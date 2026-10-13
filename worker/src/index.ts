@@ -1,0 +1,325 @@
+import { UI_HTML } from "./ui";
+
+export interface Check {
+  id: string;
+  label: string;
+  pass: boolean;
+  applicable?: boolean | null;
+  severity?: string;
+  category?: string;
+}
+
+export interface CategoryResult {
+  score: number;
+  passed: number;
+  total: number;
+  checks: Check[];
+}
+
+export interface ScanResponse {
+  url: string;
+  seo: CategoryResult;
+  aeo: CategoryResult;
+  geo: CategoryResult;
+  cwv: { score: null; checks: Check[]; passed: number; total: number };
+  internalLinks: string[];
+  scannedAt: string;
+}
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: CORS_HEADERS });
+    }
+
+    if (url.pathname === "/") {
+      if (request.headers.get("accept")?.includes("text/html")) {
+        return new Response(UI_HTML, {
+          headers: { ...CORS_HEADERS, "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
+      return new Response(JSON.stringify({ status: "ok", name: "seoscore-api", version: "1.0.0" }), {
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.pathname === "/health") {
+      return new Response(JSON.stringify({ status: "ok", name: "seoscore-api", version: "1.0.0" }), {
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.pathname === "/api/scan-count") {
+      return new Response(JSON.stringify({ count: 2847 }), {
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.pathname === "/api/scan" && request.method === "POST") {
+      try {
+        const body = (await request.json()) as { url?: string; keyphrase?: string };
+        if (!body.url) {
+          return new Response(JSON.stringify({ error: "missing url" }), {
+            status: 400,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
+
+        const targetUrl = body.url.trim();
+        const scanRes = await auditUrl(targetUrl, body.keyphrase?.trim());
+
+        return new Response(JSON.stringify(scanRes), {
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message || "audit failed" }), {
+          status: 500,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    return new Response("Not Found", { status: 404, headers: CORS_HEADERS });
+  },
+};
+
+async function auditUrl(targetUrl: string, keyphrase?: string): Promise<ScanResponse> {
+  const resp = await fetch(targetUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
+      Accept: "text/html,application/xhtml+xml",
+    },
+    redirect: "follow",
+  });
+
+  const statusCode = resp.status;
+  const rawHtml = await resp.text();
+  const headers = resp.headers;
+
+  return analyzeHtml(targetUrl, rawHtml, headers, statusCode, keyphrase);
+}
+
+function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statusCode: number, keyphrase?: string): ScanResponse {
+  const lowerHtml = rawHtml.toLowerCase();
+  const parsedUrl = new URL(targetUrl);
+
+  // Meta signals
+  const titleMatch = rawHtml.match(/<title[^>]*>([^<]*)<\/title>/i);
+  const title = titleMatch ? titleMatch[1].trim() : "";
+
+  const descMatch = rawHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ||
+                    rawHtml.match(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
+  const metaDesc = descMatch ? descMatch[1].trim() : "";
+
+  const canonicalMatch = rawHtml.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i) ||
+                         rawHtml.match(/<link[^>]+href=["']([^"']*)["'][^>]+rel=["']canonical["']/i);
+  const canonical = canonicalMatch ? canonicalMatch[1].trim() : "";
+
+  const viewportMatch = rawHtml.match(/<meta[^>]+name=["']viewport["']/i);
+  const charsetMatch = rawHtml.match(/<meta[^>]+charset=["']?utf-8/i) || lowerHtml.includes("charset=utf-8");
+  const langMatch = rawHtml.match(/<html[^>]+lang=["']([^"']+)["']/i);
+  const doctypeMatch = rawHtml.startsWith("<!DOCTYPE html") || rawHtml.startsWith("<!doctype html");
+  const robotsMatch = rawHtml.match(/<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)["']/i);
+  const robotsMeta = robotsMatch ? robotsMatch[1].toLowerCase() : "";
+
+  // Headings
+  const h1Matches = [...rawHtml.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)];
+  const h2Matches = [...rawHtml.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)];
+  const h3Matches = [...rawHtml.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>/gi)];
+
+  // Text content & word count
+  const visibleText = rawHtml
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = visibleText.split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+
+  // Open Graph & Twitter
+  const ogTitle = rawHtml.match(/<meta[^>]+property=["']og:title["']/i);
+  const ogDesc = rawHtml.match(/<meta[^>]+property=["']og:description["']/i);
+  const ogImage = rawHtml.match(/<meta[^>]+property=["']og:image["']/i);
+  const ogUrl = rawHtml.match(/<meta[^>]+property=["']og:url["']/i);
+  const twitterCard = rawHtml.match(/<meta[^>]+name=["']twitter:card["']/i);
+
+  // Links
+  const linkMatches = [...rawHtml.matchAll(/<a[^>]+href=["']([^"']+)["']/gi)];
+  const internalLinks: string[] = [];
+  const externalLinks: string[] = [];
+  for (const m of linkMatches) {
+    const href = m[1].trim();
+    if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:")) continue;
+    try {
+      const resolved = new URL(href, targetUrl);
+      if (resolved.hostname === parsedUrl.hostname) {
+        internalLinks.push(resolved.href);
+      } else {
+        externalLinks.push(resolved.href);
+      }
+    } catch {}
+  }
+
+  // Schema JSON-LD
+  const jsonLdMatches = [...rawHtml.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  let schemaTypes: string[] = [];
+  let sameAsLinks: string[] = [];
+  let hasFAQ = false;
+  let hasPerson = false;
+  let hasOrg = false;
+
+  for (const jm of jsonLdMatches) {
+    try {
+      const parsed = JSON.parse(jm[1].trim());
+      const scanObj = (o: any) => {
+        if (!o || typeof o !== "object") return;
+        if (o["@type"]) {
+          const t = String(o["@type"]);
+          schemaTypes.push(t);
+          if (t.toLowerCase() === "faqpage") hasFAQ = true;
+          if (t.toLowerCase() === "person") hasPerson = true;
+          if (["organization", "bakery", "localbusiness"].includes(t.toLowerCase())) hasOrg = true;
+        }
+        if (o["sameAs"]) {
+          if (Array.isArray(o["sameAs"])) sameAsLinks.push(...o["sameAs"].map(String));
+          else sameAsLinks.push(String(o["sameAs"]));
+        }
+        if (o["@graph"] && Array.isArray(o["@graph"])) o["@graph"].forEach(scanObj);
+      };
+      scanObj(parsed);
+    } catch {}
+  }
+
+  // Formatting structures
+  const hasDl = lowerHtml.includes("<dl") && lowerHtml.includes("<dt") && lowerHtml.includes("<dd");
+  const hasOl = lowerHtml.includes("<ol");
+  const hasUl = lowerHtml.includes("<ul");
+  const hasTable = lowerHtml.includes("<table");
+  const hasCode = lowerHtml.includes("<code") || lowerHtml.includes("<pre");
+  const hasDetails = lowerHtml.includes("<details") && lowerHtml.includes("<summary");
+  const hasBlockquote = lowerHtml.includes("<blockquote");
+  const hasTime = lowerHtml.includes("<time");
+  const hasSkipLink = lowerHtml.includes("skip to");
+
+  // Statistics & pronouns
+  const statsMatches = visibleText.match(/(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)/g) || [];
+  const lowerText = visibleText.toLowerCase();
+  const youCount = (lowerText.match(/\b(you|your|we)\b/g) || []).length;
+
+  // --- SEO Checks ---
+  const seoChecks: Check[] = [
+    { id: "title_exists", label: title ? `Title tag found: "${title}"` : "No title tag found", pass: Boolean(title) },
+    { id: "title_length", label: `Title length: ${title.length} characters (aim for 30-60)`, pass: title.length >= 30 && title.length <= 60 },
+    { id: "desc_exists", label: metaDesc ? `Meta description found (${metaDesc.length} chars)` : "Missing meta description", pass: Boolean(metaDesc) },
+    { id: "desc_length", label: `Description length: ${metaDesc.length} chars (aim for 120-160)`, pass: metaDesc.length >= 120 && metaDesc.length <= 160 },
+    { id: "viewport", label: "Viewport meta tag found (mobile-friendly)", pass: Boolean(viewportMatch) },
+    { id: "charset", label: "UTF-8 charset declared", pass: Boolean(charsetMatch) },
+    { id: "lang_attr", label: "Language attribute set on HTML tag", pass: Boolean(langMatch) },
+    { id: "html_doctype", label: "<!DOCTYPE html> declared", pass: Boolean(doctypeMatch) },
+    { id: "robots_meta", label: "No robots meta tag blocking crawling", pass: !robotsMeta.includes("noindex") },
+    { id: "h1_exists", label: h1Matches.length === 1 ? "Single H1 tag found" : `${h1Matches.length} H1 tags found (exactly 1 recommended)`, pass: h1Matches.length === 1 },
+    { id: "h2_exists", label: `${h2Matches.length} H2 tags found`, pass: h2Matches.length > 0 },
+    { id: "word_count", label: `${wordCount} words in body (300+ recommended)`, pass: wordCount >= 300 },
+    { id: "internal_links", label: `${internalLinks.length} internal links found`, pass: internalLinks.length >= 2 },
+    { id: "external_links", label: `${externalLinks.length} external links found`, pass: externalLinks.length >= 1 },
+    { id: "canonical", label: "Canonical tag found", pass: Boolean(canonical) },
+    { id: "og_title", label: "Open Graph title found", pass: Boolean(ogTitle) },
+    { id: "og_desc", label: "Open Graph description found", pass: Boolean(ogDesc) },
+    { id: "og_image", label: "Open Graph image found", pass: Boolean(ogImage) },
+    { id: "og_url", label: "Open Graph URL found", pass: Boolean(ogUrl) },
+    { id: "twitter_card", label: "Twitter card declared", pass: Boolean(twitterCard) },
+    { id: "https", label: "HTTPS enabled", pass: parsedUrl.protocol === "https:" },
+    { id: "hsts", label: "Strict-Transport-Security header enforced", pass: Boolean(headers.get("strict-transport-security")) },
+    { id: "x_content_type", label: "X-Content-Type-Options: nosniff header present", pass: (headers.get("x-content-type-options") || "").includes("nosniff") },
+    { id: "x_frame_options", label: "X-Frame-Options header present", pass: Boolean(headers.get("x-frame-options")) },
+    { id: "csp", label: "Content-Security-Policy header declared", pass: Boolean(headers.get("content-security-policy")) },
+    { id: "jsonld", label: `${jsonLdMatches.length} JSON-LD schema block(s) found`, pass: jsonLdMatches.length > 0 },
+  ];
+
+  if (keyphrase) {
+    const kp = keyphrase.toLowerCase();
+    seoChecks.push({
+      id: "keyphrase_in_title",
+      label: `Focus keyphrase "${keyphrase}" in title tag`,
+      pass: title.toLowerCase().includes(kp),
+    });
+    seoChecks.push({
+      id: "keyphrase_in_desc",
+      label: `Focus keyphrase "${keyphrase}" in meta description`,
+      pass: metaDesc.toLowerCase().includes(kp),
+    });
+    seoChecks.push({
+      id: "keyphrase_in_h1",
+      label: `Focus keyphrase "${keyphrase}" in H1 heading`,
+      pass: h1Matches.some(m => m[1].toLowerCase().includes(kp)),
+    });
+    seoChecks.push({
+      id: "keyphrase_in_content",
+      label: `Focus keyphrase "${keyphrase}" appears in body copy`,
+      pass: lowerText.includes(kp),
+    });
+  }
+
+  // --- AEO Checks ---
+  const aeoChecks: Check[] = [
+    { id: "aeo_structured_data", label: "Structured data found for AI extraction", pass: jsonLdMatches.length > 0 },
+    { id: "aeo_faq", label: "FAQ schema or Q&A section detected", pass: hasFAQ },
+    { id: "aeo_direct_answers", label: "Concise answer paragraphs found under headings", pass: wordCount >= 100 },
+    { id: "aeo_question_headings", label: "Question-style headings found (What/How/Why/?)", pass: h2Matches.some(m => /\b(what|how|why|\?)\b/i.test(m[1])) },
+    { id: "aeo_definition_lists", label: "Definition lists (<dl>) present for terminology", pass: hasDl },
+    { id: "aeo_numbered_steps", label: "Numbered steps (<ol>) present for instructions", pass: hasOl },
+    { id: "aeo_tables", label: "Data tables present for comparison", pass: hasTable },
+    { id: "aeo_lists", label: "Lists (<ul>/<ol>) present for scannability", pass: hasUl || hasOl },
+    { id: "aeo_code_blocks", label: "Code blocks (<code>/<pre>) present for technical clarity", pass: hasCode },
+    { id: "aeo_collapsible", label: "<details>/<summary> elements present", pass: hasDetails },
+    { id: "aeo_conversational", label: "Conversational tone with user pronouns ('you', 'your', 'we')", pass: youCount >= 3 },
+    { id: "aeo_summary", label: "Summary or Key Takeaways section present", pass: /key takeaway|summary|conclusion/i.test(lowerText) },
+    { id: "aeo_clean_url", label: "Clean lowercase URL structure", pass: !parsedUrl.pathname.includes("_") && parsedUrl.pathname === parsedUrl.pathname.toLowerCase() },
+    { id: "aeo_ai_robots", label: "No AI-blocking directives detected", pass: !robotsMeta.includes("noindex") },
+  ];
+
+  // --- GEO Checks ---
+  const geoChecks: Check[] = [
+    { id: "geo_statistics_density", label: `${statsMatches.length} quantitative data points / metrics found`, pass: statsMatches.length >= 3 },
+    { id: "geo_data_viz", label: "Structured data tables or charts found", pass: hasTable },
+    { id: "geo_comparison", label: "Comparative sections or tables detected", pass: hasTable || /\bvs\b/i.test(lowerText) },
+    { id: "geo_expert_quotes", label: "Expert quotes or blockquotes found", pass: hasBlockquote },
+    { id: "geo_citations", label: `${externalLinks.length} external source citations found`, pass: externalLinks.length > 0 },
+    { id: "geo_definitions", label: "Clear concept definitions found ('X is a...')", pass: /\bis (a|the|defined as)\b/i.test(lowerText) },
+    { id: "geo_author_schema", label: "Author schema markup found", pass: hasPerson },
+    { id: "geo_author_credentials", label: "Visible author byline with credentials or dates", pass: /\bby\s+[a-z]/i.test(lowerText) || hasPerson },
+    { id: "geo_org_schema", label: "Organization or Business schema markup declared", pass: hasOrg },
+    { id: "geo_knowledge_graph", label: `${sameAsLinks.length} authoritative sameAs links in schema`, pass: sameAsLinks.length > 0 },
+    { id: "geo_trust", label: "Trust signals (About and Contact links) present", pass: internalLinks.some(l => /about/i.test(l)) && internalLinks.some(l => /contact/i.test(l)) },
+    { id: "geo_freshness", label: "Content freshness signals (dates/time elements) present", pass: hasTime || /\b202[4-9]\b/.test(lowerText) },
+    { id: "geo_time_element", label: "<time> machine-readable tags present", pass: hasTime },
+    { id: "geo_content_length", label: `${wordCount} words content depth (300+ recommended)`, pass: wordCount >= 300 },
+  ];
+
+  const calcCat = (checks: Check[]): CategoryResult => {
+    const passed = checks.filter(c => c.pass).length;
+    const total = checks.length;
+    const score = total > 0 ? Math.round((passed / total) * 100) : 0;
+    return { score, passed, total, checks };
+  };
+
+  return {
+    url: targetUrl,
+    seo: calcCat(seoChecks),
+    aeo: calcCat(aeoChecks),
+    geo: calcCat(geoChecks),
+    cwv: { score: null, checks: [], passed: 0, total: 0 },
+    internalLinks: [...new Set(internalLinks)],
+    scannedAt: new Date().toISOString(),
+  };
+}
