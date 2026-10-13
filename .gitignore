@@ -1,0 +1,23 @@
+# Binaries and build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+seoscore-cli
+seoscore-bin
+
+# Test CSVs
+seoscore-report-*.csv
+seoscore-site-report-*.csv
+
+# Cloudflare Wrangler cache
+worker/.wrangler/
+worker/node_modules/
+.wrangler/
+node_modules/
+
+# Generated
+__pycache__/
+mcp/dist/
+testdata/reports/
