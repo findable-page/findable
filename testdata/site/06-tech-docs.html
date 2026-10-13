@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REST API Authentication Guide - Acme Developer Platform</title>
+  <meta name="description" content="Step-by-step developer documentation on authenticating requests to Acme API using Bearer tokens, HMAC signatures, and OAuth2.">
+  <link rel="canonical" href="https://example.com/06-tech-docs.html">
+</head>
+<body>
+  <header><nav><a href="/">Home</a> | <a href="/about">About</a> | <a href="/contact">Contact</a></nav></header>
+  <main>
+    <h1>REST API Authentication Guide</h1>
+    <p>Version 2.4 | Last updated <time datetime="2026-10-01">October 1, 2026</time></p>
+    <h2>Overview</h2>
+    <p>All requests made to the Acme Developer Platform API must include an authorized token in the HTTP Authorization header. Unauthorized calls return an HTTP 401 response status code.</p>
+    <h2>Generating an API Key</h2>
+    <ol>
+      <li>Log into your Acme Developer Dashboard.</li>
+      <li>Navigate to Settings &gt; API Keys &gt; Create New Secret.</li>
+      <li>Store the displayed API secret key in a secure secrets manager.</li>
+    </ol>
+    <h2>Making an Authenticated Request</h2>
+    <p>Pass your token inside the Authorization header with the Bearer prefix:</p>
+    <pre><code>curl -X GET "https://api.acme.example.com/v1/projects" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Accept: application/json"</code></pre>
+    <h2>Handling Token Expiration</h2>
+    <p>Access tokens expire every 3600 seconds (1 hour). Use the refresh token endpoint to obtain a new access token without requiring manual re-authentication.</p>
+  </main>
+  <footer><p>&copy; 2026 Acme Corp Developers</p></footer>
+</body>
+</html>
