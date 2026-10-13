@@ -1,0 +1,40 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - copyloopvar
+    - errorlint
+    - errname
+    - funlen
+    - goconst
+    - gocritic
+    - gocyclo
+    - gosec
+    - intrange
+    - misspell
+    - nilerr
+    - noctx
+    - perfsprint
+    - prealloc
+    - revive
+    - unconvert
+    - unparam
+    - usestdlibvars
+  settings:
+    funlen:
+      lines: 80
+      statements: 50
+    gocyclo:
+      min-complexity: 15
+    goconst:
+      # JSON-RPC/schema keys and HTML attribute names repeat with unrelated meanings;
+      # one shared constant would couple them.
+      ignore-string-values:
+        - "^(name|description|text|type)$"
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports

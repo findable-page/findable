@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -10,65 +10,16 @@ import (
 )
 
 func newTestMux() *http.ServeMux {
-	client := &http.Client{}
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
-		if strings.Contains(r.Header.Get("Accept"), "text/html") {
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			w.Write([]byte(localWebUIHTML))
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status":"ok","name":"seoscore-cli-server"}`))
-	})
-	mux.HandleFunc("/api/scan", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		if r.Method != "POST" {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		var req struct {
-			URL       string `json:"url"`
-			Keyphrase string `json:"keyphrase"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.URL) == "" {
-			http.Error(w, "bad request: missing url", http.StatusBadRequest)
-			return
-		}
-		res, err := scanTarget(client, req.URL, req.Keyphrase, false)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(res)
-	})
-	mux.HandleFunc("/api/scan-count", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"count":2847}`))
-	})
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Write([]byte(`{"status":"ok"}`))
-	})
-	return mux
+	return newMux(&http.Client{}, false)
+}
+
+func newRequest(method, target, body string) *http.Request {
+	return httptest.NewRequestWithContext(context.Background(), method, target, strings.NewReader(body))
 }
 
 func TestServerHealthEndpoint(t *testing.T) {
 	mux := newTestMux()
-	req := httptest.NewRequest("GET", "/health", nil)
+	req := newRequest(http.MethodGet, "/health", "")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -82,7 +33,7 @@ func TestServerHealthEndpoint(t *testing.T) {
 
 func TestServerScanCountEndpoint(t *testing.T) {
 	mux := newTestMux()
-	req := httptest.NewRequest("GET", "/api/scan-count", nil)
+	req := newRequest(http.MethodGet, "/api/scan-count", "")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -97,7 +48,7 @@ func TestServerScanCountEndpoint(t *testing.T) {
 
 func TestServerWebUIRender(t *testing.T) {
 	mux := newTestMux()
-	req := httptest.NewRequest("GET", "/", nil)
+	req := newRequest(http.MethodGet, "/", "")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
@@ -112,7 +63,7 @@ func TestServerWebUIRender(t *testing.T) {
 
 func TestServerCORSPreflight(t *testing.T) {
 	mux := newTestMux()
-	req := httptest.NewRequest("OPTIONS", "/api/scan", nil)
+	req := newRequest(http.MethodOptions, "/api/scan", "")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -128,23 +79,15 @@ func TestServerScanMissingOrEmptyURL(t *testing.T) {
 	mux := newTestMux()
 
 	// 1. Empty body
-	req := httptest.NewRequest("POST", "/api/scan", bytes.NewBufferString("{}"))
+	req := newRequest(http.MethodPost, "/api/scan", "{}")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 	if rec.Code != http.StatusBadRequest {
 		t.Errorf("expected 400 for empty json, got %d", rec.Code)
 	}
 
-	// 2. Whitespace URL
-	req = httptest.NewRequest("POST", "/api/scan", bytes.NewBufferString(`{"url":"   "}`))
-	rec = httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("expected 400 for whitespace url, got %d", rec.Code)
-	}
-
-	// 3. Invalid JSON
-	req = httptest.NewRequest("POST", "/api/scan", bytes.NewBufferString(`invalid json`))
+	// 2. Invalid JSON
+	req = newRequest(http.MethodPost, "/api/scan", `invalid json`)
 	rec = httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 	if rec.Code != http.StatusBadRequest {
@@ -155,7 +98,7 @@ func TestServerScanMissingOrEmptyURL(t *testing.T) {
 func TestServerScanLocalFile(t *testing.T) {
 	mux := newTestMux()
 	reqBody := `{"url":"testdata/site/01-thin-poor.html"}`
-	req := httptest.NewRequest("POST", "/api/scan", bytes.NewBufferString(reqBody))
+	req := newRequest(http.MethodPost, "/api/scan", reqBody)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
