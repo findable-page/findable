@@ -1,0 +1,21 @@
+{
+  "name": "seoscore-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for SEO, AEO & GEO Auditing",
+  "type": "module",
+  "bin": {
+    "seoscore-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.7.0"
+  }
+}
