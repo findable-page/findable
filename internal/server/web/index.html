@@ -319,6 +319,24 @@
       display: flex;
       justify-content: space-between;
     }
+    .link-btn {
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      color: var(--accent);
+      text-transform: inherit;
+      letter-spacing: inherit;
+      cursor: pointer;
+    }
+    .field-label {
+      display: block;
+      text-align: left;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 0.4rem;
+    }
     .recent-items {
       display: flex;
       gap: 0.5rem;
@@ -714,23 +732,23 @@
     .toast.show { transform: translateY(0); opacity: 1; }
 
     /* Modal Dialog */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+    dialog.modal {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--text);
+      width: min(100% - 2rem, 720px);
+      max-width: none;
+      margin: auto;
+    }
+    dialog.modal::backdrop {
       background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(4px);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
     }
     .modal-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
-      max-width: 720px;
-      width: 100%;
       padding: 2rem;
       box-shadow: var(--shadow-lg);
       max-height: 90vh;
@@ -904,6 +922,7 @@
         </div>
 
         <form id="scanForm">
+          <label class="field-label" for="urlInput">Page URL to audit</label>
           <div class="input-row">
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
@@ -917,7 +936,7 @@
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
           </div>
-          <input type="text" id="keyphraseInput" class="keyphrase-input" placeholder="Focus keyphrase / keyword (optional)">
+          <input type="text" id="keyphraseInput" class="keyphrase-input" placeholder="Focus keyphrase / keyword (optional)" aria-label="Focus keyphrase (optional)">
         </form>
       </div>
 
@@ -925,7 +944,7 @@
       <div id="recentScansWrap" class="recent-strip hidden">
         <div class="recent-header">
           <span>Recent Scans</span>
-          <span style="cursor: pointer;" id="btnClearHistory">Clear</span>
+          <button type="button" class="link-btn" id="btnClearHistory">Clear</button>
         </div>
         <div id="recentList" class="recent-items"></div>
       </div>
@@ -1099,12 +1118,12 @@
 
       <!-- Detailed Diagnostics Toolbar -->
       <div class="toolbar">
-        <div class="tab-group" role="tablist">
-          <button class="tab-btn active" data-filter="all" role="tab">All (<span id="countAll">0</span>)</button>
-          <button class="tab-btn" data-filter="SEO" role="tab">SEO (<span id="countSEO">0</span>)</button>
-          <button class="tab-btn" data-filter="AEO" role="tab">AEO (<span id="countAEO">0</span>)</button>
-          <button class="tab-btn" data-filter="GEO" role="tab">GEO (<span id="countGEO">0</span>)</button>
-          <button class="tab-btn" data-filter="FAIL" role="tab">Failing (<span id="countFail">0</span>)</button>
+        <div class="tab-group" role="group" aria-label="Filter checks by family">
+          <button type="button" class="tab-btn active" data-filter="all" aria-pressed="true" aria-controls="checksList">All (<span id="countAll">0</span>)</button>
+          <button type="button" class="tab-btn" data-filter="SEO" aria-pressed="false" aria-controls="checksList">SEO (<span id="countSEO">0</span>)</button>
+          <button type="button" class="tab-btn" data-filter="AEO" aria-pressed="false" aria-controls="checksList">AEO (<span id="countAEO">0</span>)</button>
+          <button type="button" class="tab-btn" data-filter="GEO" aria-pressed="false" aria-controls="checksList">GEO (<span id="countGEO">0</span>)</button>
+          <button type="button" class="tab-btn" data-filter="FAIL" aria-pressed="false" aria-controls="checksList">Failing (<span id="countFail">0</span>)</button>
         </div>
 
         <div class="filter-actions">
@@ -1122,12 +1141,11 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </div>
 
-  <!-- API & MCP Modal Dialog -->
-  <div id="apiModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="apiModalTitle">
+  <dialog id="apiModal" class="modal" aria-labelledby="apiModalTitle">
     <div class="modal-card">
       <div class="modal-title-row">
-        <div class="modal-title" id="apiModalTitle">Free & Open-Source API & MCP Tools</div>
-        <button class="btn-close" id="btnCloseApiModal" aria-label="Close dialog">&times;</button>
+        <h2 class="modal-title" id="apiModalTitle">Free & Open-Source API & MCP Tools</h2>
+        <button type="button" class="btn-close" id="btnCloseApiModal" aria-label="Close dialog">&times;</button>
       </div>
 
       <p style="color: var(--text-2); margin-bottom: 1rem;">Integrate seoscore directly into your CI pipelines, terminal workflows, or AI coding agents.</p>
@@ -1155,7 +1173,7 @@ seoscore-cli https://example.com</div>
       <h4 style="margin-bottom: 0.5rem;">4. NPX Node MCP Runner</h4>
       <div class="code-block">npx -y seoscore-mcp</div>
     </div>
-  </div>
+  </dialog>
 
   <script>
     // Theme toggle
@@ -1175,25 +1193,12 @@ seoscore-cli https://example.com</div>
       setTimeout(() => t.classList.remove("show"), 2800);
     }
 
-    // Modal Handlers with keyboard accessibility
     const apiModal = document.getElementById("apiModal");
     const btnOpenApi = document.getElementById("btnOpenApiModal");
-    const btnCloseApi = document.getElementById("btnCloseApiModal");
-    btnOpenApi.addEventListener("click", () => {
-      apiModal.classList.remove("hidden");
-      btnCloseApi.focus();
-    });
-    btnCloseApi.addEventListener("click", () => {
-      apiModal.classList.add("hidden");
-      btnOpenApi.focus();
-    });
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !apiModal.classList.contains("hidden")) {
-        apiModal.classList.add("hidden");
-        btnOpenApi.focus();
-      }
-    });
-    apiModal.addEventListener("click", (e) => { if (e.target === apiModal) apiModal.classList.add("hidden"); });
+    btnOpenApi.addEventListener("click", () => apiModal.showModal());
+    document.getElementById("btnCloseApiModal").addEventListener("click", () => apiModal.close());
+    apiModal.addEventListener("click", (e) => { if (e.target === apiModal) apiModal.close(); });
+    apiModal.addEventListener("close", () => btnOpenApi.focus());
 
     // Live counter
     fetch("/api/scan-count").then(r => r.json()).then(d => {
@@ -1542,8 +1547,10 @@ seoscore-cli https://example.com</div>
     // Tabs & Filter handlers
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.toggle("active", b === btn);
+          b.setAttribute("aria-pressed", String(b === btn));
+        });
         currentFilter = btn.dataset.filter;
         filterAndRenderChecks();
       });
