@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	usageLine     = "findable: is your site findable by Google and by AI answer engines?\nusage: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] <url or file>"
+	usageLine     = "findable: is your site findable by Google and by AI answer engines?\nusage: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] [-allow-private] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -25,17 +25,18 @@ const (
 )
 
 type options struct {
-	outDir    string
-	quiet     bool
-	keyphrase string
-	crawl     bool
-	sitemap   string
-	site      bool
-	limit     int
-	serve     string
-	mcp       bool
-	format    report.Format
-	failUnder int
+	outDir       string
+	quiet        bool
+	keyphrase    string
+	crawl        bool
+	sitemap      string
+	site         bool
+	limit        int
+	serve        string
+	mcp          bool
+	allowPrivate bool
+	format       report.Format
+	failUnder    int
 }
 
 func parseFlags() options {
@@ -49,6 +50,7 @@ func parseFlags() options {
 	flag.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl or -sitemap is enabled")
 	flag.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. :8080)")
 	flag.BoolVar(&o.mcp, "mcp", false, "run Model Context Protocol (MCP) server over stdio")
+	flag.BoolVar(&o.allowPrivate, "allow-private", false, "allow scanning localhost and private-network targets")
 	flag.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when the overall score of any page is below N")
 	format := flag.String("format", string(report.FormatCSV), "report format: csv, json or sarif")
 	flag.Usage = func() { fmt.Fprintln(os.Stderr, usageLine) }
@@ -65,7 +67,7 @@ func parseFlags() options {
 
 func main() {
 	opts := parseFlags()
-	client := &http.Client{Timeout: clientTimeout}
+	client := newClient(opts.allowPrivate)
 
 	switch {
 	case opts.mcp:
@@ -87,6 +89,13 @@ func main() {
 		}
 		runAudit(client, flag.Arg(0), opts)
 	}
+}
+
+func newClient(allowPrivate bool) *http.Client {
+	if allowPrivate {
+		return &http.Client{Timeout: clientTimeout}
+	}
+	return fetch.NewGuardedClient()
 }
 
 func serveHTTP(addr string) {

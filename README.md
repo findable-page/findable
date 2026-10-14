@@ -53,7 +53,7 @@ It prints the four scores and the failing checks, and saves a report file in `-o
 
 ```
 findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
-         [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] <url or file>
+         [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] [-allow-private] <url or file>
 ```
 
 | Flag | Meaning |
@@ -67,6 +67,7 @@ findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
 | `-o`, `-q` | Report directory; `-q` hides the failing-check list. |
 | `-serve :8080` | Local API and web UI. Keep it on localhost. |
 | `-mcp` | MCP server over stdio. |
+| `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts. |
 
 ```bash
 findable -q -format sarif -fail-under 70 https://example.com
