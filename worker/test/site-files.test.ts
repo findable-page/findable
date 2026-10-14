@@ -42,6 +42,15 @@ test("llms.txt follows the llmstxt.org shape and llms-full.txt documents the API
   expect(fullBody).toContain("npx -y findable-mcp");
 });
 
+test("the HTML page carries HSTS and a referrer policy next to the existing hardening", async () => {
+  const resp = await get("/");
+  expect(resp.headers.get("Strict-Transport-Security")).toBe("max-age=31536000; includeSubDomains");
+  expect(resp.headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
+  expect(resp.headers.get("X-Content-Type-Options")).toBe("nosniff");
+  expect(resp.headers.get("X-Frame-Options")).toBe("DENY");
+  expect(resp.headers.get("Content-Security-Policy")).toContain("frame-ancestors 'none'");
+});
+
 test("site files answer GET only", async () => {
   const resp = await worker.fetch(new Request(`${ORIGIN}/robots.txt`, { method: "POST" }));
   expect(resp.status).toBe(404);

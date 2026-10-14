@@ -78,6 +78,16 @@ async function buildUiPolicy(): Promise<string> {
   ].join("; ");
 }
 
+function securityHeaders(csp: string): Record<string, string> {
+  return {
+    "Content-Security-Policy": csp,
+    "X-Content-Type-Options": "nosniff",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+  };
+}
+
 const HOME_PAGE: PageEntry = {
   path: "/",
   title: "findable",
@@ -117,8 +127,7 @@ const worker = {
         headers: {
           ...CORS_HEADERS,
           "Content-Type": "text/html; charset=utf-8",
-          "Content-Security-Policy": await uiPolicy,
-          "X-Content-Type-Options": "nosniff",
+          ...securityHeaders(await uiPolicy),
         },
       });
     }
