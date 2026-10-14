@@ -105,7 +105,7 @@ curl -s -X POST https://findable.piply.xyz/api/scan \
 permissions:
   security-events: write
 steps:
-  - uses: nadimtuhin/findable@main
+  - uses: nadimtuhin/findable@v0.2.0
     with:
       url: https://example.com
       fail-under: 70
