@@ -4,7 +4,7 @@ People used to ask one question: does my site rank on Google? Now they also ask 
 
 ## An engine that runs offline
 
-findable started as a small Go CLI that scored a page against a fixed set of checks. The first version leaned on a hosted service. I removed that. Today the engine runs on your machine: it reads a URL or a local HTML file, extracts signals once, and runs 72 page checks plus 7 optional site checks. No account, no rate limit. Scoring a local file is fully offline; fetching a URL or running site checks makes network requests. The same code answers every front end, so the CLI, the API and the MCP server agree on the 72 page checks. Keyphrase scoring is the exception: only the edge API does it today.
+findable started as a small Go CLI that scored a page against a fixed set of checks. The first version leaned on a hosted service. I removed that. Today the engine runs on your machine: it reads a URL or a local HTML file, extracts signals once, and runs 72 page checks plus 7 optional site checks. No account, no rate limit. Scoring a local file is fully offline; fetching a URL or running site checks makes network requests. The CLI, the local API and the MCP server share that engine. The edge API at findable.piply.xyz runs a smaller TypeScript port of it: 54 page checks. Keyphrase scoring is the exception: only the edge API does it today.
 
 ## Three families, one score
 

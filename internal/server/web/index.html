@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>findable: is your site findable by Google and AI?</title>
-  <meta name="description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with 72 checks and ranked fixes.">
+  <meta name="description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
   <link rel="canonical" href="https://findable.piply.xyz/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -13,11 +13,11 @@
   <meta property="og:site_name" content="findable">
   <meta property="og:url" content="https://findable.piply.xyz/">
   <meta property="og:title" content="findable: is your site findable by Google and AI?">
-  <meta property="og:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with 72 checks and ranked fixes.">
+  <meta property="og:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
   <meta property="og:image" content="https://findable.piply.xyz/og.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="findable: is your site findable by Google and AI?">
-  <meta name="twitter:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with 72 checks and ranked fixes.">
+  <meta name="twitter:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
   <meta name="twitter:image" content="https://findable.piply.xyz/og.png">
   <!--slot:head-->
   <script>
@@ -296,9 +296,9 @@
 
   <main class="container">
     <section class="hero">
-      <div class="hero-badge">Free · No signup · 72 checks</div>
+      <div class="hero-badge">Free · No signup · 50+ checks</div>
       <h1 class="hero-title">Is your site findable by Google and by <span class="hl">ChatGPT, Perplexity and Claude</span>?</h1>
-      <p class="hero-subtitle">Paste a URL. findable scores the page for SEO, AEO and GEO with 72 checks, then shows the fixes worth the most points. New to the terms? Read the <a href="/learn">plain-words guide</a>.</p>
+      <p class="hero-subtitle">Paste a URL. findable scores the page for SEO, AEO and GEO with 50+ checks, then shows the fixes worth the most points. New to the terms? Read the <a href="/learn">plain-words guide</a>.</p>
 
       <div class="scan-card">
         <div class="mode-toggle">
@@ -334,7 +334,7 @@
         <div id="recentList" class="recent-items"></div>
       </div>
 
-      <p class="trust-row"><span>72 page checks</span><span>SEO, AEO and GEO</span><span>Free API and MCP</span></p>
+      <p class="trust-row"><span>50+ page checks</span><span>SEO, AEO and GEO</span><span>Free API and MCP</span></p>
     </section>
 
     <div id="crawlSection" class="crawl-box hidden" role="region" aria-label="Crawl progress" aria-live="polite">
@@ -423,7 +423,7 @@
       <p class="byline">By <span>Nadim Tuhin</span> · Published <time datetime="2026-10-14">14 October 2026</time> · Updated <time datetime="2026-10-14">14 October 2026</time></p>
 
       <h2 id="about">What is findable?</h2>
-      <p>findable is a free scanner that scores one web page on traditional SEO, answer engine optimization (AEO) and generative engine optimization (GEO). It runs 72 page checks, gives you one overall score from 0 to 100, and ranks the fixes by how many points each one recovers.</p>
+      <p>findable is a free scanner that scores one web page on traditional SEO, answer engine optimization (AEO) and generative engine optimization (GEO). It runs 50+ page checks, gives you one overall score from 0 to 100, and ranks the fixes by how many points each one recovers.</p>
       <dl class="terms">
         <dt>SEO</dt><dd>Search engine optimization. Make the page easy for a search crawler to fetch, read and rank.</dd>
         <dt>AEO</dt><dd>Answer engine optimization. Shape the page so an answer box or chat tool can lift a short, correct answer.</dd>
@@ -439,7 +439,7 @@
           <tbody>
             <tr><th scope="row">Reader</th><td>Search crawler</td><td>Answer box or chat tool</td><td>Generative AI model</td></tr>
             <tr><th scope="row">It wins when</th><td>The page is crawlable and clear</td><td>A passage answers a question directly</td><td>Facts, authors and sources are explicit</td></tr>
-            <tr><th scope="row">Page checks</th><td>36</td><td>17</td><td>19</td></tr>
+            <tr><th scope="row">Page checks</th><td>26 to 36</td><td>14 to 17</td><td>14 to 19</td></tr>
             <tr><th scope="row">Weight in score</th><td>50 of 100</td><td>25 of 100</td><td>25 of 100</td></tr>
           </tbody>
         </table>
@@ -671,7 +671,7 @@ findable https://example.com</code></pre>
       return box;
     }
 
-    const STEPS = ["Fetching the page", "Checking SEO (36 checks)", "Checking AEO (17 checks)", "Checking GEO (19 checks)", "Ranking your fixes"];
+    const STEPS = ["Fetching the page", "Checking SEO", "Checking AEO", "Checking GEO", "Ranking your fixes"];
     let stepTimer = 0;
     function paintSteps(active) {
       [...$("agentSteps").children].forEach((li, i) => { li.dataset.state = i < active ? "done" : i === active ? "run" : "wait"; });

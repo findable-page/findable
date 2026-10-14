@@ -1,10 +1,14 @@
-import { expect, test } from "bun:test";
+import { afterEach, expect, test } from "bun:test";
 import worker from "../src/index";
 import { robotsAllows } from "../src/site";
 import { HEAD_SLOT_MARKER, headSlot, injectHead } from "../src/site-files";
 
 const ORIGIN = "https://w.test";
 const get = (path: string) => worker.fetch(new Request(`${ORIGIN}${path}`));
+const realFetch = globalThis.fetch;
+afterEach(() => {
+  globalThis.fetch = realFetch;
+});
 
 test("robots.txt is plain text, allows the four AI bots, hides /api/ and names the sitemap", async () => {
   const resp = await get("/robots.txt");
@@ -91,4 +95,17 @@ test("injectHead replaces the marker and leaves a page without it untouched", ()
 test("site files answer GET only", async () => {
   const resp = await worker.fetch(new Request(`${ORIGIN}/robots.txt`, { method: "POST" }));
   expect(resp.status).toBe(404);
+});
+
+test("the worker's llms.txt states the check counts the worker really runs, and the UI states none", async () => {
+  globalThis.fetch = (async () => new Response("<html></html>")) as unknown as typeof fetch;
+  const scan = (await (
+    await worker.fetch(new Request(`${ORIGIN}/api/scan`, { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }))
+  ).json()) as Record<"seo" | "aeo" | "geo", { checks: unknown[] }>;
+  const [s, a, g] = [scan.seo, scan.aeo, scan.geo].map((c) => c.checks.length);
+  const llms = await (await get("/llms.txt")).text();
+  expect(llms).toContain(`${(s ?? 0) + (a ?? 0) + (g ?? 0)} page checks (${s} SEO, ${a} AEO, ${g} GEO)`);
+  const ui = await (await get("/")).text();
+  expect(ui).not.toMatch(/\b(72|36|19) (page )?checks/);
+  expect(ui).not.toContain("<td>36</td>");
 });

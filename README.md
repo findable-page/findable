@@ -29,7 +29,7 @@ One overall score from 0 to 100, built from three families:
 | AEO (answer engine optimization) | 25% | 17 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
 | GEO (generative engine optimization) | 25% | 19 | Author and organization markup, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
 
-That is 72 page checks. Seven more site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, GPTBot, ClaudeBot, PerplexityBot and Google-Extended, and `/llms.txt` present. Every failing check names what to fix.
+That is 72 page checks in the Go engine. The edge API runs a smaller port with 54. Seven more site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, GPTBot, ClaudeBot, PerplexityBot and Google-Extended, and `/llms.txt` present. Every failing check names what to fix.
 
 ## Quickstart
 
