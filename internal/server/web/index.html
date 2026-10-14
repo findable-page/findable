@@ -72,6 +72,13 @@
     .nav-link:hover { color: var(--accent); }
     .btn-api-badge, .btn-action, .theme-toggle { background: var(--surface); border: 1px solid var(--border-ui); color: var(--text); border-radius: 10px; font: inherit; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
     .share-status { font-size: 0.85rem; color: var(--text); align-self: center; }
+    .share-wrap { position: relative; }
+    .share-panel { position: absolute; right: 0; top: calc(100% + 0.4rem); z-index: 20; width: min(22rem, 90vw); display: grid; gap: 0.6rem; padding: 0.9rem; background: var(--surface); border: 1px solid var(--border-ui); border-radius: 12px; box-shadow: 0 10px 30px rgba(15, 18, 34, 0.15); }
+    .share-panel[hidden] { display: none; }
+    .share-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .share-links a { text-decoration: none; }
+    .share-label { font-size: 0.8rem; font-weight: 600; color: var(--text-2); }
+    .share-text { font: inherit; font-size: 0.85rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; resize: vertical; }
     .btn-api-badge, .btn-action { padding: 0.5rem 0.9rem; }
     .btn-api-badge { color: var(--text); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
     .theme-toggle { width: 40px; height: 40px; justify-content: center; }
@@ -396,7 +403,23 @@
           <button type="button" class="btn-action" id="btnExportJSON">JSON</button>
           <button type="button" class="btn-action" id="btnExportCSV">CSV</button>
           <button type="button" class="btn-action" id="btnExportMD">MD</button>
-          <button type="button" class="btn-action" id="btnShareReport">Share</button>
+          <div class="share-wrap">
+            <button type="button" class="btn-action" id="btnShareReport" aria-expanded="false" aria-controls="sharePanel">Share</button>
+            <div class="share-panel" id="sharePanel" hidden>
+              <div class="share-links">
+                <a class="btn-action" id="shareX" target="_blank" rel="noopener">X</a>
+                <a class="btn-action" id="shareLinkedIn" target="_blank" rel="noopener">LinkedIn</a>
+                <a class="btn-action" id="shareFacebook" target="_blank" rel="noopener">Facebook</a>
+                <button type="button" class="btn-action" id="shareNative" hidden>More…</button>
+              </div>
+              <label class="share-label" for="shareText">Text to paste anywhere</label>
+              <textarea id="shareText" class="share-text" rows="4" readonly></textarea>
+              <div class="share-links">
+                <button type="button" class="btn-action" id="shareCopyText">Copy text</button>
+                <button type="button" class="btn-action" id="shareCopyLink">Copy link</button>
+              </div>
+            </div>
+          </div>
           <span id="shareStatus" class="share-status" role="status" aria-live="polite"></span>
         </div>
       </section>
@@ -1096,19 +1119,49 @@ findable https://example.com</code></pre>
       showToast("Markdown report exported");
     });
 
-    $("btnShareReport").addEventListener("click", async () => {
-      if (!currentScan) return;
+    function shareSummary() {
+      const host = recentHost(scannedUrl) || scannedUrl;
+      return `${host} scores ${overallScore(currentScan)}/100 on findable (SEO ${currentScan.seo.score}, AEO ${currentScan.aeo.score}, GEO ${currentScan.geo.score}).`;
+    }
+
+    function setSharePanel(open) {
+      $("sharePanel").hidden = !open;
+      $("btnShareReport").setAttribute("aria-expanded", String(open));
+      if (!open) return;
       const link = shareLink();
-      if (navigator.share) {
-        try { await navigator.share({ title: "findable report", url: link }); } catch {}
-        return;
-      }
+      const enc = encodeURIComponent;
+      $("shareX").href = `https://x.com/intent/post?text=${enc(shareSummary() + " How findable is your site by Google and AI?")}&url=${enc(link)}`;
+      $("shareLinkedIn").href = `https://www.linkedin.com/sharing/share-offsite/?url=${enc(link)}`;
+      $("shareFacebook").href = `https://www.facebook.com/sharer/sharer.php?u=${enc(link)}`;
+      $("shareText").value = `${shareSummary()}\nFull report: ${link}`;
+      $("shareNative").hidden = !navigator.share;
+    }
+
+    async function copyShare(text, done) {
       try {
-        await navigator.clipboard.writeText(link);
-        $("shareStatus").textContent = "Link copied";
+        await navigator.clipboard.writeText(text);
+        $("shareStatus").textContent = done;
       } catch {
-        $("shareStatus").textContent = "Could not copy the link";
+        $("shareStatus").textContent = "Could not copy";
       }
+    }
+
+    $("btnShareReport").addEventListener("click", () => {
+      if (!currentScan) return;
+      setSharePanel($("sharePanel").hidden);
+    });
+    $("shareCopyText").addEventListener("click", () => copyShare($("shareText").value, "Text copied"));
+    $("shareCopyLink").addEventListener("click", () => copyShare(shareLink(), "Link copied"));
+    $("shareNative").addEventListener("click", async () => {
+      try { await navigator.share({ title: "findable report", text: shareSummary(), url: shareLink() }); } catch {}
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Escape" || $("sharePanel").hidden) return;
+      setSharePanel(false);
+      $("btnShareReport").focus();
+    });
+    document.addEventListener("click", e => {
+      if (!$("sharePanel").hidden && !e.target.closest(".share-wrap")) setSharePanel(false);
     });
 
     async function scanOnce(url, keyphrase) {
