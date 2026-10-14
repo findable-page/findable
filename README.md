@@ -57,6 +57,12 @@ seoscore -k "cloud performance" https://example.com
 seoscore -crawl -limit 20 https://example.com
 ```
 
+Or audit the pages a sitemap lists (sitemap indexes are followed, `-limit` still applies):
+
+```bash
+seoscore -sitemap https://example.com/sitemap.xml -limit 50
+```
+
 ### Output formats
 
 `-format csv` (default), `-format json` (the same object `/api/scan` returns) or `-format sarif`

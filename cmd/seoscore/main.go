@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-crawl] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
+	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-crawl] [-sitemap url] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -29,6 +29,7 @@ type options struct {
 	quiet     bool
 	keyphrase string
 	crawl     bool
+	sitemap   string
 	limit     int
 	delay     time.Duration
 	remote    bool
@@ -44,7 +45,8 @@ func parseFlags() options {
 	flag.BoolVar(&o.quiet, "q", false, "do not list failing checks")
 	flag.StringVar(&o.keyphrase, "k", "", "target keyphrase for audit")
 	flag.BoolVar(&o.crawl, "crawl", false, "crawl internal links up to limit pages")
-	flag.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl is enabled")
+	flag.StringVar(&o.sitemap, "sitemap", "", "audit the pages listed in this sitemap.xml, up to limit pages")
+	flag.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl or -sitemap is enabled")
 	flag.DurationVar(&o.delay, "delay", 3*time.Second, "delay between crawl requests")
 	flag.BoolVar(&o.remote, "remote", false, "use remote seoscore.tools API instead of local engine")
 	flag.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. :8080)")
@@ -73,6 +75,14 @@ func main() {
 	case opts.serve != "":
 		serveHTTP(opts.serve, client, opts.remote)
 	default:
+		if opts.sitemap != "" {
+			if flag.NArg() != 0 {
+				flag.Usage()
+				os.Exit(exitUsage)
+			}
+			runSitemap(client, opts)
+			return
+		}
 		if flag.NArg() != 1 {
 			flag.Usage()
 			os.Exit(exitUsage)
@@ -125,7 +135,37 @@ func reportHostName(target string) string {
 }
 
 func runCrawl(client *http.Client, start, hostName string, opts options) {
-	pages, err := fetch.Crawl(client, start, fetch.CrawlOptions{
+	pages, err := fetch.Crawl(client, start, crawlOptions(opts))
+	if err != nil {
+		fail("%v", err)
+	}
+	saveSiteReport(pages, hostName, opts)
+}
+
+func runSitemap(client *http.Client, opts options) {
+	if !fetch.IsHTTPURL(opts.sitemap) {
+		fail("-sitemap requires an http(s) URL")
+	}
+	hostName := reportHostName(opts.sitemap)
+	if err := os.MkdirAll(opts.outDir, reportDirMode); err != nil { //nolint:gosec // reports are shareable output, not secrets
+		fail("create %s: %v", opts.outDir, err)
+	}
+	urls, err := fetch.SitemapURLs(client, opts.sitemap, opts.limit)
+	if err != nil {
+		fail("%v", err)
+	}
+	if len(urls) == 0 {
+		fail("sitemap %s lists no pages", opts.sitemap)
+	}
+	pages, err := fetch.ScanAll(client, urls, crawlOptions(opts))
+	if err != nil {
+		fail("%v", err)
+	}
+	saveSiteReport(pages, hostName, opts)
+}
+
+func crawlOptions(opts options) fetch.CrawlOptions {
+	return fetch.CrawlOptions{
 		Keyphrase: opts.keyphrase,
 		Limit:     opts.limit,
 		Delay:     opts.delay,
@@ -133,10 +173,10 @@ func runCrawl(client *http.Client, start, hostName string, opts options) {
 		OnPage: func(done, limit int, p audit.Page) {
 			printCrawlProgress(done, limit, p, opts.quiet)
 		},
-	})
-	if err != nil {
-		fail("%v", err)
 	}
+}
+
+func saveSiteReport(pages []audit.Page, hostName string, opts options) {
 	path := reportPath(opts.outDir, "seoscore-site-report", hostName, opts.format)
 	writeReport(path, report.SiteReport(opts.format, hostName, pages))
 	fmt.Printf("saved %s (%d pages)\n", path, len(pages))
