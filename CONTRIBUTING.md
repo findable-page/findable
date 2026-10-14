@@ -26,3 +26,4 @@ That runs `go vet`, `golangci-lint run`, `go test -race`, and `biome check` plus
 - Behaviour changes need a failing test first.
 - Scores, CSV bytes and API JSON are a contract: a change to any of them needs a reason in the PR.
 - One concern per pull request.
+- Changes to the fetch guard (`internal/fetch/guard.go`, `worker/src/guard.ts`) must keep the policy in SECURITY.md true and add a test for each new blocked case.
