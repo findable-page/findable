@@ -13,12 +13,19 @@ All notable changes to this project are documented here. The format follows [Kee
 - `/learn` articles on SEO, AEO, GEO and every check group.
 - Logo drafts, build story, cover image, CONTRIBUTING, SECURITY with an SSRF policy, issue and PR templates.
 - Strict golangci-lint and Biome configs, CI jobs and GoReleaser config.
+- Worker site files: `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/llms-full.txt`, JSON-LD in the home page head, and HSTS, X-Frame-Options and Referrer-Policy headers.
+- Worker static assets in `worker/public/` (favicon, touch icon, og image), with a test that keeps them in step with the UI.
+- A test that scans the home page in-process and requires SEO 90, AEO 85 and GEO 80.
 
 ### Changed
 - Renamed the product to findable; module path is `github.com/nadimtuhin/findable`.
 - Split the CLI into `cmd/findable` and `internal/` packages.
 - Results UI shows a score hero, family cards and a failing-first issue list with AA contrast colors.
 - The API returns the composite overall score.
+- Redesigned the web UI for the AI era; the worker bundle budget is now 50 KiB gzip.
+
+### Removed
+- The remote scan mode.
 
 ### Security
 - Scan fetches block private and reserved addresses (including 6to4, Teredo and NAT64), allow only ports 80 and 443, re-check up to 5 redirects, and cap pages at 5 MB.

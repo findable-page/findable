@@ -11,7 +11,7 @@
 
 **Live demo: https://findable.piply.xyz** · **Learn: https://findable.piply.xyz/learn** · [The build story](docs/STORY.md)
 
-![findable web UI showing a score hero, family cards and a failing-first issue list](docs/screenshots/current-light-1280.png)
+![findable web UI showing a score hero, family cards and a failing-first issue list](docs/screenshots/after-light-1280.png)
 
 ## Why
 
