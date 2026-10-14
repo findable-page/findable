@@ -100,7 +100,7 @@
       margin-inline: auto;
     }
 
-    :where(button, input, a, summary):focus-visible {
+    :where(button, input, a, summary, [tabindex]):focus-visible {
       outline: 2px solid var(--border-focus);
       outline-offset: 2px;
     }
@@ -748,6 +748,34 @@
     .error-panel-text { flex: 1; min-width: 200px; overflow-wrap: anywhere; }
     .error-panel-title { font-weight: 800; margin-bottom: 0.2rem; }
 
+    .nav-link { color: var(--text-2); font-weight: 600; font-size: 0.9rem; text-decoration: none; padding: 0.5rem; }
+    .nav-link:hover { color: var(--accent); }
+    .hero a, .landing a, .site-footer a { color: var(--accent); }
+    .landing { width: min(100%, 820px); margin: 2rem auto 3rem; }
+    .landing h2 { font-size: 1.45rem; letter-spacing: -0.02em; margin: 2.25rem 0 0.6rem; }
+    .landing h3 { font-size: 1.05rem; margin: 1.25rem 0 0.4rem; }
+    .landing :is(p, li, dd) { color: var(--text-2); }
+    .landing p { margin-bottom: 0.75rem; }
+    .landing :is(ol, ul) { padding-left: 1.4rem; display: grid; gap: 0.35rem; }
+    .byline { font-size: 0.9rem; color: var(--muted) !important; }
+    .terms { display: grid; gap: 0.5rem; margin-top: 1rem; }
+    .terms dt { font-weight: 800; color: var(--text); }
+    .terms dd { margin: 0 0 0.25rem; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+    .landing table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .landing :is(th, td) { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .landing tr:last-child :is(th, td) { border-bottom: 0; }
+    .landing thead th { color: var(--text); }
+    .landing pre { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.85rem; }
+    .landing blockquote { border-left: 4px solid var(--accent); padding: 0.5rem 1rem; margin: 1rem 0; background: var(--surface); border-radius: 0 10px 10px 0; }
+    .landing blockquote footer { font-size: 0.85rem; color: var(--muted); }
+    details.faq { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.5rem; }
+    details.faq summary { padding: 0.8rem 1rem; font-weight: 700; cursor: pointer; }
+    details.faq p { padding: 0 1rem 0.9rem; margin: 0; }
+    .site-footer { border-top: 1px solid var(--border); padding: 1.5rem 0 2.5rem; color: var(--text-2); font-size: 0.9rem; text-align: center; }
+    .site-footer p { margin-top: 0.5rem; }
+    .crawl-title { font-size: 1.05rem; }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -762,7 +790,8 @@
           <text class="logo-word" x="76" y="46" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="42" letter-spacing="-1">findable</text>
         </svg>
       </a>
-      <div class="nav-actions">
+      <nav class="nav-actions" aria-label="Primary">
+        <a class="nav-link" href="/learn">Learn</a>
         <button class="btn-api-badge" id="btnOpenApiModal" aria-haspopup="dialog" aria-label="API & MCP Tools">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
           <span>API & MCP Tools</span>
@@ -772,15 +801,15 @@
             <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
           </svg>
         </button>
-      </div>
+      </nav>
     </div>
   </header>
 
   <main class="container">
     <section class="hero">
       <div class="hero-badge">Free · No Signup · 72 Checks</div>
-      <h1 class="hero-title">Free SEO, AEO & GEO Audit Tool</h1>
-      <p class="hero-subtitle">Score Traditional SEO, Answer Engines (ChatGPT & Perplexity), and Generative Search (Google AI Overviews) in one unified scan.</p>
+      <h1 class="hero-title">Is your site findable by Google and by ChatGPT, Perplexity and Claude?</h1>
+      <p class="hero-subtitle">Paste a URL. findable scores the page for SEO, AEO and GEO with 72 checks, then shows the fixes worth the most points. New to the terms? Read the <a href="/learn">plain-words guide</a>.</p>
 
       <div class="scan-card">
         <div class="mode-toggle">
@@ -844,7 +873,7 @@
 
     <!-- Crawl Progress UI -->
     <div id="crawlSection" class="crawl-box hidden" role="region" aria-live="polite">
-      <h3 id="crawlStatus">Crawling site internal links...</h3>
+      <h2 id="crawlStatus" class="crawl-title">Crawling site internal links...</h2>
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="crawlProgress"></div>
       </div>
@@ -951,7 +980,88 @@
         </div>
       </section>
     </div>
+
+    <article class="landing">
+      <p class="byline">By <span>Nadim Tuhin</span> · Published <time datetime="2026-10-14">14 October 2026</time> · Updated <time datetime="2026-10-14">14 October 2026</time></p>
+
+      <h2 id="about">What is findable?</h2>
+      <p>findable is a free scanner that scores one web page on traditional SEO, answer engine optimization (AEO) and generative engine optimization (GEO). It runs 72 page checks, gives you one overall score from 0 to 100, and ranks the fixes by how many points each one recovers.</p>
+      <dl class="terms">
+        <dt>SEO</dt><dd>Search engine optimization. Make the page easy for a search crawler to fetch, read and rank.</dd>
+        <dt>AEO</dt><dd>Answer engine optimization. Shape the page so an answer box or chat tool can lift a short, correct answer.</dd>
+        <dt>GEO</dt><dd>Generative engine optimization. Give an AI model facts, authorship and sources it can cite with confidence.</dd>
+      </dl>
+
+      <h2>How is SEO different from AEO and GEO?</h2>
+      <p>SEO gets your page found and ranked by a crawler. AEO gets a short passage of it chosen as the answer. GEO gets your facts and your name cited inside a generated reply. SEO comes first, because a page that cannot be fetched or read cannot be answered from or cited.</p>
+      <div class="table-wrap" role="region" aria-label="SEO, AEO and GEO compared" tabindex="0">
+        <table>
+          <caption class="sr-only">SEO, AEO and GEO compared</caption>
+          <thead><tr><th scope="col">Family</th><th scope="col">SEO</th><th scope="col">AEO</th><th scope="col">GEO</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Reader</th><td>Search crawler</td><td>Answer box or chat tool</td><td>Generative AI model</td></tr>
+            <tr><th scope="row">It wins when</th><td>The page is crawlable and clear</td><td>A passage answers a question directly</td><td>Facts, authors and sources are explicit</td></tr>
+            <tr><th scope="row">Page checks</th><td>36</td><td>17</td><td>19</td></tr>
+            <tr><th scope="row">Weight in score</th><td>50 of 100</td><td>25 of 100</td><td>25 of 100</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="quickstart">How do I check my site in three steps?</h2>
+      <ol>
+        <li>Paste a page URL into the scan box at the top of this page.</li>
+        <li>Watch the agent work through the fetch, SEO, AEO and GEO checks.</li>
+        <li>Do the top three fixes, then scan again to see your score move.</li>
+      </ol>
+
+      <h2 id="developers">How do I run findable from a terminal, an AI agent or an API?</h2>
+      <h3>Command line</h3>
+      <pre><code>go install github.com/nadimtuhin/findable/cmd/findable@latest
+findable https://example.com</code></pre>
+      <h3>MCP server for AI agents</h3>
+      <pre><code>npx findable-mcp</code></pre>
+      <h3>REST API</h3>
+      <pre><code>curl -s -X POST https://findable.piply.xyz/api/scan \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'</code></pre>
+
+      <h2>How is the score calculated?</h2>
+      <p>The overall score blends three family scores: SEO counts for half, AEO and GEO for a quarter each. Every failing check is worth its family weight divided by that family's check count. That is why the top fixes you see are ranked by recoverable points.</p>
+      <blockquote>
+        <p>A fast, unified open-source website auditor for Traditional SEO, Answer Engine Optimization (AEO), and Generative Engine Optimization (GEO).</p>
+        <footer>From the <a href="https://github.com/nadimtuhin/findable#readme">findable README</a></footer>
+      </blockquote>
+      <p>The basics are the same as in <a href="https://developers.google.com/search/docs/fundamentals/seo-starter-guide">Google's SEO starter guide</a>. Read the <a href="/learn">plain-words guides</a> for what each check means.</p>
+      <p>findable can also check your <a href="https://llmstxt.org/">llms.txt</a> file. It speaks the <a href="https://modelcontextprotocol.io/">Model Context Protocol</a>, and the structured data it looks for follows the <a href="https://schema.org/">schema.org</a> vocabulary.</p>
+
+      <h2>Key takeaways</h2>
+      <ul>
+        <li>One scan scores SEO, AEO and GEO together.</li>
+        <li>Fixes are ranked by the points they recover, so you start with the biggest win.</li>
+        <li>It runs in the browser, the terminal, an AI agent or a CI job.</li>
+      </ul>
+
+      <h2>Frequently asked questions</h2>
+      <details class="faq"><summary>Is findable free?</summary><p>Yes. It costs $0, needs no signup and the code is MIT licensed on GitHub.</p></details>
+      <details class="faq"><summary>Does findable ask ChatGPT, Perplexity, Claude or Google AI about my page?</summary><p>No. It checks the signals on your page that answer engines can use, such as structured data, direct answers, clear authorship and sources. It does not query any AI product.</p></details>
+      <details class="faq"><summary>Can it scan more than one page?</summary><p>Yes. Crawl Site mode (beta) scans your start page plus internal links, up to 8 pages. The CLI can go further, for example findable -crawl -limit 20 to scan 20 pages.</p></details>
+      <details class="faq"><summary>How do I use it in CI?</summary><p>Run the CLI with -format sarif to upload results to GitHub code scanning. The findable GitHub Action can also fail a build when the score drops below a number you choose.</p></details>
+      <details class="faq"><summary>What are the site checks?</summary><p>With the site option, findable also fetches robots.txt and llms.txt. It reports whether GPTBot, ClaudeBot, PerplexityBot and Google-Extended are blocked. These are shown apart from the score.</p></details>
+      <details class="faq"><summary>What limits does a scan have?</summary><p>A scan reads up to 5MB of a page and gives up after 10s. It fetches public hosts on ports 80 and 443 only.</p></details>
+
+      <h2 id="contact">How do I contact the author?</h2>
+      <p>Open an issue on <a href="https://github.com/nadimtuhin/findable/issues">GitHub</a> with a bug, a question or a check you want added. The source is at <a href="https://github.com/nadimtuhin/findable">github.com/nadimtuhin/findable</a>.</p>
+    </article>
   </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <nav aria-label="Footer">
+        <a href="/#about">About</a> · <a href="/#contact">Contact</a> · <a href="/learn">Learn</a> · <a href="https://github.com/nadimtuhin/findable">GitHub</a> · <a href="https://github.com/nadimtuhin/findable/issues">Issues</a>
+      </nav>
+      <p>findable is MIT licensed. Built by Nadim Tuhin.</p>
+    </div>
+  </footer>
 
   <!-- Toast Notification Banner -->
   <div class="toast-container">
@@ -967,16 +1077,16 @@
 
       <p style="color: var(--text-2); margin-bottom: 1rem;">Integrate findable directly into your CI pipelines, terminal workflows, or AI coding agents.</p>
 
-      <h4 style="margin-bottom: 0.5rem;">1. cURL / REST API Endpoint</h4>
+      <h3 style="margin-bottom: 0.5rem;">1. cURL / REST API Endpoint</h3>
       <div class="code-block">curl -s -X POST https://findable.piply.xyz/api/scan \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com"}'</div>
 
-      <h4 style="margin-bottom: 0.5rem;">2. Go CLI (Single Zero-Dependency Binary)</h4>
+      <h3 style="margin-bottom: 0.5rem;">2. Go CLI (Single Zero-Dependency Binary)</h3>
       <div class="code-block">go install github.com/nadimtuhin/findable/cmd/findable@latest
 findable https://example.com</div>
 
-      <h4 style="margin-bottom: 0.5rem;">3. Model Context Protocol (MCP) in Claude / Cursor / Hermes</h4>
+      <h3 style="margin-bottom: 0.5rem;">3. Model Context Protocol (MCP) in Claude / Cursor / Hermes</h3>
       <p style="font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.5rem;">Add to your <code>claude_desktop_config.json</code> or Cursor MCP settings:</p>
       <div class="code-block">{
   "mcpServers": {
@@ -987,7 +1097,7 @@ findable https://example.com</div>
   }
 }</div>
 
-      <h4 style="margin-bottom: 0.5rem;">4. NPX Node MCP Runner</h4>
+      <h3 style="margin-bottom: 0.5rem;">4. NPX Node MCP Runner</h3>
       <div class="code-block">npx -y findable-mcp</div>
     </div>
   </dialog>
