@@ -57,7 +57,7 @@ runs:
         echo "sarif-file=$sarif" >> "$GITHUB_OUTPUT"
     - name: Upload SARIF
       if: always() && inputs.upload-sarif == 'true' && steps.audit.outputs.sarif-file != ''
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: ${{ steps.audit.outputs.sarif-file }}
         category: findable
