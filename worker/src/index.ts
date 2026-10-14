@@ -7,6 +7,7 @@ import { fixedWindowLimiter } from "./ratelimit";
 import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
 import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
+import { parseWatch, saveWatch } from "./watch";
 
 export interface Check {
   id: string;
@@ -44,6 +45,7 @@ const CORS_HEADERS = {
 
 export interface Env {
   SCAN_LIMITER?: RateLimit;
+  WATCH_DB?: D1Database;
 }
 
 const MAX_ANALYZED_HTML_CHARS = 1024 * 1024;
@@ -57,7 +59,10 @@ async function allowScan(env: Env, key: string): Promise<boolean> {
 
 const PUBLIC_ORIGIN = "https://findable.page";
 
-const PAGE_HTML = injectHead(UI_HTML as unknown as string, headSlot(PUBLIC_ORIGIN));
+const PAGE_HTML = injectHead(
+  UI_HTML as unknown as string,
+  `${headSlot(PUBLIC_ORIGIN)}<meta name="findable-watch" content="on">`,
+);
 
 let uiPolicy: Promise<string> | undefined;
 
@@ -214,6 +219,10 @@ const worker = {
       }
     }
 
+    if (url.pathname === "/api/watch" && request.method === "POST") {
+      return watchResponse(request, url, env);
+    }
+
     const pathTarget = url.pathname.slice(1);
     if (request.method === "GET" && BARE_HOST.test(pathTarget)) {
       return pageResponse(pathTarget, request, env, url);
@@ -356,6 +365,37 @@ function badRequest(error: string): Response {
     status: 400,
     headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
   });
+}
+
+function watchJson(status: number, body: object): Response {
+  return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+}
+
+async function watchResponse(request: Request, url: URL, env: Env): Promise<Response> {
+  const origin = request.headers.get("Origin");
+  if (origin && ![url.hostname, ...OWN_HOSTS].includes(new URL(origin).hostname)) {
+    return watchJson(403, { error: "signups only from findable.page" });
+  }
+  if (!request.headers.get("Content-Type")?.startsWith("application/json")) {
+    return watchJson(415, { error: "send json" });
+  }
+  const ip = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
+  if (!(await allowScan(env, `watch:${ip}`)))
+    return watchJson(429, { error: "too many signups, try again in a minute" });
+  const signup = parseWatch(await request.json().catch(() => null));
+  if (signup === "spam") {
+    console.log("watch: honeypot hit");
+    return watchJson(200, { ok: true });
+  }
+  if (typeof signup === "string") return watchJson(400, { error: signup });
+  try {
+    if (!env.WATCH_DB) throw new Error("WATCH_DB not bound");
+    await saveWatch(env.WATCH_DB, signup);
+  } catch (err) {
+    console.error("watch: save failed", err);
+    return watchJson(503, { error: "could not save, try again" });
+  }
+  return watchJson(200, { ok: true });
 }
 
 async function readScanBody(request: Request): Promise<ScanBody | string> {

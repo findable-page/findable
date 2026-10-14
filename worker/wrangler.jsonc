@@ -6,6 +6,7 @@
   "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": true }],
   "routes": [{ "pattern": "seoscore.piply.xyz", "custom_domain": true }, { "pattern": "findable.piply.xyz", "custom_domain": true }, { "pattern": "findable.page", "custom_domain": true }],
   "ratelimits": [{ "name": "SCAN_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }],
+  "d1_databases": [{ "binding": "WATCH_DB", "database_name": "findable-watchers", "database_id": "82c54b1a-4d79-455e-887e-c82d9e099226" }],
   "assets": { "directory": "./public" },
   "observability": {
     "enabled": true

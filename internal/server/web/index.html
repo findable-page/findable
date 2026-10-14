@@ -77,6 +77,10 @@
     .share-panel[hidden] { display: none; }
     .share-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .share-links a { text-decoration: none; }
+    .watch-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .watch-form input[type=email] { font: inherit; padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); min-width: 16rem; }
+    .watch-consent { font-size: 0.85rem; color: var(--text-2); flex-basis: 100%; }
+    .watch-trap { position: absolute; left: -9999px; }
     .share-label { font-size: 0.8rem; font-weight: 600; color: var(--text-2); }
     .share-text { font: inherit; font-size: 0.85rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; resize: vertical; }
     .btn-api-badge, .btn-action { padding: 0.5rem 0.9rem; }
@@ -422,6 +426,19 @@
           </div>
           <span id="shareStatus" class="share-status" role="status" aria-live="polite"></span>
         </div>
+      </section>
+
+      <section class="next-actions" id="watchSection" aria-labelledby="watchHeading" hidden>
+        <h2 id="watchHeading">Watch this score</h2>
+        <p>Get an email when your score changes. Free, no account.</p>
+        <form id="watchForm" class="watch-form">
+          <label class="share-label" for="watchEmail">Email</label>
+          <input type="email" id="watchEmail" required maxlength="254" autocomplete="email">
+          <input type="text" name="hp_x7" id="watchTrap" class="watch-trap" tabindex="-1" autocomplete="new-password" aria-hidden="true">
+          <button type="submit" class="btn-action">Watch</button>
+          <label class="watch-consent"><input type="checkbox" id="watchConsent" required> Email me about this site's score. Unsubscribe anytime. We never share your email.</label>
+          <span id="watchStatus" class="share-status" role="status" aria-live="polite"></span>
+        </form>
       </section>
 
       <section class="next-actions" aria-labelledby="nextHeading">
@@ -893,6 +910,7 @@ findable https://example.com</code></pre>
     function renderScanResults(data, url) {
       scannedUrl = url;
       document.body.classList.add("has-results");
+      $("watchSection").hidden = !document.querySelector('meta[name="findable-watch"]');
       const resultsEl = $("results");
       resultsEl.classList.remove("hidden");
       $("resultUrl").textContent = url;
@@ -1036,6 +1054,23 @@ findable https://example.com</code></pre>
       if (!currentScan) return;
       const text = `findable audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${currentScan.seo.score} | AEO: ${currentScan.aeo.score} | GEO: ${currentScan.geo.score}\nGenerated via findable.page`;
       navigator.clipboard.writeText(text).then(() => showToast("Summary copied to clipboard"));
+    });
+
+    $("watchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const status = $("watchStatus");
+      status.textContent = "Saving…";
+      try {
+        const resp = await fetch("/api/watch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: $("watchEmail").value, url: scannedUrl, consent: $("watchConsent").checked, hp: $("watchTrap").value }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        status.textContent = resp.ok ? "You're on the list. We'll email you when the score moves." : data.error || "Could not save, try again";
+      } catch {
+        status.textContent = "Could not save, try again";
+      }
     });
 
     function shareLink() {
