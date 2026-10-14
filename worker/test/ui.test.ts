@@ -28,3 +28,10 @@ test("GET / serves the UI whatever the Accept header says", async () => {
     expect([resp.status, resp.headers.get("Content-Type")]).toEqual([200, "text/html; charset=utf-8"]);
   }
 });
+
+test("the UI CSP lets the Cloudflare Web Analytics beacon load and report", async () => {
+  const csp = (await worker.fetch(new Request("https://w.test/"))).headers.get("Content-Security-Policy") ?? "";
+  const directive = (name: string) => csp.split(";").find((d) => d.trim().startsWith(`${name} `)) ?? "";
+  expect(directive("script-src")).toContain("https://static.cloudflareinsights.com");
+  expect(directive("connect-src")).toContain("https://cloudflareinsights.com");
+});

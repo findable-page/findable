@@ -65,11 +65,11 @@ async function hashesOf(tag: string): Promise<string> {
 async function buildUiPolicy(): Promise<string> {
   return [
     "default-src 'none'",
-    `script-src ${await hashesOf("script")}`,
+    `script-src ${await hashesOf("script")} https://static.cloudflareinsights.com`,
     "style-src 'unsafe-inline'",
     `style-src-elem ${await hashesOf("style")}`,
     "style-src-attr 'unsafe-inline'",
-    "connect-src 'self'",
+    "connect-src 'self' https://cloudflareinsights.com",
     "img-src 'self' data:",
     "base-uri 'none'",
     "form-action 'self'",
