@@ -12,6 +12,9 @@ const BLOCKED_V4: [number, number][] = [
   [0xc0000000, 24],
   [0xc0a80000, 16],
   [0xc6120000, 15],
+  [0xc0000200, 24],
+  [0xc6336400, 24],
+  [0xcb007100, 24],
   [0xe0000000, 3],
 ];
 
@@ -44,7 +47,7 @@ function publicV6(host: string): boolean {
   if (mapped) return publicV4(Number.parseInt(mapped[1] ?? "0", 16) * 65536 + Number.parseInt(mapped[2] ?? "0", 16));
   const head = (host.split("::")[0] ?? "").split(":");
   const [first = 0, second = 0] = [0, 1].map((i) => Number.parseInt(head[i] || "0", 16));
-  if (first === 0x2002 || (first === 0x2001 && second === 0)) return false;
+  if (first === 0x2002 || (first === 0x2001 && (second === 0 || second === 0xdb8))) return false;
   if (first === 0x3fff && second < 0x1000) return false;
   return first >= 0x2000 && first <= 0x3fff;
 }
