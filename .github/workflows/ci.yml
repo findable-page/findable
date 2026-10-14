@@ -49,7 +49,7 @@ jobs:
       run:
         working-directory: worker
     env:
-      MAX_GZIP_BYTES: 46080
+      MAX_GZIP_BYTES: 51200
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

@@ -1,743 +1,272 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>findable: is your site findable by Google and by AI answer engines?</title>
-  <meta name="description" content="findable: is your site findable by Google and by AI answer engines?">
+  <title>findable: is your site findable by Google and AI?</title>
+  <meta name="description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with 72 checks and ranked fixes.">
+  <link rel="canonical" href="https://findable.piply.xyz/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#FFF9F0">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="findable">
-  <meta property="og:description" content="findable: is your site findable by Google and by AI answer engines?">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="findable">
-  <meta name="twitter:description" content="findable: is your site findable by Google and by AI answer engines?">
+  <meta property="og:site_name" content="findable">
+  <meta property="og:url" content="https://findable.piply.xyz/">
+  <meta property="og:title" content="findable: is your site findable by Google and AI?">
+  <meta property="og:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with 72 checks and ranked fixes.">
+  <meta property="og:image" content="https://findable.piply.xyz/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="findable: is your site findable by Google and AI?">
+  <meta name="twitter:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with 72 checks and ranked fixes.">
+  <meta name="twitter:image" content="https://findable.piply.xyz/og.png">
+  <!--slot:head-->
   <script>
     (function() {
-      const saved = localStorage.getItem("seoscore_theme") || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-      document.documentElement.setAttribute("data-theme", saved);
+      let saved = null;
+      try { saved = localStorage.getItem("seoscore_theme"); } catch {}
+      document.documentElement.setAttribute("data-theme", saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
     })();
   </script>
   <style>
     :root, [data-theme="light"] {
-      --bg: #F8FAFC;
-      --surface: #FFFFFF;
-      --surface-hover: #F1F5F9;
-      --bg-input: #FFFFFF;
-      --text: #0F172A;
-      --text-2: #334155;
-      --muted: #5B6B7F;
-      --accent: #4F46E5;
-      --accent-light: #EEF2FF;
-      --accent-hover: #4338CA;
-      --ok: #047857;
-      --ok-light: #ECFDF5;
-      --warn: #B45309;
-      --warn-light: #FFFBEB;
-      --bad: #B91C1C;
-      --bad-light: #FEF2F2;
-      --na: #4B5563;
-      --na-light: #F1F5F9;
-      --fam-seo: #10B981;
-      --fam-aeo: #8B5CF6;
-      --fam-geo: #3B82F6;
-      --border: #E2E8F0;
-      --border-focus: #4F46E5;
-      --ring-bg: #E2E8F0;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-      --gradient: linear-gradient(135deg, #4F46E5, #7C3AED);
+      --bg: #FFF9F0; --surface: #FFFFFF; --surface-hover: #FDF1E0; --bg-input: #FFFFFF;
+      --text: #1B1830; --text-2: #413D5C; --muted: #5E5A78;
+      --accent: #5338D6; --accent-light: #EFEBFF; --on-accent: #FFFFFF;
+      --amber: #FFB020; --amber-ink: #7A4300; --amber-light: #FFEFC7;
+      --ok: #046C4E; --ok-light: #E3F6EC; --warn: #8A4B00; --warn-light: #FFF1CC;
+      --bad: #B4232A; --bad-light: #FDEAEA; --na: #4B5563; --na-light: #EEF0F4;
+      --fam-seo: #0B7A5A; --fam-aeo: #6D4AE8; --fam-geo: #C2410C;
+      --border: #EADFCB; --border-ui: #8A84A8; --focus: #5338D6; --ring-bg: #EFE4D0;
+      --shadow: 0 1px 2px rgba(60, 40, 10, 0.06), 0 8px 24px -8px rgba(83, 56, 214, 0.18);
+      --gradient: linear-gradient(135deg, #5B3FE0, #7B3FD6);
+      --glow: radial-gradient(48rem 20rem at 88% -8%, rgba(123, 63, 214, 0.12), transparent), radial-gradient(44rem 20rem at 4% -4%, rgba(255, 176, 32, 0.22), transparent);
     }
     [data-theme="dark"] {
-      --bg: #0B0F19;
-      --surface: #151D2E;
-      --surface-hover: #1E293B;
-      --bg-input: #0F172A;
-      --text: #F8FAFC;
-      --text-2: #CBD5E1;
-      --muted: #94A3B8;
-      --accent: #818CF8;
-      --accent-light: #1E1B4B;
-      --accent-hover: #A5B4FC;
-      --ok: #34D399;
-      --ok-light: rgba(16, 185, 129, 0.12);
-      --warn: #FBBF24;
-      --warn-light: rgba(245, 158, 11, 0.12);
-      --bad: #F87171;
-      --bad-light: rgba(239, 68, 68, 0.15);
-      --na: #9CA3AF;
-      --na-light: rgba(156, 163, 175, 0.15);
-      --border: #242E42;
-      --border-focus: #818CF8;
-      --ring-bg: #242E42;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-      --gradient: linear-gradient(135deg, #4F46E5, #7C3AED);
+      --bg: #14111F; --surface: #1E1A2F; --surface-hover: #2A2442; --bg-input: #100D1A;
+      --text: #F7F3FF; --text-2: #D3CCEA; --muted: #A59FC2;
+      --accent: #B5A8FF; --accent-light: #2D2560; --on-accent: #14111F;
+      --amber: #FFC24D; --amber-ink: #FFC24D; --amber-light: #3A2A0A;
+      --ok: #4FDDA0; --ok-light: #1B3A33; --warn: #FFC24D; --warn-light: #3A2D1B;
+      --bad: #FF9A9F; --bad-light: #43212B; --na: #B4B9C4; --na-light: #2C2B3C;
+      --fam-seo: #4FDDA0; --fam-aeo: #B5A8FF; --fam-geo: #FFC24D;
+      --border: #332C4D; --border-ui: #7C7599; --focus: #B5A8FF; --ring-bg: #332C4D;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+      --glow: radial-gradient(48rem 20rem at 88% -8%, rgba(123, 63, 214, 0.28), transparent), radial-gradient(44rem 20rem at 4% -4%, rgba(255, 176, 32, 0.12), transparent);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      letter-spacing: -0.01em;
-      transition: background 0.2s, color 0.2s;
-    }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); background-image: var(--glow); background-repeat: no-repeat; color: var(--text); line-height: 1.55; }
+    .container { width: min(100% - 2rem, 1240px); margin-inline: auto; }
+    :where(button, input, a, summary, [tabindex]):focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    a { color: var(--accent); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
-    .container {
-      width: min(100% - 2rem, 1240px);
-      margin-inline: auto;
-    }
+    header { border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 50; }
+    .header-inner { display: flex; justify-content: space-between; align-items: center; height: 64px; }
+    .logo { display: flex; align-items: center; text-decoration: none; }
+    .logo-svg { display: block; width: 135px; height: 32px; }
+    .logo-word { fill: var(--text); }
+    .nav-actions { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-link { color: var(--text-2); font-weight: 600; font-size: 0.9rem; text-decoration: none; padding: 0.5rem; }
+    .nav-link:hover { color: var(--accent); }
+    .btn-api-badge, .btn-action, .theme-toggle { background: var(--surface); border: 1px solid var(--border-ui); color: var(--text); border-radius: 10px; font: inherit; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .btn-api-badge, .btn-action { padding: 0.5rem 0.9rem; }
+    .btn-api-badge { color: var(--accent); }
+    .theme-toggle { width: 40px; height: 40px; justify-content: center; }
+    .btn-api-badge:hover, .btn-action:hover, .theme-toggle:hover { background: var(--surface-hover); }
+    @media (max-width: 640px) { .btn-api-badge span, .nav-link { display: none; } }
 
-    :where(button, input, a, summary):focus-visible {
-      outline: 2px solid var(--border-focus);
-      outline-offset: 2px;
-    }
+    .hero { text-align: center; padding: clamp(1.75rem, 4vw, 3rem) 0 1.25rem; }
+    .hero-badge { display: inline-block; padding: 0.3rem 0.9rem; background: var(--amber-light); color: var(--amber-ink); border-radius: 9999px; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; }
+    h1.hero-title { font-size: clamp(1.8rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.12; max-width: 940px; margin: 0 auto 0.85rem; }
+    .hl { color: var(--accent); }
+    p.hero-subtitle { color: var(--text-2); font-size: clamp(1rem, 1.7vw, 1.15rem); max-width: 700px; margin: 0 auto 1.5rem; }
 
-    /* Header */
-    header {
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .header-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 68px;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      text-decoration: none;
-      color: var(--text);
-      font-weight: 800;
-      font-size: 1.3rem;
-      letter-spacing: -0.03em;
-    }
-    .logo-dot { color: var(--accent); }
-    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
-    .btn-api-badge {
-      background: var(--accent-light);
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 0.45rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      transition: opacity 0.2s;
-    }
-    .btn-api-badge:hover { opacity: 0.9; }
-    @media (max-width: 640px) { .btn-api-badge span { display: none; } }
-    .theme-toggle {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-    .theme-toggle:hover { background: var(--surface-hover); }
+    .scan-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: clamp(1rem, 2.5vw, 1.5rem); width: min(100%, 820px); margin: 0 auto 1.25rem; box-shadow: var(--shadow); }
+    .mode-toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .mode-btn { flex: 1; padding: 0.55rem 0.8rem; background: transparent; border: 1px solid var(--border-ui); color: var(--text-2); border-radius: 10px; font: inherit; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .mode-btn.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+    .field-label { display: block; text-align: left; font-size: 0.85rem; font-weight: 700; color: var(--text-2); margin-bottom: 0.35rem; }
+    .input-row { display: flex; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .input-wrap { flex: 1; position: relative; display: flex; align-items: center; }
+    .input-icon { position: absolute; left: 1rem; color: var(--muted); pointer-events: none; }
+    input.url-input, .keyphrase-input { width: 100%; background: var(--bg-input); border: 1.5px solid var(--border-ui); color: var(--text); border-radius: 10px; font: inherit; }
+    input.url-input { padding: 0.8rem 1rem 0.8rem 2.8rem; font-size: 1.05rem; }
+    .keyphrase-input { padding: 0.6rem 1rem; font-size: 0.9rem; }
+    input::placeholder { color: var(--muted); opacity: 1; }
+    button.scan-btn { background: var(--gradient); color: #fff; border: 0; padding: 0 1.6rem; border-radius: 10px; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+    button.scan-btn:hover { filter: brightness(1.08); }
+    button.scan-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .trust-row { display: flex; justify-content: center; gap: 0.4rem 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
 
-    /* Hero */
-    .hero { text-align: center; padding: clamp(3rem, 6vw, 5rem) 0 2rem; }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.4rem 1rem;
-      background: var(--accent-light);
-      color: var(--accent);
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-    }
-    h1.hero-title {
-      font-size: clamp(2.4rem, 5vw, 4rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1.08;
-      max-width: 900px;
-      margin-inline: auto;
-      margin-bottom: 1rem;
-    }
-    p.hero-subtitle {
-      color: var(--text-2);
-      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
-      max-width: 720px;
-      margin: 0 auto 2.25rem;
-      line-height: 1.55;
-    }
+    .recent-strip { width: min(100%, 820px); margin: 0 auto 1rem; text-align: left; }
+    .recent-header { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
+    .link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
+    .recent-items { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .recent-pill { background: var(--surface); border: 1px solid var(--border-ui); padding: 0.3rem 0.8rem; border-radius: 9999px; font: inherit; font-size: 0.82rem; color: var(--text-2); cursor: pointer; display: inline-flex; gap: 0.4rem; }
+    .recent-pill:hover { border-color: var(--accent); color: var(--text); }
+    .recent-score { font-weight: 800; color: var(--accent); }
 
-    /* Scan Box */
-    .scan-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: clamp(1.25rem, 2.5vw, 2rem);
-      width: min(100%, 820px);
-      margin: 0 auto 1.5rem;
-      box-shadow: var(--shadow-lg);
-    }
-    .mode-toggle {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.25rem;
-    }
-    .mode-btn {
-      flex: 1;
-      padding: 0.65rem 1rem;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-2);
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: all 0.2s;
-    }
-    .mode-btn.active {
-      background: var(--accent-light);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .input-row {
-      display: flex;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-    .input-wrap {
-      flex: 1;
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .input-icon {
-      position: absolute;
-      left: 1.1rem;
-      color: var(--muted);
-      pointer-events: none;
-    }
-    input.url-input {
-      width: 100%;
-      background: var(--bg-input);
-      border: 1.5px solid var(--border);
-      color: var(--text);
-      padding: 0.95rem 1rem 0.95rem 3rem;
-      border-radius: 10px;
-      font-size: 1.05rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input.url-input:focus { border-color: var(--accent); }
-    button.scan-btn {
-      background: var(--gradient);
-      color: #fff;
-      border: none;
-      padding: 0 1.85rem;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-    button.scan-btn:hover { opacity: 0.95; transform: translateY(-1px); }
-    button.scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .keyphrase-input {
-      width: 100%;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.7rem 1rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .keyphrase-input:focus { border-color: var(--accent); }
+    .error-panel { background: var(--surface); border: 1px solid var(--bad); border-left-width: 4px; border-radius: 14px; padding: 1rem 1.25rem; width: min(100%, 820px); margin: 0 auto 1.25rem; text-align: left; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .error-panel-text { flex: 1; min-width: 200px; overflow-wrap: anywhere; }
+    .error-panel-title { font-weight: 800; color: var(--bad); }
 
-    /* Trust & Counter */
-    .trust-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
-    }
-    .trust-dot { opacity: 0.4; }
+    .agent { margin: 1.5rem auto; width: min(100%, 820px); background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.25rem 1.5rem; box-shadow: var(--shadow); }
+    .agent-title { font-size: 1.05rem; margin-bottom: 0.9rem; overflow-wrap: anywhere; }
+    .steps { list-style: none; display: grid; gap: 0.7rem; }
+    .steps li { display: flex; align-items: center; gap: 0.75rem; color: var(--muted); }
+    .steps .mark { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid var(--border-ui); display: grid; place-items: center; font-size: 0.8rem; font-weight: 800; flex: none; }
+    .steps [data-state="run"] { color: var(--text); font-weight: 700; }
+    .steps [data-state="run"] .mark { border-color: var(--amber); border-top-color: transparent; animation: spin 0.8s linear infinite; }
+    .steps [data-state="done"] { color: var(--text-2); }
+    .steps [data-state="done"] .mark { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .steps [data-state="done"] .mark::before { content: "\2713"; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Recent Scans Strip */
-    .recent-strip {
-      width: min(100%, 820px);
-      margin: 0 auto 2.5rem;
-      text-align: left;
-    }
-    .recent-header {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-bottom: 0.6rem;
-      display: flex;
-      justify-content: space-between;
-    }
-    .link-btn {
-      background: none;
-      border: 0;
-      padding: 0;
-      font: inherit;
-      color: var(--accent);
-      text-transform: inherit;
-      letter-spacing: inherit;
-      cursor: pointer;
-    }
-    .field-label {
-      display: block;
-      text-align: left;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-2);
-      margin-bottom: 0.4rem;
-    }
-    .recent-items {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .recent-pill {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.82rem;
-      color: var(--text-2);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: all 0.2s;
-    }
-    .recent-pill:hover {
-      border-color: var(--accent);
-      color: var(--text);
-    }
-    .recent-score {
-      font-weight: 700;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      color: var(--accent);
-    }
-
-    .results-wrap { margin-top: 1.5rem; margin-bottom: 5rem; }
-    .site-url-title {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 1rem;
-      font-weight: 700;
-      overflow-wrap: anywhere;
-      margin-top: 0.4rem;
-    }
-    .site-meta-line { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
-    .site-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-    .btn-action {
-      padding: 0.5rem 0.95rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: all 0.2s;
-    }
-    .btn-action:hover { background: var(--surface-hover); border-color: var(--accent); }
-
-    .score-hero {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.5rem;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 1.5rem;
-      margin-bottom: 1.25rem;
-      box-shadow: var(--shadow-sm);
-    }
+    .results-wrap { margin: 1.5rem 0 3rem; }
+    .score-hero { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); }
     .hero-info { min-width: 0; }
-    .grade-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.35rem; }
-    .failing-summary { font-weight: 700; }
-    .ring-box {
-      position: relative;
-      width: 72px;
-      height: 72px;
-      flex-shrink: 0;
-    }
+    .results-heading { font-size: 1.5rem; letter-spacing: -0.02em; line-height: 1.2; }
+    .results-heading:focus { outline: none; }
+    .summary-line { color: var(--text-2); margin-top: 0.3rem; }
+    .grade-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .failing-summary { font-weight: 700; font-size: 0.9rem; }
+    .site-url-title { font-size: 0.9rem; font-weight: 700; overflow-wrap: anywhere; margin-top: 0.4rem; }
+    .site-meta-line { font-size: 0.85rem; color: var(--muted); }
+    .site-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .ring-box { position: relative; width: 72px; height: 72px; flex-shrink: 0; }
     .ring-box.large { width: 120px; height: 120px; }
     .ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
     .ring-bg { fill: none; stroke: var(--ring-bg); stroke-width: 10; }
-    .ring-fill {
-      fill: none;
-      stroke-width: 10;
-      stroke-linecap: round;
-      stroke-dasharray: 314.16;
-      stroke-dashoffset: 314.16;
-      transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    .ring-value {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      font-size: 1.45rem;
-      font-weight: 800;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-variant-numeric: tabular-nums;
-    }
+    .ring-fill { fill: none; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 314.16; stroke-dashoffset: 314.16; transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .ring-value { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; }
     .ring-value.large { font-size: 2.6rem; }
-    .grade-badge {
-      display: inline-block;
-      padding: 0.25rem 0.65rem;
-      border-radius: 6px;
-      font-weight: 800;
-      font-size: 0.82rem;
-    }
+    .grade-badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 6px; font-weight: 800; font-size: 0.82rem; }
     .grade-a { background: var(--ok-light); color: var(--ok); }
     .grade-b { background: var(--accent-light); color: var(--accent); }
     .grade-c { background: var(--warn-light); color: var(--warn); }
     .grade-f { background: var(--bad-light); color: var(--bad); }
 
-    .family-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 2rem;
-    }
-    .family-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.25rem;
-      box-shadow: var(--shadow-sm);
-    }
+    .next-actions { background: var(--amber-light); border: 1px solid var(--amber); border-radius: 18px; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+    .next-actions h2 { font-size: 1.2rem; color: var(--amber-ink); }
+    .next-actions > p { color: var(--text-2); margin: 0.15rem 0 0.9rem; }
+    .fixes { list-style: none; display: grid; gap: 0.75rem; counter-reset: fix; }
+    .fix-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1rem 0.9rem 3.2rem; position: relative; counter-increment: fix; color: var(--text); }
+    .fix-card::before { content: counter(fix); position: absolute; left: 0.9rem; top: 0.85rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-weight: 800; font-size: 0.9rem; }
+    .fix-head { display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+    .fix-head strong { overflow-wrap: anywhere; }
+    .pts { font-weight: 800; color: var(--ok); }
+    .fix-meta { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin: 0.35rem 0; font-size: 0.8rem; color: var(--muted); }
+    .fix-how { color: var(--text-2); font-size: 0.9rem; }
+    .engines { display: inline-flex; gap: 0.3rem; flex-wrap: wrap; }
+    .eng { background: var(--accent-light); color: var(--accent); border-radius: 9999px; padding: 0.05rem 0.55rem; font-size: 0.72rem; font-weight: 700; }
+
+    .family-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+    .family-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
     .family-top { display: flex; align-items: center; gap: 1rem; }
     .card-heading { font-size: 1rem; font-weight: 800; }
     .weight-tag { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
-    .card-footer { font-size: 0.85rem; color: var(--text-2); margin-top: 0.15rem; }
-    .worst-list {
-      list-style: none;
-      margin-top: 1rem;
-      padding-top: 0.85rem;
-      border-top: 1px solid var(--border);
-      display: grid;
-      gap: 0.45rem;
-      font-size: 0.875rem;
-    }
+    .card-footer { font-size: 0.85rem; color: var(--text-2); }
+    .worst-list { list-style: none; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border); display: grid; gap: 0.45rem; font-size: 0.875rem; }
     .worst-list li { position: relative; padding-left: 1rem; overflow-wrap: anywhere; }
-    .worst-list li::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.5em;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--bad);
-    }
+    .worst-list li::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 6px; height: 6px; border-radius: 50%; background: var(--bad); }
     .worst-list li.none::before { background: var(--ok); }
 
-    .issues-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 0.5rem;
-    }
+    .issues-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
     .issues-title { font-size: 1.2rem; font-weight: 800; }
-    .group-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-2);
-      margin: 1.25rem 0 0.5rem;
-    }
+    .group-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-2); margin: 1.25rem 0 0.5rem; }
     .issues-empty { padding: 1.5rem; color: var(--text-2); }
     .passing-wrap { margin-top: 1.5rem; }
-
-    /* Accessible Checks List via <details> */
-    .checks-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
-    details.check-row {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-    }
-    details.check-row:last-child { border-bottom: none; }
+    .checks-container { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    details.check-row { border-bottom: 1px solid var(--border); }
+    details.check-row:last-child { border-bottom: 0; }
     details.check-row[open] { background: var(--surface-hover); }
-    summary.check-summary {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.5rem;
-      cursor: pointer;
-      list-style: none;
-      user-select: none;
-    }
+    summary.check-summary { display: flex; align-items: center; gap: 0.9rem; padding: 0.9rem 1.25rem; cursor: pointer; list-style: none; }
     summary.check-summary::-webkit-details-marker { display: none; }
-    .status-badge {
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      min-width: 55px;
-      text-align: center;
-    }
+    summary.check-summary::after { content: ""; width: 0.55rem; height: 0.55rem; border: solid var(--muted); border-width: 0 2px 2px 0; transform: rotate(45deg); flex: none; }
+    details[open] > summary.check-summary::after { transform: rotate(225deg); }
+    .status-badge { padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 800; min-width: 55px; text-align: center; }
     .status-pass { background: var(--ok-light); color: var(--ok); }
     .status-fail { background: var(--bad-light); color: var(--bad); }
     .status-na { background: var(--na-light); color: var(--na); }
     .check-content { flex: 1; min-width: 0; }
-    .check-label { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.15rem; }
-    .check-meta { font-size: 0.8rem; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .drawer-arrow {
-      color: var(--muted);
-      transition: transform 0.2s;
-    }
-    details.check-row[open] .drawer-arrow { transform: rotate(180deg); }
-    .fix-drawer {
-      padding: 0 1.5rem 1.25rem 5.35rem;
-      font-size: 0.875rem;
-      color: var(--text-2);
-      line-height: 1.55;
-    }
-    .fix-drawer-card {
-      background: var(--bg);
-      border: 1px dashed var(--border);
-      border-radius: 8px;
-      padding: 0.85rem 1rem;
-    }
+    .check-label { font-size: 0.95rem; font-weight: 500; overflow-wrap: anywhere; }
+    .check-meta { font-size: 0.8rem; color: var(--muted); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .fix-drawer { padding: 0 1.25rem 1.1rem 5rem; font-size: 0.875rem; color: var(--text-2); }
+    .fix-drawer-card { background: var(--bg); border: 1px dashed var(--border-ui); border-radius: 8px; padding: 0.8rem 1rem; }
 
-    /* Toast Notification */
-    .toast-container {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      z-index: 100;
-      pointer-events: none;
-    }
-    .toast {
-      background: var(--text);
-      color: var(--bg);
-      padding: 0.75rem 1.25rem;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      box-shadow: var(--shadow-lg);
-      transform: translateY(100px);
-      opacity: 0;
-      transition: transform 0.25s, opacity 0.25s;
-    }
+    .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 100; pointer-events: none; }
+    .toast { background: var(--text); color: var(--bg); padding: 0.75rem 1.25rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; transform: translateY(100px); opacity: 0; transition: transform 0.25s, opacity 0.25s; }
     .toast.show { transform: translateY(0); opacity: 1; }
 
-    /* Modal Dialog */
-    dialog.modal {
-      border: 0;
-      padding: 0;
-      background: transparent;
-      color: var(--text);
-      width: min(100% - 2rem, 720px);
-      max-width: none;
-      margin: auto;
-    }
-    dialog.modal::backdrop {
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-    }
-    .modal-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: var(--shadow-lg);
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    .modal-title-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-    .modal-title { font-size: 1.4rem; font-weight: 800; }
-    .btn-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 1.5rem;
-    }
-    .code-block {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 0.85rem;
-      color: var(--text);
-      overflow-x: auto;
-      margin-bottom: 1.25rem;
-    }
+    dialog.modal { border: 0; padding: 0; background: transparent; color: var(--text); width: min(100% - 2rem, 720px); max-width: none; margin: auto; }
+    dialog.modal::backdrop { background: rgba(20, 17, 31, 0.75); }
+    .modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
+    .modal-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .modal-title { font-size: 1.3rem; }
+    .modal-card h3 { margin: 1rem 0 0.4rem; font-size: 1rem; }
+    .btn-close { background: none; border: 0; color: var(--text-2); cursor: pointer; font-size: 1.6rem; padding: 0 0.4rem; }
 
-    /* Crawl Progress */
-    .crawl-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    .progress-bar-bg {
-      background: var(--ring-bg);
-      height: 8px;
-      border-radius: 4px;
-      overflow: hidden;
-      margin: 1rem 0;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--gradient);
-      width: 0%;
-      transition: width 0.3s;
-    }
-    table.crawl-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-      margin-top: 1rem;
-    }
-    table.crawl-table th, table.crawl-table td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    table.crawl-table th { color: var(--text-2); font-size: 0.8rem; text-transform: uppercase; }
+    .crawl-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    .crawl-title { font-size: 1.05rem; }
+    .progress-bar-bg { background: var(--ring-bg); height: 8px; border-radius: 4px; overflow: hidden; margin: 0.8rem 0; }
+    .progress-bar-fill { height: 100%; background: var(--gradient); width: 0%; transition: width 0.3s; }
+    table.crawl-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    table.crawl-table :is(th, td) { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
 
     .has-results header { position: static; }
-    .has-results .hero {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      padding: 0.6rem 0;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-    }
-    .has-results :is(.hero-badge, .hero-title, .hero-subtitle, .trust-row, .recent-strip, .mode-toggle, .keyphrase-input) { display: none; }
+    .has-results .hero { position: sticky; top: 0; z-index: 40; padding: 0.6rem 0; background: var(--bg); border-bottom: 1px solid var(--border); text-align: left; }
+    .has-results :is(.hero-badge, .hero-title, .hero-subtitle, .trust-row, .recent-strip, .mode-toggle, .keyphrase-input, .landing) { display: none; }
     .has-results .scan-card { width: 100%; margin: 0; padding: 0; border: 0; box-shadow: none; background: none; }
     .has-results .field-label { font-size: 0.75rem; margin-bottom: 0.25rem; }
-    .has-results .input-row { flex-direction: row; margin-bottom: 0; }
-    .has-results input.url-input { padding: 0.6rem 0.75rem 0.6rem 2.5rem; font-size: 0.95rem; }
+    .has-results .input-row { margin-bottom: 0; }
+    .has-results input.url-input { padding: 0.55rem 0.75rem 0.55rem 2.5rem; font-size: 0.95rem; }
     .has-results .input-icon { left: 0.8rem; }
     .has-results button.scan-btn { padding: 0 1.1rem; }
     .has-results .error-panel { width: 100%; margin: 0.6rem 0 0; }
 
-    @media (max-width: 860px) {
-      .family-grid { grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
-    }
+    .landing { width: min(100%, 820px); margin: 1.5rem auto 3rem; }
+    .landing h2 { font-size: 1.45rem; letter-spacing: -0.02em; line-height: 1.25; margin: 2.25rem 0 0.6rem; }
+    .landing h3 { font-size: 1.05rem; margin: 1.25rem 0 0.4rem; }
+    .landing :is(p, li, dd) { color: var(--text-2); }
+    .landing p { margin-bottom: 0.75rem; }
+    .landing :is(ol, ul) { padding-left: 1.4rem; display: grid; gap: 0.35rem; }
+    .landing .byline { font-size: 0.9rem; color: var(--muted); }
+    .terms { display: grid; gap: 0.5rem; margin-top: 1rem; }
+    .terms dt { font-weight: 800; color: var(--text); }
+    .terms dd { margin: 0 0 0.25rem; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+    .landing table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .landing :is(th, td) { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .landing tr:last-child :is(th, td) { border-bottom: 0; }
+    .landing thead th, .landing tbody th { color: var(--text); }
+    .landing pre { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .landing blockquote { border-left: 4px solid var(--amber); padding: 0.5rem 1rem; margin: 1rem 0; background: var(--surface); border-radius: 0 10px 10px 0; }
+    .landing blockquote footer { font-size: 0.85rem; color: var(--muted); }
+    details.faq { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.5rem; }
+    details.faq summary { padding: 0.8rem 1rem; font-weight: 700; cursor: pointer; }
+    details.faq p { padding: 0 1rem 0.9rem; margin: 0; }
+    .site-footer { border-top: 1px solid var(--border); padding: 1.5rem 0 2.5rem; color: var(--text-2); font-size: 0.9rem; text-align: center; }
+    .site-footer p { margin-top: 0.5rem; }
 
+    @media (max-width: 860px) { .family-grid { grid-template-columns: 1fr; gap: 0.75rem; } }
     @media (max-width: 640px) {
       .input-row { flex-direction: column; }
-      button.scan-btn { padding: 0.85rem; justify-content: center; }
+      button.scan-btn { padding: 0.8rem; justify-content: center; }
       .fix-drawer { padding-left: 1rem; padding-right: 1rem; }
-      summary.check-summary { padding: 0.85rem 1rem; gap: 0.75rem; }
-      .score-hero { grid-template-columns: auto 1fr; gap: 0.75rem 1rem; padding: 1rem; margin-bottom: 0.75rem; }
+      summary.check-summary { padding: 0.8rem 1rem; gap: 0.7rem; }
+      .score-hero { grid-template-columns: auto 1fr; gap: 0.75rem 1rem; padding: 1rem; }
       .score-hero .site-actions { grid-column: 1 / -1; }
       .ring-box.large { width: 84px; height: 84px; }
       .ring-value.large { font-size: 1.8rem; }
       .ring-box { width: 56px; height: 56px; }
       .ring-value { font-size: 1.15rem; }
-      .family-card { padding: 0.9rem 1rem; }
-      .worst-list { margin-top: 0.7rem; padding-top: 0.6rem; }
-      .results-wrap { margin-top: 0.75rem; }
+      .results-heading { font-size: 1.2rem; }
+      .next-actions { padding: 1rem; }
     }
-
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-      }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
     }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
-    }
-    .results-heading { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-    .results-heading:focus { outline: none; }
-    .skeleton { margin: 1.5rem 0 5rem; display: grid; gap: 1.25rem; }
-    .skeleton > div, .sk-grid > div {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      animation: sk-pulse 1.2s ease-in-out infinite;
-    }
-    .skeleton > .sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; background: none; border: 0; animation: none; }
-    .sk-grid > div { height: 170px; }
-    .sk-bar { height: 72px; }
-    @keyframes sk-pulse { 50% { opacity: 0.5; } }
-    .error-panel {
-      background: var(--surface);
-      border: 1px solid var(--bad);
-      border-left-width: 4px;
-      border-radius: 14px;
-      padding: 1.25rem 1.5rem;
-      width: min(100%, 820px);
-      margin: 0 auto 1.5rem;
-      text-align: left;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .error-panel-text { flex: 1; min-width: 200px; overflow-wrap: anywhere; }
-    .error-panel-title { font-weight: 800; margin-bottom: 0.2rem; }
-
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -745,61 +274,47 @@
   <header>
     <div class="container header-inner">
       <a href="/" class="logo">
-        <svg viewBox="0 0 32 32" width="28" height="28">
-          <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2.5"/>
-          <path d="M16 6 L16 16 L24 20" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="16" cy="16" r="2.5" fill="var(--accent)"/>
+        <svg class="logo-svg" viewBox="0 0 270 64" width="135" height="32" role="img" aria-label="findable">
+          <circle cx="26" cy="26" r="17" fill="none" stroke="#6d5efc" stroke-width="8"/>
+          <path d="M39 39L56 56" stroke="#6d5efc" stroke-width="9" stroke-linecap="round"/>
+          <path d="M26 15C27 22 30 25 37 26C30 27 27 30 26 37C25 30 22 27 15 26C22 25 25 22 26 15Z" fill="#ffb020"/>
+          <text class="logo-word" x="76" y="46" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="42" letter-spacing="-1">findable</text>
         </svg>
-        <span>findable</span>
       </a>
-      <div class="nav-actions">
-        <button class="btn-api-badge" id="btnOpenApiModal" aria-haspopup="dialog" aria-label="API & MCP Tools">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-          <span>API & MCP Tools</span>
+      <nav class="nav-actions" aria-label="Primary">
+        <a class="nav-link" href="/learn">Learn</a>
+        <button type="button" class="btn-api-badge" id="btnOpenApiModal" aria-haspopup="dialog" aria-label="API and MCP tools">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+          <span>API &amp; MCP</span>
         </button>
-        <button class="theme-toggle" id="themeToggle" title="Toggle color theme" aria-label="Toggle color theme">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
-          </svg>
+        <button type="button" class="theme-toggle" id="themeToggle" title="Toggle color theme" aria-label="Toggle color theme">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
         </button>
-      </div>
+      </nav>
     </div>
   </header>
 
   <main class="container">
     <section class="hero">
-      <div class="hero-badge">Free · No Signup · 72 Checks</div>
-      <h1 class="hero-title">Free SEO, AEO & GEO Audit Tool</h1>
-      <p class="hero-subtitle">Score Traditional SEO, Answer Engines (ChatGPT & Perplexity), and Generative Search (Google AI Overviews) in one unified scan.</p>
+      <div class="hero-badge">Free · No signup · 72 checks</div>
+      <h1 class="hero-title">Is your site findable by Google and by <span class="hl">ChatGPT, Perplexity and Claude</span>?</h1>
+      <p class="hero-subtitle">Paste a URL. findable scores the page for SEO, AEO and GEO with 72 checks, then shows the fixes worth the most points. New to the terms? Read the <a href="/learn">plain-words guide</a>.</p>
 
       <div class="scan-card">
         <div class="mode-toggle">
-          <button type="button" class="mode-btn active" id="btnModePage" aria-pressed="true">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
-            Scan Page
-          </button>
-          <button type="button" class="mode-btn" id="btnModeSite" aria-pressed="false">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-            Crawl Site (Beta)
-          </button>
+          <button type="button" class="mode-btn active" id="btnModePage" aria-pressed="true">Scan page</button>
+          <button type="button" class="mode-btn" id="btnModeSite" aria-pressed="false">Crawl site (beta)</button>
         </div>
-
         <form id="scanForm">
           <label class="field-label" for="urlInput">Page URL to audit</label>
           <div class="input-row">
             <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-              </svg>
+              <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
               <input type="url" id="urlInput" class="url-input" placeholder="https://example.com" required autocomplete="url" spellcheck="false">
             </div>
-            <button type="submit" class="scan-btn" id="scanBtn">
-              <span>Scan Now</span>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </button>
+            <button type="submit" class="scan-btn" id="scanBtn"><span>Scan now</span></button>
           </div>
-          <input type="text" id="keyphraseInput" class="keyphrase-input" placeholder="Focus keyphrase / keyword (optional)" aria-label="Focus keyphrase (optional)">
+          <input type="text" id="keyphraseInput" class="keyphrase-input" placeholder="Focus keyphrase (optional)" aria-label="Focus keyphrase (optional)">
         </form>
       </div>
 
@@ -811,44 +326,29 @@
         <button type="button" class="btn-action" id="btnRetry">Retry</button>
       </div>
 
-      <!-- Recent Scans Bar -->
       <div id="recentScansWrap" class="recent-strip hidden">
         <div class="recent-header">
-          <span>Recent Scans</span>
+          <span>Recent scans</span>
           <button type="button" class="link-btn" id="btnClearHistory">Clear</button>
         </div>
         <div id="recentList" class="recent-items"></div>
       </div>
 
-      <div class="trust-row">
-        <span>72 Checks</span>
-        <span class="trust-dot">·</span>
-        <span>Zero External Dependencies</span>
-        <span class="trust-dot">·</span>
-        <span>AEO & GEO Ready</span>
-        <span class="trust-dot">·</span>
-        <span>Free API & MCP Tools</span>
-      </div>
-
+      <p class="trust-row"><span>72 page checks</span><span>SEO, AEO and GEO</span><span>Free API and MCP</span></p>
     </section>
 
-    <!-- Crawl Progress UI -->
-    <div id="crawlSection" class="crawl-box hidden" role="region" aria-live="polite">
-      <h3 id="crawlStatus">Crawling site internal links...</h3>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="crawlProgress"></div>
-      </div>
+    <div id="crawlSection" class="crawl-box hidden" role="region" aria-label="Crawl progress" aria-live="polite">
+      <h2 id="crawlStatus" class="crawl-title">Crawling internal links...</h2>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="crawlProgress"></div></div>
       <div id="crawlTableWrap"></div>
     </div>
 
     <p id="scanStatus" class="sr-only" role="status" aria-live="polite"></p>
 
-    <div id="scanSkeleton" class="skeleton hidden" aria-hidden="true">
-      <div class="sk-bar"></div>
-      <div class="sk-grid"><div></div><div></div><div></div><div></div></div>
-      <div class="sk-bar"></div>
-      <div class="sk-bar"></div>
-    </div>
+    <section id="agentRun" class="agent hidden" aria-hidden="true">
+      <h2 class="agent-title">findable is checking <span id="agentHost"></span></h2>
+      <ol class="steps" id="agentSteps"></ol>
+    </section>
 
     <div id="results" class="results-wrap hidden">
       <section class="score-hero" aria-labelledby="resultsHeading">
@@ -861,11 +361,12 @@
         </div>
         <div class="hero-info">
           <h2 class="results-heading" id="resultsHeading" tabindex="-1">Overall score</h2>
+          <p class="summary-line" id="summaryLine"></p>
           <div class="grade-row">
             <span id="gradeOverall" class="grade-badge"></span>
             <span id="failingSummary" class="failing-summary"></span>
           </div>
-          <div class="site-url-title" id="resultUrl"></div>
+          <div class="site-url-title mono" id="resultUrl"></div>
           <div class="site-meta-line" id="resultDate"></div>
         </div>
         <div class="site-actions">
@@ -875,55 +376,31 @@
         </div>
       </section>
 
+      <section class="next-actions" aria-labelledby="nextHeading">
+        <h2 id="nextHeading">Your next 3 actions</h2>
+        <p id="nextLine"></p>
+        <ol class="fixes" id="topFixes" role="list"></ol>
+      </section>
+
       <div class="family-grid">
         <section class="family-card" aria-labelledby="famSEOTitle">
           <div class="family-top">
-            <div class="ring-box">
-              <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill" id="ringSEO" cx="60" cy="60" r="50" stroke="var(--fam-seo)"/>
-              </svg>
-              <div class="ring-value" id="valSEO">0</div>
-            </div>
-            <div>
-              <h3 class="card-heading" id="famSEOTitle">Traditional SEO</h3>
-              <div class="weight-tag">50% of overall</div>
-              <div class="card-footer" id="detailSEO"></div>
-            </div>
+            <div class="ring-box"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fill" id="ringSEO" cx="60" cy="60" r="50" stroke="var(--fam-seo)"/></svg><div class="ring-value" id="valSEO">0</div></div>
+            <div><h3 class="card-heading" id="famSEOTitle">Traditional SEO</h3><div class="weight-tag">50% of overall</div><div class="card-footer" id="detailSEO"></div></div>
           </div>
           <ul class="worst-list" id="worstSEO" aria-label="Top failing SEO checks"></ul>
         </section>
         <section class="family-card" aria-labelledby="famAEOTitle">
           <div class="family-top">
-            <div class="ring-box">
-              <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill" id="ringAEO" cx="60" cy="60" r="50" stroke="var(--fam-aeo)"/>
-              </svg>
-              <div class="ring-value" id="valAEO">0</div>
-            </div>
-            <div>
-              <h3 class="card-heading" id="famAEOTitle">Answer Engine (AEO)</h3>
-              <div class="weight-tag">25% of overall</div>
-              <div class="card-footer" id="detailAEO"></div>
-            </div>
+            <div class="ring-box"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fill" id="ringAEO" cx="60" cy="60" r="50" stroke="var(--fam-aeo)"/></svg><div class="ring-value" id="valAEO">0</div></div>
+            <div><h3 class="card-heading" id="famAEOTitle">Answer Engine (AEO)</h3><div class="weight-tag">25% of overall</div><div class="card-footer" id="detailAEO"></div></div>
           </div>
           <ul class="worst-list" id="worstAEO" aria-label="Top failing AEO checks"></ul>
         </section>
         <section class="family-card" aria-labelledby="famGEOTitle">
           <div class="family-top">
-            <div class="ring-box">
-              <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill" id="ringGEO" cx="60" cy="60" r="50" stroke="var(--fam-geo)"/>
-              </svg>
-              <div class="ring-value" id="valGEO">0</div>
-            </div>
-            <div>
-              <h3 class="card-heading" id="famGEOTitle">Generative (GEO)</h3>
-              <div class="weight-tag">25% of overall</div>
-              <div class="card-footer" id="detailGEO"></div>
-            </div>
+            <div class="ring-box"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fill" id="ringGEO" cx="60" cy="60" r="50" stroke="var(--fam-geo)"/></svg><div class="ring-value" id="valGEO">0</div></div>
+            <div><h3 class="card-heading" id="famGEOTitle">Generative (GEO)</h3><div class="weight-tag">25% of overall</div><div class="card-footer" id="detailGEO"></div></div>
           </div>
           <ul class="worst-list" id="worstGEO" aria-label="Top failing GEO checks"></ul>
         </section>
@@ -941,73 +418,137 @@
         </div>
       </section>
     </div>
+
+    <article class="landing">
+      <p class="byline">By <span>Nadim Tuhin</span> · Published <time datetime="2026-10-14">14 October 2026</time> · Updated <time datetime="2026-10-14">14 October 2026</time></p>
+
+      <h2 id="about">What is findable?</h2>
+      <p>findable is a free scanner that scores one web page on traditional SEO, answer engine optimization (AEO) and generative engine optimization (GEO). It runs 72 page checks, gives you one overall score from 0 to 100, and ranks the fixes by how many points each one recovers.</p>
+      <dl class="terms">
+        <dt>SEO</dt><dd>Search engine optimization. Make the page easy for a search crawler to fetch, read and rank.</dd>
+        <dt>AEO</dt><dd>Answer engine optimization. Shape the page so an answer box or chat tool can lift a short, correct answer.</dd>
+        <dt>GEO</dt><dd>Generative engine optimization. Give an AI model facts, authorship and sources it can cite with confidence.</dd>
+      </dl>
+
+      <h2>How is SEO different from AEO and GEO?</h2>
+      <p>SEO gets your page found and ranked by a crawler. AEO gets a short passage of it chosen as the answer. GEO gets your facts and your name cited inside a generated reply. SEO comes first, because a page that cannot be fetched or read cannot be answered from or cited.</p>
+      <div class="table-wrap" role="region" aria-label="SEO, AEO and GEO compared" tabindex="0">
+        <table>
+          <caption class="sr-only">SEO, AEO and GEO compared</caption>
+          <thead><tr><th scope="col">Family</th><th scope="col">SEO</th><th scope="col">AEO</th><th scope="col">GEO</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Reader</th><td>Search crawler</td><td>Answer box or chat tool</td><td>Generative AI model</td></tr>
+            <tr><th scope="row">It wins when</th><td>The page is crawlable and clear</td><td>A passage answers a question directly</td><td>Facts, authors and sources are explicit</td></tr>
+            <tr><th scope="row">Page checks</th><td>36</td><td>17</td><td>19</td></tr>
+            <tr><th scope="row">Weight in score</th><td>50 of 100</td><td>25 of 100</td><td>25 of 100</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="quickstart">How do I check my site in three steps?</h2>
+      <ol>
+        <li>Paste a page URL into the scan box at the top of this page.</li>
+        <li>Watch the agent work through the fetch, SEO, AEO and GEO checks.</li>
+        <li>Do the top three fixes, then scan again to see your score move.</li>
+      </ol>
+
+      <h2 id="developers">How do I run findable from a terminal, an AI agent or an API?</h2>
+      <h3>Command line</h3>
+      <pre><code>go install github.com/nadimtuhin/findable/cmd/findable@latest
+findable https://example.com</code></pre>
+      <h3>MCP server for AI agents</h3>
+      <pre><code>npx findable-mcp</code></pre>
+      <h3>REST API</h3>
+      <pre><code>curl -s -X POST https://findable.piply.xyz/api/scan \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'</code></pre>
+
+      <h2>How is the score calculated?</h2>
+      <p>The overall score blends three family scores: SEO counts for half, AEO and GEO for a quarter each. Every failing check is worth its family weight divided by that family's check count. That is why the top fixes you see are ranked by recoverable points.</p>
+      <blockquote>
+        <p>A fast, unified open-source website auditor for Traditional SEO, Answer Engine Optimization (AEO), and Generative Engine Optimization (GEO).</p>
+        <footer>From the <a href="https://github.com/nadimtuhin/findable#readme">findable README</a></footer>
+      </blockquote>
+      <p>The basics are the same as in <a href="https://developers.google.com/search/docs/fundamentals/seo-starter-guide">Google's SEO starter guide</a>. Read the <a href="/learn">plain-words guides</a> for what each check means.</p>
+      <p>findable can also check your <a href="https://llmstxt.org/">llms.txt</a> file. It speaks the <a href="https://modelcontextprotocol.io/">Model Context Protocol</a>, and the structured data it looks for follows the <a href="https://schema.org/">schema.org</a> vocabulary.</p>
+
+      <h2>Key takeaways</h2>
+      <ul>
+        <li>One scan scores SEO, AEO and GEO together.</li>
+        <li>Fixes are ranked by the points they recover, so you start with the biggest win.</li>
+        <li>It runs in the browser, the terminal, an AI agent or a CI job.</li>
+      </ul>
+
+      <h2>Frequently asked questions</h2>
+      <details class="faq"><summary>Is findable free?</summary><p>Yes. It costs $0, needs no signup and the code is MIT licensed on GitHub.</p></details>
+      <details class="faq"><summary>Does findable ask ChatGPT, Perplexity, Claude or Google AI about my page?</summary><p>No. It checks the signals on your page that answer engines can use, such as structured data, direct answers, clear authorship and sources. It does not query any AI product.</p></details>
+      <details class="faq"><summary>Can it scan more than one page?</summary><p>Yes. Crawl Site mode (beta) scans your start page plus internal links, up to 8 pages. The CLI can go further, for example findable -crawl -limit 20 to scan 20 pages.</p></details>
+      <details class="faq"><summary>How do I use it in CI?</summary><p>Run the CLI with -format sarif to upload results to GitHub code scanning. The findable GitHub Action can also fail a build when the score drops below a number you choose.</p></details>
+      <details class="faq"><summary>What are the site checks?</summary><p>With the site option, findable also fetches robots.txt and llms.txt. It reports whether GPTBot, ClaudeBot, PerplexityBot and Google-Extended are blocked. These are shown apart from the score.</p></details>
+      <details class="faq"><summary>What limits does a scan have?</summary><p>A scan reads up to 5MB of a page and gives up after 10s. It fetches public hosts on ports 80 and 443 only.</p></details>
+
+      <h2 id="contact">How do I contact the author?</h2>
+      <p>Open an issue on <a href="https://github.com/nadimtuhin/findable/issues">GitHub</a> with a bug, a question or a check you want added. The source is at <a href="https://github.com/nadimtuhin/findable">github.com/nadimtuhin/findable</a>.</p>
+    </article>
   </main>
 
-  <!-- Toast Notification Banner -->
-  <div class="toast-container">
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  </div>
+  <footer class="site-footer">
+    <div class="container">
+      <nav aria-label="Footer">
+        <a href="/#about">About</a> · <a href="/#contact">Contact</a> · <a href="/learn">Learn</a> · <a href="https://github.com/nadimtuhin/findable">GitHub</a> · <a href="https://github.com/nadimtuhin/findable/issues">Issues</a>
+      </nav>
+      <p>findable is MIT licensed. Built by Nadim Tuhin.</p>
+    </div>
+  </footer>
+
+  <div class="toast-container"><div id="toast" class="toast" role="status" aria-live="polite"></div></div>
 
   <dialog id="apiModal" class="modal" aria-labelledby="apiModalTitle">
     <div class="modal-card">
       <div class="modal-title-row">
-        <h2 class="modal-title" id="apiModalTitle">Free & Open-Source API & MCP Tools</h2>
+        <h2 class="modal-title" id="apiModalTitle">API and MCP tools</h2>
         <button type="button" class="btn-close" id="btnCloseApiModal" aria-label="Close dialog">&times;</button>
       </div>
-
-      <p style="color: var(--text-2); margin-bottom: 1rem;">Integrate findable directly into your CI pipelines, terminal workflows, or AI coding agents.</p>
-
-      <h4 style="margin-bottom: 0.5rem;">1. cURL / REST API Endpoint</h4>
-      <div class="code-block">curl -s -X POST https://findable.piply.xyz/api/scan \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'</div>
-
-      <h4 style="margin-bottom: 0.5rem;">2. Go CLI (Single Zero-Dependency Binary)</h4>
-      <div class="code-block">go install github.com/nadimtuhin/findable/cmd/findable@latest
-findable https://example.com</div>
-
-      <h4 style="margin-bottom: 0.5rem;">3. Model Context Protocol (MCP) in Claude / Cursor / Hermes</h4>
-      <p style="font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.5rem;">Add to your <code>claude_desktop_config.json</code> or Cursor MCP settings:</p>
-      <div class="code-block">{
+      <p>Run findable from CI, a terminal or an AI agent. Command line and API examples are on the main page.</p>
+      <h3>MCP in Claude, Cursor or Windsurf</h3>
+      <pre><code>{
   "mcpServers": {
-    "findable": {
-      "command": "findable",
-      "args": ["-mcp"]
-    }
+    "findable": { "command": "npx", "args": ["-y", "findable-mcp"] }
   }
-}</div>
-
-      <h4 style="margin-bottom: 0.5rem;">4. NPX Node MCP Runner</h4>
-      <div class="code-block">npx -y findable-mcp</div>
+}</code></pre>
     </div>
   </dialog>
 
   <script>
-    // Theme toggle
-    const themeToggle = document.getElementById("themeToggle");
-    themeToggle.addEventListener("click", () => {
-      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-      const next = isDark ? "light" : "dark";
+    const $ = (id) => document.getElementById(id);
+    const el = (tag, cls, text) => {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+    const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    $("themeToggle").addEventListener("click", () => {
+      const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("seoscore_theme", next);
+      try { localStorage.setItem("seoscore_theme", next); } catch {}
     });
 
-    // Toast helper
     function showToast(msg) {
-      const t = document.getElementById("toast");
+      const t = $("toast");
       t.textContent = msg;
       t.classList.add("show");
       setTimeout(() => t.classList.remove("show"), 2800);
     }
 
-    const apiModal = document.getElementById("apiModal");
-    const btnOpenApi = document.getElementById("btnOpenApiModal");
+    const apiModal = $("apiModal");
+    const btnOpenApi = $("btnOpenApiModal");
     btnOpenApi.addEventListener("click", () => apiModal.showModal());
-    document.getElementById("btnCloseApiModal").addEventListener("click", () => apiModal.close());
+    $("btnCloseApiModal").addEventListener("click", () => apiModal.close());
     apiModal.addEventListener("click", (e) => { if (e.target === apiModal) apiModal.close(); });
     apiModal.addEventListener("close", () => btnOpenApi.focus());
 
-    // Recent Scans Storage
     function recentHost(url) {
       try {
         const u = new URL(url);
@@ -1032,87 +573,166 @@ findable https://example.com</div>
     }
     function renderRecentScans() {
       const list = getRecentScans();
-      const wrap = document.getElementById("recentScansWrap");
-      const container = document.getElementById("recentList");
-      if (list.length === 0) {
-        wrap.classList.add("hidden");
-        return;
-      }
-      wrap.classList.remove("hidden");
+      $("recentScansWrap").classList.toggle("hidden", list.length === 0);
+      const container = $("recentList");
       container.replaceChildren();
       list.forEach(item => {
-        const btn = document.createElement("button");
+        const btn = el("button", "recent-pill");
         btn.type = "button";
-        btn.className = "recent-pill";
-        const score = document.createElement("span");
-        score.className = "recent-score";
-        score.textContent = String(Math.round(item.score));
-        const host = document.createElement("span");
-        host.textContent = recentHost(item.url);
-        btn.append(score, host);
+        btn.append(el("span", "recent-score", String(Math.round(item.score))), el("span", "", recentHost(item.url)));
         btn.addEventListener("click", () => {
-          document.getElementById("urlInput").value = item.url;
-          document.getElementById("scanForm").requestSubmit();
+          $("urlInput").value = item.url;
+          $("scanForm").requestSubmit();
         });
-        container.appendChild(btn);
+        container.append(btn);
       });
     }
-    document.getElementById("btnClearHistory").addEventListener("click", () => {
+    $("btnClearHistory").addEventListener("click", () => {
       try { localStorage.removeItem("seoscore_recent"); } catch {}
       renderRecentScans();
       showToast("History cleared");
     });
     renderRecentScans();
 
-    // Mode Toggle
     let activeMode = "page";
-    const btnPage = document.getElementById("btnModePage");
-    const btnSite = document.getElementById("btnModeSite");
+    const btnPage = $("btnModePage");
+    const btnSite = $("btnModeSite");
+    function setMode(mode) {
+      activeMode = mode;
+      btnPage.classList.toggle("active", mode === "page");
+      btnPage.setAttribute("aria-pressed", String(mode === "page"));
+      btnSite.classList.toggle("active", mode === "site");
+      btnSite.setAttribute("aria-pressed", String(mode === "site"));
+    }
     btnPage.addEventListener("click", () => {
-      activeMode = "page";
-      btnPage.classList.add("active");
-      btnPage.setAttribute("aria-pressed", "true");
-      btnSite.classList.remove("active");
-      btnSite.setAttribute("aria-pressed", "false");
-      document.getElementById("crawlSection").classList.add("hidden");
+      setMode("page");
+      $("crawlSection").classList.add("hidden");
     });
-    btnSite.addEventListener("click", () => {
-      activeMode = "site";
-      btnSite.classList.add("active");
-      btnSite.setAttribute("aria-pressed", "true");
-      btnPage.classList.remove("active");
-      btnPage.setAttribute("aria-pressed", "false");
-    });
+    btnSite.addEventListener("click", () => setMode("site"));
 
     let currentScan = null;
     let allChecks = [];
     let scannedUrl = "";
 
-    const scanForm = document.getElementById("scanForm");
-    const scanBtn = document.getElementById("scanBtn");
-    const urlInput = document.getElementById("urlInput");
-    const keyphraseInput = document.getElementById("keyphraseInput");
+    const scanForm = $("scanForm");
+    const scanBtn = $("scanBtn");
+    const urlInput = $("urlInput");
+    const keyphraseInput = $("keyphraseInput");
+    const scanStatus = $("scanStatus");
+    const errorPanel = $("errorPanel");
 
+    const DEFAULT_ADVICE = "Optimize this signal according to current search and AI answer guidelines.";
     const fixAdvice = {
-      title_exists: "Add a distinct <title> tag inside <head> describing the specific page purpose.",
-      title_length: "Keep your title tag between 30 and 60 characters so search engines do not truncate it.",
-      desc_exists: "Add a <meta name='description'> tag with an enticing summary.",
-      desc_length: "Aim for 120 to 160 characters in your meta description for optimal search snippet display.",
-      h1_exists: "Ensure exactly one H1 tag is present on the page defining the primary topic.",
-      heading_hierarchy: "Structure headings hierarchically (H1 -> H2 -> H3) without skipping levels.",
-      word_count: "Expand thin content to at least 300 words to establish topical depth.",
-      canonical: "Add a canonical link tag (<link rel='canonical' href='...'>) to prevent duplicate content.",
-      img_alt: "Include descriptive alt attributes on all <img> tags for accessibility and image search.",
-      img_dimensions: "Define explicit width and height attributes on images to prevent Layout Shift (CLS).",
-      aeo_faq: "Add FAQPage Schema.org structured data with concise question-and-answer pairs.",
-      aeo_direct_answers: "Place concise 30-80 word direct answer paragraphs directly beneath question headings.",
-      aeo_definition_lists: "Use <dl>, <dt>, and <dd> elements to define terms and concepts for AI extraction.",
-      aeo_numbered_steps: "Use <ol> numbered lists for step-by-step instructions and recipes.",
-      geo_statistics_density: "Include quantitative data points, benchmarks, percentages (%), and metrics.",
-      geo_expert_quotes: "Use <blockquote> tags with attributed sources to demonstrate expertise and authority.",
-      geo_citations: "Cite reputable external source links to back up empirical claims.",
-      geo_knowledge_graph: "Add sameAs links to Wikidata, LinkedIn, or Wikipedia in your Organization schema."
+      title_exists: "Add a distinct title tag inside head that names the page's purpose.",
+      title_length: "Keep the title between 30 and 60 characters so search engines do not truncate it.",
+      desc_exists: "Add a meta description with a short summary of the page.",
+      desc_length: "Aim for 120 to 160 characters in the meta description.",
+      h1_exists: "Use exactly one h1 that states the primary topic.",
+      heading_hierarchy: "Nest headings in order (h1, h2, h3) without skipping levels.",
+      word_count: "Expand thin content to at least 300 words to show topical depth.",
+      canonical: "Add a canonical link tag to prevent duplicate content.",
+      og_image: "Add an og:image meta tag with an absolute image URL.",
+      og_url: "Add an og:url meta tag with the page's canonical address.",
+      internal_links: "Link to at least two other pages on your site with descriptive anchor text.",
+      external_links: "Link out to at least one trustworthy source that backs up a claim.",
+      img_alt: "Give every image a descriptive alt attribute.",
+      img_dimensions: "Set width and height on images to prevent layout shift.",
+      jsonld: "Add a JSON-LD block that describes the page, such as Organization or SoftwareApplication.",
+      aeo_structured_data: "Add JSON-LD structured data so AI systems can read the page's facts.",
+      aeo_faq: "Add FAQPage structured data with short question and answer pairs.",
+      aeo_direct_answers: "Put a 30 to 80 word direct answer right under each question heading.",
+      aeo_question_headings: "Phrase some headings as the questions people ask, such as What is...?",
+      aeo_definition_lists: "Use dl, dt and dd to define key terms.",
+      aeo_numbered_steps: "Use an ol for step-by-step instructions.",
+      aeo_collapsible: "Put FAQs in details and summary elements.",
+      aeo_summary: "Add a Key takeaways section that recaps the page in a few lines.",
+      geo_statistics_density: "Include concrete numbers, measurements and benchmarks you can stand behind.",
+      geo_expert_quotes: "Use blockquote with an attributed source to show expertise.",
+      geo_citations: "Link to reputable external sources that back up your claims.",
+      geo_definitions: "Define key terms in plain sentences such as X is a...",
+      geo_author_schema: "Add Person schema for the author, or an author field in Article schema.",
+      geo_org_schema: "Declare an Organization in JSON-LD with your name, URL and logo.",
+      geo_knowledge_graph: "Add sameAs links to Wikidata, LinkedIn or Wikipedia in your Organization schema.",
+      aeo_tables: "Add an HTML table that compares options or lists data.",
+      geo_data_viz: "Add an HTML table that compares options or lists data.",
+      geo_passage_citability: "Write self-contained 40 to 120 word paragraphs that answer one question on their own.",
+      geo_trust: "Link to About and Contact pages so readers see who stands behind the site.",
+      geo_time_element: "Mark up published and updated dates with the time element."
     };
+
+    const ENGINES = { AEO: ["ChatGPT", "Perplexity", "Claude"], GEO: ["Google AI", "Claude"] };
+    function engineBadges(family) {
+      const names = ENGINES[family];
+      if (!names) return null;
+      const box = el("span", "engines");
+      box.setAttribute("role", "group");
+      box.setAttribute("aria-label", "Answer engines this helps");
+      names.forEach(n => box.append(el("span", "eng", n)));
+      return box;
+    }
+
+    const STEPS = ["Fetching the page", "Checking SEO (36 checks)", "Checking AEO (17 checks)", "Checking GEO (19 checks)", "Ranking your fixes"];
+    let stepTimer = 0;
+    function paintSteps(active) {
+      [...$("agentSteps").children].forEach((li, i) => { li.dataset.state = i < active ? "done" : i === active ? "run" : "wait"; });
+    }
+    function startAgent(host) {
+      $("agentHost").textContent = host;
+      $("agentSteps").replaceChildren(...STEPS.map(text => {
+        const li = el("li");
+        const mark = el("span", "mark");
+        mark.setAttribute("aria-hidden", "true");
+        li.append(mark, el("span", "", text));
+        return li;
+      }));
+      $("agentRun").classList.remove("hidden");
+      $("agentRun").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "nearest" });
+      paintSteps(0);
+      if (reduceMotion()) return;
+      let step = 0;
+      stepTimer = setInterval(() => {
+        step = Math.min(step + 1, STEPS.length - 1);
+        paintSteps(step);
+        scanStatus.textContent = STEPS[step] + " for " + host;
+      }, 700);
+    }
+    function stopAgent() {
+      clearInterval(stepTimer);
+      $("agentRun").classList.add("hidden");
+    }
+    async function finishAgent() {
+      clearInterval(stepTimer);
+      paintSteps(STEPS.length);
+      if (!reduceMotion()) await new Promise(resolve => setTimeout(resolve, 400));
+    }
+
+    function setBusy(busy) {
+      $("results").setAttribute("aria-busy", String(busy));
+      if (busy) {
+        $("results").classList.add("hidden");
+        const host = recentHost(urlInput.value.trim()) || urlInput.value.trim();
+        scanStatus.textContent = "Scanning " + host;
+        startAgent(host);
+      } else {
+        stopAgent();
+      }
+    }
+
+    function showError(message) {
+      $("errorText").textContent = message.slice(0, 500);
+      scanStatus.textContent = "";
+      errorPanel.classList.remove("hidden");
+      errorPanel.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "nearest" });
+    }
+
+    async function apiError(resp) {
+      const text = await resp.text().catch(() => "");
+      try {
+        const body = JSON.parse(text);
+        if (body && typeof body.error === "string" && body.error) return body.error;
+      } catch {}
+      return text.trim() || "The scan API answered with status " + resp.status;
+    }
 
     scanForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1127,10 +747,11 @@ findable https://example.com</div>
       if (activeMode === "site") {
         await executeSiteCrawl(targetUrl, keyphrase);
         scanBtn.disabled = false;
-        scanBtn.querySelector("span").textContent = "Scan Now";
+        scanBtn.querySelector("span").textContent = "Scan now";
         return;
       }
 
+      $("crawlSection").classList.add("hidden");
       setBusy(true);
       try {
         const resp = await fetch("/api/scan", {
@@ -1140,6 +761,7 @@ findable https://example.com</div>
         });
         if (!resp.ok) throw new Error(await apiError(resp));
         currentScan = await resp.json();
+        await finishAgent();
         setBusy(false);
         renderScanResults(currentScan, targetUrl);
         saveRecentScan(targetUrl, overallScore(currentScan));
@@ -1148,41 +770,13 @@ findable https://example.com</div>
         showError(err.message);
       } finally {
         scanBtn.disabled = false;
-        scanBtn.querySelector("span").textContent = "Scan Now";
+        scanBtn.querySelector("span").textContent = "Scan now";
       }
     });
-
-    const scanStatus = document.getElementById("scanStatus");
-    const errorPanel = document.getElementById("errorPanel");
-    document.getElementById("btnRetry").addEventListener("click", () => scanForm.requestSubmit());
-
-    function setBusy(busy) {
-      document.getElementById("results").setAttribute("aria-busy", String(busy));
-      document.getElementById("scanSkeleton").classList.toggle("hidden", !busy);
-      if (busy) {
-        document.getElementById("results").classList.add("hidden");
-        scanStatus.textContent = "Scanning " + urlInput.value.trim();
-      }
-    }
-
-    function showError(message) {
-      document.getElementById("errorText").textContent = message.slice(0, 500);
-      scanStatus.textContent = "";
-      errorPanel.classList.remove("hidden");
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      errorPanel.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
-    }
-
-    async function apiError(resp) {
-      const text = await resp.text().catch(() => "");
-      try {
-        const body = JSON.parse(text);
-        if (body && typeof body.error === "string" && body.error) return body.error;
-      } catch {}
-      return text.trim() || "The scan API answered with status " + resp.status;
-    }
+    $("btnRetry").addEventListener("click", () => scanForm.requestSubmit());
 
     const FAMILY_WEIGHTS = { SEO: 50, AEO: 25, GEO: 25 };
+    const FAMILY_NAMES = { SEO: "Traditional SEO", AEO: "Answer Engine (AEO)", GEO: "Generative (GEO)" };
 
     function overallScore(data) {
       if (typeof data.overall === "number") return data.overall;
@@ -1195,167 +789,157 @@ findable https://example.com</div>
       return (fam.checks || []).map(c => ({ ...c, cat: family, worth }));
     }
 
-    function formatWorth(worth) {
-      return worth.toFixed(1) + " pts";
-    }
+    const formatWorth = (worth) => worth.toFixed(1) + " pts";
 
     function setRing(id, score) {
-      const circumference = 314.16;
-      const offset = circumference * (1 - Math.min(100, Math.max(0, score)) / 100);
-      const ring = document.getElementById(id);
-      if (ring) ring.style.strokeDashoffset = offset;
+      const ring = $(id);
+      if (ring) ring.style.strokeDashoffset = 314.16 * (1 - Math.min(100, Math.max(0, score)) / 100);
     }
-
-    const FAMILY_NAMES = { SEO: "Traditional SEO", AEO: "Answer Engine (AEO)", GEO: "Generative (GEO)" };
 
     function grade(overall) {
       if (overall >= 90) return ["grade-a", "A+ Excellent"];
       if (overall >= 80) return ["grade-b", "A Good"];
       if (overall >= 70) return ["grade-c", "B Fair"];
-      if (overall >= 60) return ["grade-c", "C Needs Work"];
-      return ["grade-f", "Critical Issues"];
+      if (overall >= 60) return ["grade-c", "C Needs work"];
+      return ["grade-f", "Critical issues"];
+    }
+
+    function headline(overall) {
+      if (overall >= 90) return "Findable. Nicely done.";
+      if (overall >= 70) return "Mostly findable, with quick wins left";
+      if (overall >= 50) return "Findable in parts. Three fixes move the needle";
+      return "Hard to find right now. Start with three fixes";
     }
 
     const isFailing = c => c.applicable !== false && !c.pass;
+    const sumWorth = checks => checks.reduce((total, c) => total + c.worth, 0);
+
+    function renderTopFixes(top, failing) {
+      const list = $("topFixes");
+      list.replaceChildren();
+      if (top.length === 0) {
+        $("nextLine").textContent = "Every applicable check passes. Re-scan after each release to keep it that way.";
+        return;
+      }
+      const lead = top.length === 1 ? "This fix recovers" : `These ${top.length} fixes recover`;
+      $("nextLine").textContent = `${lead} ${sumWorth(top).toFixed(1)} of the ${sumWorth(failing).toFixed(1)} points you are missing.`;
+      top.forEach(c => {
+        const card = el("li", "fix-card");
+        const head = el("div", "fix-head");
+        head.append(el("strong", "", c.label), el("span", "pts", "+" + formatWorth(c.worth)));
+        const meta = el("div", "fix-meta");
+        meta.append(el("span", "", FAMILY_NAMES[c.cat]));
+        const engines = engineBadges(c.cat);
+        if (engines) meta.append(engines);
+        card.append(head, meta, el("p", "fix-how", fixAdvice[c.id] || DEFAULT_ADVICE));
+        list.append(card);
+      });
+    }
 
     function renderScanResults(data, url) {
       scannedUrl = url;
       document.body.classList.add("has-results");
-      const resultsEl = document.getElementById("results");
+      const resultsEl = $("results");
       resultsEl.classList.remove("hidden");
-      document.getElementById("resultUrl").textContent = url;
+      $("resultUrl").textContent = url;
       const keyphrase = keyphraseInput.value.trim();
-      document.getElementById("resultDate").textContent = `Audited ${new Date().toLocaleString()}` + (keyphrase ? ` · keyphrase: ${keyphrase}` : "");
-      btnPage.click();
+      $("resultDate").textContent = `Audited ${new Date().toLocaleString()}` + (keyphrase ? ` · keyphrase: ${keyphrase}` : "");
+      setMode("page");
 
       const overall = overallScore(data);
-      document.getElementById("valOverall").textContent = overall;
+      $("valOverall").textContent = overall;
       setRing("ringOverall", overall);
       const [gradeClass, gradeText] = grade(overall);
-      const gradeEl = document.getElementById("gradeOverall");
+      const gradeEl = $("gradeOverall");
       gradeEl.className = "grade-badge " + gradeClass;
       gradeEl.textContent = gradeText;
+      $("resultsHeading").textContent = headline(overall);
+      $("summaryLine").textContent = `Overall score: ${overall} out of 100.`;
 
       allChecks = [...familyChecks(data, "SEO"), ...familyChecks(data, "AEO"), ...familyChecks(data, "GEO")];
       const applicable = allChecks.filter(c => c.applicable !== false);
       const failing = allChecks.filter(isFailing);
-      document.getElementById("failingSummary").textContent = `${failing.length} of ${applicable.length} checks failing`;
+      $("failingSummary").textContent = `${failing.length} of ${applicable.length} checks failing`;
+      renderTopFixes([...failing].sort((a, b) => b.worth - a.worth).slice(0, 3), failing);
 
       for (const family of ["SEO", "AEO", "GEO"]) {
         const fam = data[family.toLowerCase()] || {};
         const score = fam.score || 0;
-        document.getElementById("val" + family).textContent = score;
+        $("val" + family).textContent = score;
         setRing("ring" + family, score);
-        document.getElementById("detail" + family).textContent = `${fam.passed || 0} / ${fam.total || 0} passed`;
-        renderWorst(document.getElementById("worst" + family), failing.filter(c => c.cat === family));
+        $("detail" + family).textContent = `${fam.passed || 0} / ${fam.total || 0} passed`;
+        renderWorst($("worst" + family), failing.filter(c => c.cat === family));
       }
 
-      document.getElementById("issuesHeading").textContent = `Failing checks (${failing.length})`;
-      renderGroups(document.getElementById("failingList"), failing, "No failing checks. Every applicable check passes.");
+      $("issuesHeading").textContent = `Failing checks (${failing.length})`;
+      renderGroups($("failingList"), failing, "No failing checks. Every applicable check passes.");
       const passing = allChecks.filter(c => !isFailing(c));
-      renderGroups(document.getElementById("passingList"), passing, "No passing checks yet.");
+      renderGroups($("passingList"), passing, "No passing checks yet.");
       setPassingVisible(false, passing.length);
 
       scanStatus.textContent = `Scan complete for ${url}: overall ${overall} of 100, ${failing.length} failing checks.`;
       resultsEl.style.scrollMarginTop = document.querySelector(".hero").offsetHeight + 12 + "px";
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      resultsEl.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-      document.getElementById("resultsHeading").focus({ preventScroll: true });
+      resultsEl.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
+      $("resultsHeading").focus({ preventScroll: true });
     }
 
     function renderWorst(list, failing) {
       list.replaceChildren();
       if (failing.length === 0) {
-        const li = document.createElement("li");
-        li.className = "none";
-        li.textContent = "No failing checks";
-        list.append(li);
+        list.append(el("li", "none", "No failing checks"));
         return;
       }
-      failing.slice(0, 3).forEach(c => {
-        const li = document.createElement("li");
-        li.textContent = c.label;
-        list.append(li);
-      });
+      failing.slice(0, 3).forEach(c => list.append(el("li", "", c.label)));
     }
 
     function renderGroups(container, checks, emptyText) {
       container.replaceChildren();
       if (checks.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "checks-container issues-empty";
-        empty.textContent = emptyText;
-        container.append(empty);
+        container.append(el("div", "checks-container issues-empty", emptyText));
         return;
       }
-      const families = ["SEO", "AEO", "GEO"]
+      const groups = ["SEO", "AEO", "GEO"]
         .map(f => checks.filter(c => c.cat === f))
         .filter(group => group.length > 0)
         .sort((a, b) => b[0].worth - a[0].worth);
-      for (const group of families) {
-        const title = document.createElement("h3");
-        title.className = "group-title";
-        title.textContent = `${FAMILY_NAMES[group[0].cat]} · ${group.length} · ${formatWorth(group[0].worth)} each`;
-        const list = document.createElement("div");
-        list.className = "checks-container";
+      for (const group of groups) {
+        const list = el("div", "checks-container");
         group.forEach(c => list.append(checkRow(c)));
-        container.append(title, list);
+        container.append(el("h3", "group-title", `${FAMILY_NAMES[group[0].cat]} · ${group.length} · ${formatWorth(group[0].worth)} each`), list);
       }
     }
 
     function checkRow(c) {
       const isNA = c.applicable === false;
-      const details = document.createElement("details");
-      details.className = "check-row";
-      const summary = document.createElement("summary");
-      summary.className = "check-summary";
-      const badge = document.createElement("span");
-      badge.className = "status-badge " + (isNA ? "status-na" : c.pass ? "status-pass" : "status-fail");
-      badge.textContent = isNA ? "N/A" : c.pass ? "PASS" : "FAIL";
-      const content = document.createElement("div");
-      content.className = "check-content";
-      const label = document.createElement("div");
-      label.className = "check-label";
-      label.textContent = c.label;
-      const meta = document.createElement("div");
-      meta.className = "check-meta";
-      meta.textContent = isNA ? c.id : `${c.id} · worth ${formatWorth(c.worth)}`;
-      content.append(label, meta);
-      summary.append(badge, content);
-      summary.insertAdjacentHTML("beforeend", '<svg class="drawer-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
-      const drawer = document.createElement("div");
-      drawer.className = "fix-drawer";
-      const card = document.createElement("div");
-      card.className = "fix-drawer-card";
-      const strong = document.createElement("strong");
-      strong.textContent = "How to fix: ";
-      card.append(strong, fixAdvice[c.id] || "Optimize this signal according to modern search and AI ranking guidelines.");
+      const details = el("details", "check-row");
+      const summary = el("summary", "check-summary");
+      summary.append(el("span", "status-badge " + (isNA ? "status-na" : c.pass ? "status-pass" : "status-fail"), isNA ? "N/A" : c.pass ? "PASS" : "FAIL"));
+      const content = el("div", "check-content");
+      const meta = el("div", "check-meta mono", isNA ? c.id : `${c.id} · worth ${formatWorth(c.worth)}`);
+      const engines = engineBadges(c.cat);
+      if (engines) meta.append(engines);
+      content.append(el("div", "check-label", c.label), meta);
+      summary.append(content);
+      const card = el("div", "fix-drawer-card");
+      card.append(el("strong", "", "How to fix: "), fixAdvice[c.id] || DEFAULT_ADVICE);
+      const drawer = el("div", "fix-drawer");
       drawer.append(card);
       details.append(summary, drawer);
       return details;
     }
 
-    function escapeHtml(str) {
-      const div = document.createElement("div");
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    const btnTogglePassing = document.getElementById("btnTogglePassing");
+    const btnTogglePassing = $("btnTogglePassing");
     function setPassingVisible(visible, count) {
-      document.getElementById("passingWrap").hidden = !visible;
+      $("passingWrap").hidden = !visible;
       btnTogglePassing.setAttribute("aria-expanded", String(visible));
       btnTogglePassing.textContent = `${visible ? "Hide" : "Show"} passing (${count})`;
     }
     btnTogglePassing.addEventListener("click", () => {
-      const visible = btnTogglePassing.getAttribute("aria-expanded") !== "true";
-      setPassingVisible(visible, allChecks.filter(c => !isFailing(c)).length);
+      setPassingVisible(btnTogglePassing.getAttribute("aria-expanded") !== "true", allChecks.filter(c => !isFailing(c)).length);
     });
 
-    function reportFileName(ext) {
-      const host = recentHost(scannedUrl) || "page";
-      return `findable-report-${host}-${new Date().toISOString().split("T")[0]}.${ext}`;
-    }
+    const today = () => new Date().toISOString().split("T")[0];
+    const reportFileName = ext => `findable-report-${recentHost(scannedUrl) || "page"}-${today()}.${ext}`;
 
     function download(content, type, name) {
       const a = document.createElement("a");
@@ -1365,20 +949,17 @@ findable https://example.com</div>
       URL.revokeObjectURL(a.href);
     }
 
-    document.getElementById("btnExportJSON").addEventListener("click", () => {
+    $("btnExportJSON").addEventListener("click", () => {
       if (!currentScan) return;
       download(JSON.stringify(currentScan, null, 2), "application/json", reportFileName("json"));
       showToast("JSON report exported");
     });
 
-    document.getElementById("btnExportCSV").addEventListener("click", () => {
+    $("btnExportCSV").addEventListener("click", () => {
       if (!currentScan) return;
-      const host = recentHost(scannedUrl) || "";
-      const date = new Date().toISOString().split("T")[0];
-
       const rows = [
-        ["SEO/AEO/GEO Report", host, date],
-        ["Generated by", "seoscore-tools", ""],
+        ["SEO/AEO/GEO Report", recentHost(scannedUrl) || "", today()],
+        ["Generated by", "findable", ""],
         [""],
         ["Category", "Score", "Passed", "Total"],
         ["Overall", overallScore(currentScan), "", ""],
@@ -1388,97 +969,81 @@ findable https://example.com</div>
         [""],
         ["Check ID", "Category", "Status", "Description"]
       ];
-
       allChecks.forEach(c => {
         const st = c.applicable === false ? "N/A" : c.pass ? "PASS" : "FAIL";
         rows.push([c.id, c.cat, st, '"' + c.label.replace(/"/g, '""') + '"']);
       });
-
       download("﻿" + rows.map(r => r.join(",")).join("\n"), "text/csv;charset=utf-8;", reportFileName("csv"));
       showToast("CSV report exported");
     });
 
-    document.getElementById("btnCopyReport").addEventListener("click", () => {
+    $("btnCopyReport").addEventListener("click", () => {
       if (!currentScan) return;
-      const s = currentScan.seo.score, a = currentScan.aeo.score, g = currentScan.geo.score;
-      const text = `findable audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${s} | AEO: ${a} | GEO: ${g}\nGenerated via findable.piply.xyz`;
+      const text = `findable audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${currentScan.seo.score} | AEO: ${currentScan.aeo.score} | GEO: ${currentScan.geo.score}\nGenerated via findable.piply.xyz`;
       navigator.clipboard.writeText(text).then(() => showToast("Summary copied to clipboard"));
     });
 
-    // Site Crawl Runner
-    async function executeSiteCrawl(startUrl, keyphrase) {
-      const crawlSection = document.getElementById("crawlSection");
-      const crawlStatus = document.getElementById("crawlStatus");
-      const crawlProgress = document.getElementById("crawlProgress");
-      const tableWrap = document.getElementById("crawlTableWrap");
-      
-      crawlSection.classList.remove("hidden");
-      crawlProgress.style.width = "10%";
-      crawlStatus.textContent = "Scanning start page...";
+    async function scanOnce(url, keyphrase) {
+      const resp = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, keyphrase }),
+      });
+      if (!resp.ok) throw new Error(await apiError(resp));
+      return resp.json();
+    }
 
+    async function executeSiteCrawl(startUrl, keyphrase) {
+      const crawlStatus = $("crawlStatus");
+      const tableWrap = $("crawlTableWrap");
+      $("crawlSection").classList.remove("hidden");
+      $("crawlProgress").style.width = "10%";
+      crawlStatus.textContent = "Scanning start page...";
       try {
-        const r1 = await fetch("/api/scan", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: startUrl, keyphrase }),
-        });
-        if (!r1.ok) throw new Error(await apiError(r1));
-        const initial = await r1.json();
+        const initial = await scanOnce(startUrl, keyphrase);
         const startHost = new URL(startUrl).hostname;
         const queue = [startUrl];
         (initial.internalLinks || []).forEach(l => {
           try {
-            const u = new URL(l);
-            if (u.hostname === startHost && !queue.includes(l) && queue.length < 8) queue.push(l);
+            if (new URL(l).hostname === startHost && !queue.includes(l) && queue.length < 8) queue.push(l);
           } catch {}
         });
-
         const crawled = [{ url: startUrl, scan: initial }];
         renderCrawlTable(tableWrap, crawled);
-
         for (let i = 1; i < queue.length; i++) {
-          const curr = queue[i];
-          crawlStatus.textContent = `Crawling page ${i + 1} of ${queue.length}: ${curr}`;
-          crawlProgress.style.width = `${Math.round(((i + 1) / queue.length) * 100)}%`;
+          crawlStatus.textContent = `Crawling page ${i + 1} of ${queue.length}: ${queue[i]}`;
+          $("crawlProgress").style.width = `${Math.round(((i + 1) / queue.length) * 100)}%`;
           try {
-            const res = await fetch("/api/scan", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ url: curr, keyphrase }),
-            });
-            if (!res.ok) continue;
-            const sData = await res.json();
-            crawled.push({ url: curr, scan: sData });
+            crawled.push({ url: queue[i], scan: await scanOnce(queue[i], keyphrase) });
             renderCrawlTable(tableWrap, crawled);
           } catch {}
         }
-
         crawlStatus.textContent = `Crawl complete! Scanned ${crawled.length} pages.`;
+        currentScan = initial;
         renderScanResults(initial, startUrl);
       } catch (err) {
-        crawlSection.classList.add("hidden");
+        $("crawlSection").classList.add("hidden");
         showError(err.message);
       }
     }
 
     function renderCrawlTable(wrap, pages) {
-      let html = `<table class="crawl-table">
-        <thead><tr><th>URL</th><th>SEO</th><th>AEO</th><th>GEO</th><th>Overall</th></tr></thead>
-        <tbody>`;
+      const table = el("table", "crawl-table");
+      const head = el("tr");
+      ["URL", "SEO", "AEO", "GEO", "Overall"].forEach(h => head.append(el("th", "", h)));
+      const body = el("tbody");
       pages.forEach(p => {
-        const seo = p.scan.seo.score, aeo = p.scan.aeo.score, geo = p.scan.geo.score;
-        const ov = overallScore(p.scan);
-        html += `<tr>
-          <td style="font-family: monospace;">${escapeHtml(p.url)}</td>
-          <td>${seo}</td><td>${aeo}</td><td>${geo}</td>
-          <td><strong>${ov}</strong></td>
-        </tr>`;
+        const row = el("tr");
+        row.append(el("td", "mono", p.url));
+        [p.scan.seo.score, p.scan.aeo.score, p.scan.geo.score, overallScore(p.scan)].forEach(v => row.append(el("td", "", String(v))));
+        body.append(row);
       });
-      html += `</tbody></table>`;
-      wrap.innerHTML = html;
+      const thead = el("thead");
+      thead.append(head);
+      table.append(thead, body);
+      wrap.replaceChildren(table);
     }
 
-    // Auto-scan from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
     const queryUrl = urlParams.get("url");
     if (queryUrl) {
