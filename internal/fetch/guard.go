@@ -20,12 +20,24 @@ var (
 	ErrBlockedAddress = errors.New("blocked address: only public internet hosts can be scanned")
 	ErrPageTooLarge   = fmt.Errorf("page is larger than %d bytes", MaxPageBytes)
 	errTooManyHops    = errors.New("too many redirects")
-	sharedAddrSpace   = netip.MustParsePrefix("100.64.0.0/10")
+	blockedPrefixes   = []netip.Prefix{
+		netip.MustParsePrefix("100.64.0.0/10"),
+		netip.MustParsePrefix("2002::/16"),
+		netip.MustParsePrefix("2001::/32"),
+	}
 )
 
 func PublicAddr(addr netip.Addr) bool {
 	addr = addr.Unmap()
-	return addr.IsGlobalUnicast() && !addr.IsPrivate() && !sharedAddrSpace.Contains(addr)
+	if !addr.IsGlobalUnicast() || addr.IsPrivate() {
+		return false
+	}
+	for _, p := range blockedPrefixes {
+		if p.Contains(addr) {
+			return false
+		}
+	}
+	return true
 }
 
 func refuseNonPublic(_, address string, _ syscall.RawConn) error {

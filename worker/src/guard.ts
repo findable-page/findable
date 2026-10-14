@@ -42,7 +42,9 @@ function publicV4(n: number): boolean {
 function publicV6(host: string): boolean {
   const mapped = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(host);
   if (mapped) return publicV4(Number.parseInt(mapped[1] ?? "0", 16) * 65536 + Number.parseInt(mapped[2] ?? "0", 16));
-  const first = host.startsWith("::") ? 0 : Number.parseInt(host.split(":")[0] ?? "0", 16);
+  const head = (host.split("::")[0] ?? "").split(":");
+  const [first = 0, second = 0] = [0, 1].map((i) => Number.parseInt(head[i] || "0", 16));
+  if (first === 0x2002 || (first === 0x2001 && second === 0)) return false;
   return first >= 0x2000 && first <= 0x3fff;
 }
 
