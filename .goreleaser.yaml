@@ -29,7 +29,7 @@ brews:
     repository:
       owner: nadimtuhin
       name: homebrew-tap
-    homepage: https://findable.piply.xyz
+    homepage: https://findable.page
     description: "Offline SEO, AEO and GEO auditor for the AI search era"
     license: MIT
     test: |

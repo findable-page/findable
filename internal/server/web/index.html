@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>findable: is your site findable by Google and AI?</title>
   <meta name="description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
-  <link rel="canonical" href="https://findable.piply.xyz/">
+  <link rel="canonical" href="https://findable.page/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -13,14 +13,14 @@
   <meta name="theme-color" content="#6d5efc">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="findable">
-  <meta property="og:url" content="https://findable.piply.xyz/">
+  <meta property="og:url" content="https://findable.page/">
   <meta property="og:title" content="findable: is your site findable by Google and AI?">
   <meta property="og:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
-  <meta property="og:image" content="https://findable.piply.xyz/og.jpg">
+  <meta property="og:image" content="https://findable.page/og.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="findable: is your site findable by Google and AI?">
   <meta name="twitter:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
-  <meta name="twitter:image" content="https://findable.piply.xyz/og.jpg">
+  <meta name="twitter:image" content="https://findable.page/og.jpg">
   <!--slot:head-->
   <script>
     (function() {
@@ -484,7 +484,7 @@ findable https://example.com</code></pre>
       <h3>MCP server for AI agents</h3>
       <pre><code>npx findable-mcp</code></pre>
       <h3>REST API</h3>
-      <pre><code>curl -s -X POST https://findable.piply.xyz/api/scan \
+      <pre><code>curl -s -X POST https://findable.page/api/scan \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com"}'</code></pre>
 
@@ -1010,7 +1010,7 @@ findable https://example.com</code></pre>
 
     $("btnCopyReport").addEventListener("click", () => {
       if (!currentScan) return;
-      const text = `findable audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${currentScan.seo.score} | AEO: ${currentScan.aeo.score} | GEO: ${currentScan.geo.score}\nGenerated via findable.piply.xyz`;
+      const text = `findable audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${currentScan.seo.score} | AEO: ${currentScan.aeo.score} | GEO: ${currentScan.geo.score}\nGenerated via findable.page`;
       navigator.clipboard.writeText(text).then(() => showToast("Summary copied to clipboard"));
     });
 

@@ -128,10 +128,10 @@ test("publicTarget cannot see DNS: a public name that resolves to loopback passe
 
 test("a trailing dot on the worker's own host still routes in-process and keeps /api/ blocked", async () => {
   mockFetch(() => new Response("reached the network"));
-  const self: SelfRoute = { hosts: ["findable.piply.xyz"], handle: async () => new Response("in-process") };
-  const page = await guardedFetch("https://findable.piply.xyz./", {}, self);
+  const self: SelfRoute = { hosts: ["findable.page"], handle: async () => new Response("in-process") };
+  const page = await guardedFetch("https://findable.page./", {}, self);
   expect(page.body).toBe("in-process");
-  await expect(guardedFetch("https://findable.piply.xyz./api/scan", {}, self)).rejects.toBeInstanceOf(
+  await expect(guardedFetch("https://findable.page./api/scan", {}, self)).rejects.toBeInstanceOf(
     BlockedTargetError,
   );
 });

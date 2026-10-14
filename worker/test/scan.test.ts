@@ -124,9 +124,9 @@ test("/api/scan of its own host scans the real UI in-process instead of fetching
     throw new Error("network fetch to own host");
   }) as unknown as typeof fetch;
   const resp = await worker.fetch(
-    new Request("https://findable.piply.xyz/api/scan", {
+    new Request("https://findable.page/api/scan", {
       method: "POST",
-      body: JSON.stringify({ url: "https://findable.piply.xyz/", site: true }),
+      body: JSON.stringify({ url: "https://findable.page/", site: true }),
     }),
     allowAll,
   );
@@ -148,9 +148,9 @@ test("/api/scan refuses an own-host /api/ target instead of recursing", async ()
     return new Response("");
   }) as unknown as typeof fetch;
   const resp = await worker.fetch(
-    new Request("https://findable.piply.xyz/api/scan", {
+    new Request("https://findable.page/api/scan", {
       method: "POST",
-      body: JSON.stringify({ url: "https://findable.piply.xyz/api/scan" }),
+      body: JSON.stringify({ url: "https://findable.page/api/scan" }),
     }),
     allowAll,
   );

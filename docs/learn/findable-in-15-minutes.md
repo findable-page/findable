@@ -82,7 +82,7 @@ The server also offers a prompt called `seo_audit_prompt`. It speaks over stdio,
 
 ## How do you use the web UI?
 
-Open [findable.piply.xyz](https://findable.piply.xyz) and paste a URL to get a scored report in your browser, with no install at all. If you want it local, serve it yourself. The same binary hosts the web UI and the API on a port you choose.
+Open [findable.page](https://findable.page) and paste a URL to get a scored report in your browser, with no install at all. If you want it local, serve it yourself. The same binary hosts the web UI and the API on a port you choose.
 
 ```bash
 findable -serve 127.0.0.1:8080
@@ -93,7 +93,7 @@ findable -serve 127.0.0.1:8080
 Send a POST to `/api/scan` with a JSON body. Set `site` to true for the robots.txt and llms.txt checks, and set `format` to `json` so you can parse the response in a script or a dashboard. The response uses the same check ids as the CLI.
 
 ```bash
-curl -X POST https://findable.piply.xyz/api/scan \
+curl -X POST https://findable.page/api/scan \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","keyphrase":"your keyphrase","site":true,"format":"json"}'
 ```

@@ -53,7 +53,7 @@ async function allowScan(env: Env, key: string): Promise<boolean> {
   return (await env.SCAN_LIMITER.limit({ key })).success;
 }
 
-const PUBLIC_ORIGIN = "https://findable.piply.xyz";
+const PUBLIC_ORIGIN = "https://findable.page";
 
 const PAGE_HTML = injectHead(UI_HTML as unknown as string, headSlot(PUBLIC_ORIGIN));
 
@@ -149,7 +149,7 @@ async function learnResponse(pathname: string, origin: string): Promise<Response
   });
 }
 
-const OWN_HOSTS = ["findable.piply.xyz", "seoscore.piply.xyz"];
+const OWN_HOSTS = ["findable.page", "seoscore.piply.xyz"];
 
 const worker = {
   async fetch(request: Request, env: Env = {}): Promise<Response> {
@@ -264,7 +264,7 @@ async function auditUrl(targetUrl: string, self: SelfRoute, keyphrase?: string):
   const page = await guardedFetch(
     targetUrl,
     {
-      "User-Agent": "Mozilla/5.0 (compatible; findable-worker/1.0; +https://findable.piply.xyz)",
+      "User-Agent": "Mozilla/5.0 (compatible; findable-worker/1.0; +https://findable.page)",
       Accept: "text/html,application/xhtml+xml",
     },
     self,

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import worker from "../src/index";
 import { learnPaths } from "../src/learn";
 
-const ORIGIN = "https://findable.piply.xyz";
+const ORIGIN = "https://findable.page";
 const FLOORS = { seo: 90, aeo: 85, geo: 80 };
 
 interface Category {

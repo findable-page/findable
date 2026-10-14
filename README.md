@@ -9,7 +9,7 @@
 [![Release](https://img.shields.io/github/v/release/nadimtuhin/findable?include_prereleases)](https://github.com/nadimtuhin/findable/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Live demo: https://findable.piply.xyz** · **Learn: https://findable.piply.xyz/learn** · [The build story](docs/STORY.md)
+**Live demo: https://findable.page** · **Learn: https://findable.page/learn** · [The build story](docs/STORY.md)
 
 ![findable web UI showing a score hero, family cards and a failing-first issue list](docs/screenshots/after-light-1280.png)
 
@@ -88,10 +88,10 @@ Tools: `audit_page` (URL or file), `audit_html_content` (raw HTML, no network), 
 
 ## API
 
-Hosted at https://findable.piply.xyz, or run your own with `findable -serve 127.0.0.1:8080` or `cd worker && npx wrangler deploy`.
+Hosted at https://findable.page, or run your own with `findable -serve 127.0.0.1:8080` or `cd worker && npx wrangler deploy`.
 
 ```bash
-curl -s -X POST https://findable.piply.xyz/api/scan \
+curl -s -X POST https://findable.page/api/scan \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","keyphrase":"example","site":true}'
 ```

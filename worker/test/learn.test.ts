@@ -5,7 +5,7 @@ import worker from "../src/index";
 import { learnPaths, renderLearnIndex, renderLearnPost } from "../src/learn";
 import { learnPosts } from "../src/learn-content";
 
-const ORIGIN = "https://findable.piply.xyz";
+const ORIGIN = "https://findable.page";
 let scans = 0;
 const get = (path: string) => worker.fetch(new Request(`${ORIGIN}${path}`));
 
