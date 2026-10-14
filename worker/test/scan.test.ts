@@ -43,6 +43,31 @@ test("/api/scan answers 429 with a JSON error when the rate limiter refuses the 
   expect(keys).toEqual(["203.0.113.9"]);
 });
 
+test("/api/scan keys IPv6 clients on their /64 and IPv4 clients on the full address", async () => {
+  const keys: string[] = [];
+  const env = {
+    SCAN_LIMITER: {
+      limit: async ({ key }: { key: string }) => {
+        keys.push(key);
+        return { success: true };
+      },
+    },
+  };
+  for (const ip of ["2001:DB8:1:2:3:4:5:6", "2001:db8:1:2::9", "2001:db8::1", "::1", "198.51.100.7"]) {
+    await worker.fetch(
+      new Request("https://w.test/api/scan", { method: "POST", body: "{}", headers: { "CF-Connecting-IP": ip } }),
+      env,
+    );
+  }
+  expect(keys).toEqual([
+    "2001:db8:1:2::/64",
+    "2001:db8:1:2::/64",
+    "2001:db8:0:0::/64",
+    "0:0:0:0::/64",
+    "198.51.100.7",
+  ]);
+});
+
 test("/api/scan proceeds when the rate limiter allows the client", async () => {
   const env = { SCAN_LIMITER: { limit: async () => ({ success: true }) } };
   const resp = await worker.fetch(new Request("https://w.test/api/scan", { method: "POST", body: "{}" }), env);

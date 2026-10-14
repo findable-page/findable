@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -256,6 +257,26 @@ func TestServerScanAnswers429AfterTenScansAMinuteFromOneIP(t *testing.T) {
 	}
 	if code := scan("198.51.100.8:1111"); code != http.StatusBadRequest {
 		t.Errorf("scan from another IP = %d, want 400", code)
+	}
+}
+
+func TestServerScanLimitsIPv6ClientsByTheir64(t *testing.T) {
+	mux := newTestMux()
+	scan := func(remoteAddr string) int {
+		req := newRequest(http.MethodPost, "/api/scan", `{}`)
+		req.RemoteAddr = remoteAddr
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	for i := range 10 {
+		scan(fmt.Sprintf("[2001:db8:1:2::%x]:1111", i+1))
+	}
+	if code := scan("[2001:db8:1:2:ffff::1]:1111"); code != http.StatusTooManyRequests {
+		t.Errorf("11th scan from the same /64 = %d, want 429", code)
+	}
+	if code := scan("[2001:db8:1:3::1]:1111"); code != http.StatusBadRequest {
+		t.Errorf("scan from another /64 = %d, want 400", code)
 	}
 }
 

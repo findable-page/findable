@@ -74,7 +74,7 @@ export default {
     }
 
     if (url.pathname === "/api/scan" && request.method === "POST") {
-      const key = request.headers.get("CF-Connecting-IP") ?? "unknown";
+      const key = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
       if (env.SCAN_LIMITER && !(await env.SCAN_LIMITER.limit({ key })).success) {
         return new Response(JSON.stringify({ error: "too many scans, try again in a minute" }), {
           status: 429,
@@ -109,6 +109,16 @@ export default {
     return new Response("Not Found", { status: 404, headers: CORS_HEADERS });
   },
 };
+
+function rateLimitKey(ip: string): string {
+  if (!ip.includes(":")) return ip;
+  const [head = "", tail] = ip.toLowerCase().split("::");
+  const headGroups = head ? head.split(":") : [];
+  const tailGroups = tail ? tail.split(":") : [];
+  const zeros = tail === undefined ? [] : Array(8 - headGroups.length - tailGroups.length).fill("0");
+  const prefix = [...headGroups, ...zeros, ...tailGroups].slice(0, 4);
+  return `${prefix.map((g) => Number.parseInt(g, 16).toString(16)).join(":")}::/64`;
+}
 
 async function auditUrl(targetUrl: string, keyphrase?: string): Promise<ScanResponse> {
   const page = await guardedFetch(targetUrl, {

@@ -3,8 +3,8 @@ package server
 import (
 	"encoding/json"
 	"errors"
-	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"sync"
 	"time"
@@ -48,12 +48,16 @@ func (l *rateLimiter) allow(key string) bool {
 	return l.counts[key] <= l.limit
 }
 
-func remoteIP(r *http.Request) string {
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
+func clientKey(r *http.Request) string {
+	ap, err := netip.ParseAddrPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
 	}
-	return host
+	addr := ap.Addr().Unmap().WithZone("")
+	if addr.Is6() {
+		return netip.PrefixFrom(addr, 64).Masked().String()
+	}
+	return addr.String()
 }
 
 type scanRequest struct {
@@ -118,7 +122,7 @@ func scanHandler(client *http.Client, remote bool, limiter *rateLimiter) http.Ha
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		if !limiter.allow(remoteIP(r)) {
+		if !limiter.allow(clientKey(r)) {
 			http.Error(w, "too many scans, try again in a minute", http.StatusTooManyRequests)
 			return
 		}
