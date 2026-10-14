@@ -301,6 +301,7 @@
     }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .hidden { display: none !important; }
+    @media print { header, .hero, .site-actions, #watchSection, .site-footer, #recentScansWrap { display: none !important; } body { background: #fff; } .next-actions, details { break-inside: avoid; box-shadow: none; } }
   </style>
 </head>
 <body>
@@ -407,6 +408,7 @@
           <button type="button" class="btn-action" id="btnExportJSON">JSON</button>
           <button type="button" class="btn-action" id="btnExportCSV">CSV</button>
           <button type="button" class="btn-action" id="btnExportMD">MD</button>
+          <button type="button" class="btn-action" id="btnExportPDF">PDF</button>
           <div class="share-wrap">
             <button type="button" class="btn-action" id="btnShareReport" aria-expanded="false" aria-controls="sharePanel">Share</button>
             <div class="share-panel" id="sharePanel" hidden>
@@ -1145,6 +1147,13 @@ findable https://example.com</code></pre>
     }
     // webmcp:end
     registerWebMcp(document.modelContext ?? navigator.modelContext, (u, init) => fetch(u, init));
+
+    $("btnExportPDF").addEventListener("click", () => {
+      const closed = [...document.querySelectorAll("#results details:not([open])")];
+      for (const d of closed) d.open = true;
+      window.print();
+      for (const d of closed) d.open = false;
+    });
 
     $("btnExportMD").addEventListener("click", () => {
       if (!currentScan) return;
