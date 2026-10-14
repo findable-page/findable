@@ -8,7 +8,7 @@ import (
 
 func Analyze(targetURL, rawHTML, keyphrase string, headers http.Header, statusCode int) Scan {
 	sig := extractSignals(targetURL, rawHTML, headers, statusCode)
-	sig.Keyphrase = keyphrase
+	sig.Keyphrase = strings.TrimSpace(keyphrase)
 
 	s := Scan{
 		SEO:           buildCategory(evalSEO(&sig)),

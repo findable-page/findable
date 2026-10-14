@@ -59,3 +59,13 @@ func TestKeyphraseLabelKeepsQuotesVerbatim(t *testing.T) {
 		t.Errorf("label = %q, want %q", title.Label, want)
 	}
 }
+
+func TestKeyphraseIsTrimmedAndBlankIsSkipped(t *testing.T) {
+	padded := findCheck(analyzeLD(t, `{}`, "  seo  ").SEO.Checks, "keyphrase_in_title")
+	if padded == nil || padded.Label != `Focus keyphrase "seo" in title tag` {
+		t.Errorf("padded keyphrase should be trimmed, got %+v", padded)
+	}
+	if blank := analyzeLD(t, `{}`, "   "); findCheck(blank.SEO.Checks, "keyphrase_in_title") != nil {
+		t.Errorf("whitespace-only keyphrase should skip keyphrase checks")
+	}
+}
