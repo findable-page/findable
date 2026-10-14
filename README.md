@@ -1,87 +1,103 @@
-# findable
+<p align="center"><img src="docs/cover.png" alt="findable: is your site findable by Google and by ChatGPT and Perplexity?" width="100%"></p>
 
-**findable: is your site findable by Google and by AI answer engines?**
+# Is your site findable by Google AND by ChatGPT/Perplexity?
+
+**findable: offline SEO + AEO + GEO auditor for the AI search era (CLI, MCP, edge API).**
 
 [![CI](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml/badge.svg)](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nadimtuhin/findable)](https://goreportcard.com/report/github.com/nadimtuhin/findable)
+[![Release](https://img.shields.io/github/v/release/nadimtuhin/findable?include_prereleases)](https://github.com/nadimtuhin/findable/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Quick start
+**Live demo: https://findable.piply.xyz** · **Learn: https://findable.piply.xyz/learn** · [The build story](docs/STORY.md)
+
+![findable web UI showing a score hero, family cards and a failing-first issue list](docs/screenshots/current-light-1280.png)
+
+## Why
+
+AI answer engines now sit between your page and your reader. They quote short, structured, attributed passages and skip the rest. A page can rank well on Google and still never appear in a ChatGPT or Perplexity answer.
+
+Classic SEO tools stop at titles, links and speed. findable also checks whether a machine can lift a clean answer out of the page (AEO), and whether the page carries the trust signals a generative engine needs to cite it (GEO). It runs offline in Go: no account, no quota, nothing leaves your machine.
+
+## Scoring model
+
+One overall score from 0 to 100, built from three families:
+
+| Family | Weight | Page checks | What it measures |
+|---|---|---|---|
+| SEO | 50% | 36 | Title and meta tags, headings, canonical, Open Graph and Twitter cards, mobile, HTTPS and security headers, accessibility landmarks |
+| AEO (answer engine optimization) | 25% | 17 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
+| GEO (generative engine optimization) | 25% | 19 | Author and organization markup, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
+
+That is 72 page checks. Seven more site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, GPTBot, ClaudeBot, PerplexityBot and Google-Extended, and `/llms.txt` present. Every failing check names what to fix.
+
+## Quickstart
 
 ```bash
-go install github.com/nadimtuhin/findable/cmd/findable@latest
+go install github.com/nadimtuhin/findable/cmd/findable@latest   # Go 1.26+
+brew install nadimtuhin/tap/findable                            # coming with the first release
+npx findable-mcp                                                # MCP server for agents
+```
+
+Then:
+
+```bash
 findable https://example.com
+findable ./page.html          # local file, no server needed
 ```
 
-Or try it in the browser: **https://findable.piply.xyz**
+It prints the four scores and the failing checks, and saves a report file in `-o` (default `.`).
 
-A fast, unified open-source website auditor for **Traditional SEO**, **Answer Engine Optimization (AEO)**, and **Generative Engine Optimization (GEO)**.
+## CLI
 
-Audits live URLs or local HTML files completely offline in Go, exports identical CSV reports matching [seoscore.tools](https://seoscore.tools), runs a local API daemon with modern Web UI, serves Model Context Protocol (MCP) tools for AI agents, and includes a deployable Cloudflare Worker backend.
-
-## Features
-
-- **100% Offline / Local Engine:** Evaluates 72 checks in Go without rate limits or external dependencies.
-- **Tri-Family Scoring:** Traditional SEO (50%), AEO (25%), and GEO (25%) composite score.
-- **Model Context Protocol (MCP):** Native `-mcp` mode for Claude Desktop, Cursor, Hermes Agent, and Windsurf.
-- **Interactive Web UI:** Dark/Light theme, circular SVG score rings, interactive fix recommendations, and direct share links.
-- **Crawl Site (Beta):** Crawls internal links and provides page-by-page score tables.
-- **Dual Deployment:** Local API daemon (`-serve :8080`) or edge deployment on Cloudflare Workers (`worker/`).
-
-## Install
-
-```bash
-go install github.com/nadimtuhin/findable/cmd/findable@latest
+```
+findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
+         [-site] [-crawl] [-sitemap url] [-limit N] [-delay d] [-serve :port] [-mcp] <url or file>
 ```
 
-## CLI Usage
-
-### 1. Single Page Audit
-
-Audit a live URL:
-```bash
-findable https://example.com
-```
-
-Audit a local HTML file directly without any web server:
-```bash
-findable ./path/to/page.html
-```
-
-With focus keyphrase:
-```bash
-findable -k "cloud performance" https://example.com
-```
-
-### 2. Multi-Page Site Crawl
+| Flag | Meaning |
+|---|---|
+| `-format csv\|json\|sarif` | Report format. `json` is the same object `/api/scan` returns, `sarif` is SARIF 2.1.0 for GitHub code scanning. Default `csv`. |
+| `-fail-under N` | Exit 1 and name every page whose overall score is below N. |
+| `-sitemap URL` | Audit the pages a sitemap lists. Sitemap indexes are followed. |
+| `-site` | Also run the 7 site checks (robots.txt, AI crawlers, llms.txt). |
+| `-crawl` | Follow internal links, up to `-limit` pages (default 20), `-delay` apart. |
+| `-k` | Focus keyphrase to check against title, description and headings. |
+| `-o`, `-q` | Report directory; `-q` hides the failing-check list. |
+| `-serve :8080` | Local API and web UI. Keep it on localhost. |
+| `-mcp` | MCP server over stdio. |
 
 ```bash
-findable -crawl -limit 20 https://example.com
-```
-
-Or audit the pages a sitemap lists (sitemap indexes are followed, `-limit` still applies):
-
-```bash
+findable -q -format sarif -fail-under 70 https://example.com
 findable -sitemap https://example.com/sitemap.xml -limit 50
+findable -site -crawl -limit 10 https://example.com
 ```
 
-### Site checks
+## MCP for agents
 
-`-site` also fetches `/robots.txt` and `/llms.txt` from the page's origin and reports a separate, unscored
-"Site" section: robots.txt present, the page not blocked for `*`, GPTBot, ClaudeBot, PerplexityBot and
-Google-Extended, and llms.txt present. The page score formula is unchanged. The API (`"site": true`),
-the MCP `audit_page` tool (`site`) and the worker accept the same switch.
+Add to Claude Desktop, Cursor or Windsurf:
 
-### Output formats
+```json
+{ "mcpServers": { "findable": { "command": "findable", "args": ["-mcp"] } } }
+```
 
-`-format csv` (default), `-format json` (the same object `/api/scan` returns) or `-format sarif`
-(SARIF 2.1.0 for GitHub code scanning). `/api/scan` takes the same choice as `"format"` in the body.
+No Go toolchain? Use `{ "command": "npx", "args": ["-y", "findable-mcp"] }` instead.
 
-### CI gate
+Tools: `audit_page` (URL or file), `audit_html_content` (raw HTML, no network), `crawl_site`, `generate_csv_report`. Prompt: `seo_audit_prompt`.
 
-`-fail-under 70` exits 1 and names each page whose overall score is below 70 (any crawled page counts).
+## API
 
-### GitHub Action
+Hosted at https://findable.piply.xyz, or run your own with `findable -serve :8080` or `cd worker && npx wrangler deploy`.
+
+```bash
+curl -s -X POST https://findable.piply.xyz/api/scan \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","keyphrase":"example","site":true}'
+```
+
+`/api/scan` only fetches public hosts: ports 80 and 443, 5 redirects, 10 seconds, 5 MB, rate limited. See [SECURITY.md](SECURITY.md).
+
+## GitHub Action
 
 ```yaml
 permissions:
@@ -96,77 +112,15 @@ steps:
 
 The action builds the CLI, uploads failing checks to code scanning as SARIF, then fails the job below `fail-under`.
 
-### 3. Run Local REST API & Web UI
+## Development
 
 ```bash
-findable -serve :8080
-```
-Open `http://localhost:8080` in your browser for the full web dashboard.
-
----
-
-## Model Context Protocol (MCP) Tools
-
-Use `findable` directly inside Claude Desktop, Cursor, Windsurf, or Hermes Agent to audit sites and optimize content for AI search engines (Google AI Overviews, Perplexity, ChatGPT).
-
-### 1. Native Go CLI MCP Server (Zero Dependencies)
-
-Add to your `claude_desktop_config.json` or Cursor `settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "findable": {
-      "command": "findable",
-      "args": ["-mcp"]
-    }
-  }
-}
+git clone https://github.com/nadimtuhin/findable && cd findable
+(cd mcp && bun install) && (cd worker && bun install)
+make lint test
 ```
 
-### 2. Node / NPX MCP Runner
-
-```json
-{
-  "mcpServers": {
-    "findable": {
-      "command": "npx",
-      "args": ["-y", "findable-mcp"]
-    }
-  }
-}
-```
-
-### Available MCP Tools & Prompts
-
-- `audit_page`: Audits a URL or local file path for SEO, AEO, and GEO signals.
-- `audit_html_content`: Audits raw HTML markup in-memory without any network requests.
-- `crawl_site`: Crawls up to N internal pages and returns per-page scores and aggregate statistics.
-- `generate_csv_report`: Returns a full CSV report string formatted according to seoscore.tools.
-- `seo_audit_prompt`: Structured prompt template generating prioritized technical, AEO, and GEO fixes.
-
----
-
-## Free Cloudflare Edge API
-
-A production-ready edge API is deployable via Wrangler or accessible directly:
-
-- **Live Endpoint:** `https://findable.piply.xyz`
-- **Audit Endpoint:** `POST https://findable.piply.xyz/api/scan`
-
-```bash
-curl -s -X POST https://findable.piply.xyz/api/scan \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","keyphrase":"example"}'
-```
-
-To deploy your own instance:
-```bash
-cd worker
-npx wrangler deploy
-```
-
----
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). `testdata/` holds sample pages and a scoring benchmark script.
 
 ## License
 
