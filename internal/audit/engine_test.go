@@ -315,7 +315,7 @@ func TestGEOKnowledgeGraphAndTrustSignals(t *testing.T) {
 func TestLocalAuditEngineOnThinPage(t *testing.T) {
 	htmlBytes, err := os.ReadFile("../../testdata/site/01-thin-poor.html")
 	if err != nil {
-		t.Skip("fixture 01-thin-poor.html not found")
+		t.Fatal(err)
 	}
 
 	scanResult := Analyze("http://localhost/01-thin-poor.html", string(htmlBytes), make(http.Header), 200)
@@ -332,7 +332,7 @@ func TestLocalAuditEngineOnThinPage(t *testing.T) {
 func TestLocalAuditEngineOnGEOResearchPage(t *testing.T) {
 	htmlBytes, err := os.ReadFile("../../testdata/site/04-geo-research.html")
 	if err != nil {
-		t.Skip("fixture 04-geo-research.html not found")
+		t.Fatal(err)
 	}
 
 	headers := make(http.Header)

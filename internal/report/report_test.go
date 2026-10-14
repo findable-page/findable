@@ -2,7 +2,6 @@ package report
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
@@ -106,49 +105,6 @@ func TestCrawlCSVGeneratesCorrectFormat(t *testing.T) {
 		if !contains(lines, want) {
 			t.Errorf("crawl csv missing row %q", want)
 		}
-	}
-}
-
-func TestMatchesWebsiteCsvExportExact(t *testing.T) {
-	raw, err := os.ReadFile("../../testdata/reports/raw/04-geo-research.json")
-	if err != nil {
-		t.Skip("fixture not available")
-	}
-	var s audit.Scan
-	if err := json.Unmarshal(raw, &s); err != nil {
-		t.Fatal(err)
-	}
-	goCsv := CSV("declined-parcel-saver-employment.trycloudflare.com", s)
-	webCsv, err := os.ReadFile("/tmp/web_report.csv")
-	if err != nil {
-		t.Skip("web csv not generated")
-	}
-	// Regenerate webCsv for today using testdata/web_csv.js or normalize the date in the first row
-	normalizeDate := func(s string) string {
-		lines := strings.Split(s, "\n")
-		if len(lines) > 0 && strings.HasPrefix(lines[0], "\xef\xbb\xbfSEO/AEO/GEO Report") {
-			parts := strings.Split(lines[0], ",")
-			if len(parts) == 3 {
-				parts[2] = "DATE"
-				lines[0] = strings.Join(parts, ",")
-			}
-		}
-		return strings.Join(lines, "\n")
-	}
-
-	normGo := normalizeDate(goCsv)
-	normWeb := normalizeDate(string(webCsv))
-
-	if normGo != normWeb {
-		for i := 0; i < len(normGo) && i < len(normWeb); i++ {
-			if normGo[i] != normWeb[i] {
-				t.Fatalf("diff at byte %d: go=%q (code %d), web=%q (code %d)\ncontext:\ngo: %q\nweb: %q",
-					i, normGo[i], normGo[i], normWeb[i], normWeb[i],
-					normGo[max(0, i-20):min(len(normGo), i+20)],
-					normWeb[max(0, i-20):min(len(normWeb), i+20)])
-			}
-		}
-		t.Fatalf("csv output differs from website export:\nGo len=%d, Web len=%d", len(normGo), len(normWeb))
 	}
 }
 
