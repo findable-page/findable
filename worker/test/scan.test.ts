@@ -191,3 +191,33 @@ test("/api/scan answers JSON, not an unhandled throw, when the client IP header 
   expect(resp.headers.get("Content-Type")).toBe("application/json");
   expect(typeof ((await resp.json()) as { error: string }).error).toBe("string");
 });
+
+test("/api/scan treats a bare host as https", async () => {
+  const fetched: string[] = [];
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    fetched.push(String(input));
+    return new Response("<html><head><title>t</title></head><body></body></html>");
+  }) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: " example.com/x " }) }),
+    { SCAN_LIMITER: { limit: async () => ({ success: true }) } },
+  );
+  expect(resp.status).toBe(200);
+  expect(fetched[0]).toBe("https://example.com/x");
+});
+
+test("/api/scan answers 400 for bodies it cannot use", async () => {
+  const bodies = [
+    "not json",
+    "[]",
+    "null",
+    JSON.stringify({ url: 5 }),
+    JSON.stringify({ url: "example.com", keyphrase: 7 }),
+  ];
+  const env = { SCAN_LIMITER: { limit: async () => ({ success: true }) } };
+  for (const body of bodies) {
+    const resp = await worker.fetch(new Request("https://w.test/api/scan", { method: "POST", body }), env);
+    expect([body, resp.status]).toEqual([body, 400]);
+    expect(((await resp.json()) as { error: string }).error).toBeTruthy();
+  }
+});

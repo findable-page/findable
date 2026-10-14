@@ -192,15 +192,10 @@ const worker = {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
           });
         }
-        const body = (await request.json()) as { url?: string; keyphrase?: string; site?: boolean };
-        if (!body.url) {
-          return new Response(JSON.stringify({ error: "missing url" }), {
-            status: 400,
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-          });
-        }
+        const body = await readScanBody(request);
+        if (typeof body === "string") return badRequest(body);
 
-        const targetUrl = body.url.trim();
+        const targetUrl = withScheme(body.url);
         const self: SelfRoute = { hosts: [url.hostname, ...OWN_HOSTS], handle: (r) => worker.fetch(r, env) };
         const scanRes = await auditUrl(targetUrl, self, body.keyphrase?.trim());
         if (body.site === true) scanRes.site = await siteChecks(targetUrl, self);
@@ -222,6 +217,35 @@ const worker = {
 };
 
 export default worker;
+
+interface ScanBody {
+  url: string;
+  keyphrase?: string | undefined;
+  site?: boolean;
+}
+
+const BARE_HOST = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#].*)?$/i;
+
+function withScheme(target: string): string {
+  const t = target.trim();
+  return BARE_HOST.test(t) ? `https://${t}` : t;
+}
+
+function badRequest(error: string): Response {
+  return new Response(JSON.stringify({ error }), {
+    status: 400,
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+  });
+}
+
+async function readScanBody(request: Request): Promise<ScanBody | string> {
+  const body: unknown = await request.json().catch(() => null);
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return "body must be a JSON object";
+  const { url, keyphrase, site } = body as Record<string, unknown>;
+  if (typeof url !== "string" || !url.trim()) return "missing url";
+  if (keyphrase !== undefined && typeof keyphrase !== "string") return "keyphrase must be a string";
+  return { url, keyphrase, site: site === true };
+}
 
 function rateLimitKey(ip: string): string {
   if (!ip.includes(":")) return ip;

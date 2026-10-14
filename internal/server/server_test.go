@@ -357,3 +357,15 @@ func TestNewServerSetsEveryTimeout(t *testing.T) {
 		t.Fatalf("timeouts = %v/%v/%v, want all set", srv.ReadHeaderTimeout, srv.ReadTimeout, srv.WriteTimeout)
 	}
 }
+
+func TestServerScanTreatsABareHostAsHTTPS(t *testing.T) {
+	site := httptest.NewTLSServer(http.FileServer(http.Dir("../../testdata/site")))
+	t.Cleanup(site.Close)
+	mux := NewMux(site.Client())
+	bare := strings.TrimPrefix(site.URL, "https://") + "/01-thin-poor.html"
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", `{"url":"`+bare+`"}`))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("bare host %s: status %d, want 200 (%s)", bare, rec.Code, rec.Body.String())
+	}
+}

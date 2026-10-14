@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/netip"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -65,6 +67,16 @@ type scanRequest struct {
 	Keyphrase string `json:"keyphrase"`
 	Format    string `json:"format"`
 	Site      bool   `json:"site"`
+}
+
+var bareHost = regexp.MustCompile(`(?i)^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#].*)?$`)
+
+func withScheme(target string) string {
+	target = strings.TrimSpace(target)
+	if bareHost.MatchString(target) {
+		return "https://" + target
+	}
+	return target
 }
 
 var formatContentTypes = map[report.Format]string{
@@ -129,6 +141,7 @@ func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {
 			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
+		req.URL = withScheme(req.URL)
 		if err != nil || req.URL == "" {
 			http.Error(w, "bad request: missing url", http.StatusBadRequest)
 			return
