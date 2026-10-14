@@ -362,9 +362,9 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
   for (const jm of jsonLdMatches) {
     try {
       const parsed = JSON.parse(firstGroup(jm));
-      const scanObj = (value: unknown): void => {
+      const scanObj = (value: unknown, pageLevel: boolean): void => {
         if (Array.isArray(value)) {
-          value.forEach(scanObj);
+          for (const v of value) scanObj(v, pageLevel);
           return;
         }
         if (!value || typeof value !== "object") return;
@@ -374,16 +374,18 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
           const t = String(raw);
           schemaTypes.push(t);
           if (t.toLowerCase() === "faqpage") hasFAQ = true;
-          if (t.toLowerCase() === "person") hasPerson = true;
+          if (pageLevel && t.toLowerCase() === "person") hasPerson = true;
           if (["organization", "bakery", "localbusiness"].includes(t.toLowerCase())) hasOrg = true;
         }
-        if (o.sameAs) {
+        if (pageLevel && o.sameAs) {
           if (Array.isArray(o.sameAs)) sameAsLinks.push(...o.sameAs.map(String));
           else sameAsLinks.push(String(o.sameAs));
         }
-        for (const child of Object.values(o)) if (child && typeof child === "object") scanObj(child);
+        for (const [key, child] of Object.entries(o)) {
+          if (child && typeof child === "object") scanObj(child, pageLevel && (key === "@graph" || key === "author"));
+        }
       };
-      scanObj(parsed);
+      scanObj(parsed, true);
     } catch {}
   }
 
@@ -496,7 +498,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     {
       id: "aeo_question_headings",
       label: "Question-style headings found (What/How/Why/?)",
-      pass: h2Matches.some((m) => /\b(what|how|why)\b|\?/i.test(m[1] ?? "")),
+      pass: h2Matches.some((m) => /^(what|how|why)|\?$/i.test((m[1] ?? "").trim())),
     },
     { id: "aeo_definition_lists", label: "Definition lists (<dl>) present for terminology", pass: hasDl },
     { id: "aeo_numbered_steps", label: "Numbered steps (<ol>) present for instructions", pass: hasOl },

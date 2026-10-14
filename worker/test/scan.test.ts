@@ -252,3 +252,30 @@ test("/api/scan counts a heading that ends in a question mark as a question head
   const scan = (await resp.json()) as { aeo: { checks: Check[] } };
   expect(scan.aeo.checks.find((c) => c.id === "aeo_question_headings")?.pass).toBe(true);
 });
+
+test("/api/scan does not count a Person nested under review as page author schema", async () => {
+  const ld = JSON.stringify({ "@type": "Product", review: { "@type": "Review", author: { "@type": "Person" } } });
+  globalThis.fetch = (async () =>
+    new Response(
+      `<html><head><title>t</title><script type="application/ld+json">${ld}</script></head><body></body></html>`,
+    )) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
+    allowAll,
+  );
+  const scan = (await resp.json()) as { geo: { checks: Check[] } };
+  expect(scan.geo.checks.find((c) => c.id === "geo_author_schema")?.pass).toBe(false);
+});
+
+test("/api/scan matches the Go engine: what/how/why only count at the start of a heading", async () => {
+  globalThis.fetch = (async () =>
+    new Response(
+      "<html><head><title>t</title></head><body><h2>Pricing: how it works</h2></body></html>",
+    )) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
+    allowAll,
+  );
+  const scan = (await resp.json()) as { aeo: { checks: Check[] } };
+  expect(scan.aeo.checks.find((c) => c.id === "aeo_question_headings")?.pass).toBe(false);
+});
