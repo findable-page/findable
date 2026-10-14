@@ -2,8 +2,11 @@ package fetch
 
 import (
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -47,5 +50,44 @@ func TestCrawlFollowsInternalLinksWhenTheStartRedirectsToAnotherHost(t *testing.
 	}
 	if len(pages) != 2 {
 		t.Errorf("crawled %d pages, want 2: %v", len(pages), pages)
+	}
+}
+
+func TestScanAddsKeyphraseChecksOnlyWhenKeyphraseGiven(t *testing.T) {
+	page := filepath.Join(t.TempDir(), "page.html")
+	html := `<html><head><title>Best Espresso Guide</title><meta name="description" content="All about espresso"></head>` +
+		`<body><h1>Brewing</h1><p>Espresso needs fine grounds.</p></body></html>`
+	if err := os.WriteFile(page, []byte(html), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]bool{
+		"keyphrase_in_title":   true,
+		"keyphrase_in_desc":    true,
+		"keyphrase_in_h1":      false,
+		"keyphrase_in_content": true,
+	}
+
+	with, err := Scan(http.DefaultClient, page, "ESPRESSO")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]bool{}
+	for _, c := range with.SEO.Checks {
+		if strings.HasPrefix(c.ID, "keyphrase_") {
+			got[c.ID] = c.Pass
+		}
+	}
+	if !maps.Equal(got, want) {
+		t.Errorf("keyphrase checks = %v, want %v", got, want)
+	}
+
+	without, err := Scan(http.DefaultClient, page, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range without.SEO.Checks {
+		if strings.HasPrefix(c.ID, "keyphrase_") {
+			t.Errorf("unexpected %s without keyphrase", c.ID)
+		}
 	}
 }

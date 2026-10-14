@@ -59,7 +59,7 @@ func TestSEOTitleLengthBoundaries(t *testing.T) {
 	for _, tc := range tests {
 		titleStr := strings.Repeat("a", tc.titleLen)
 		raw := fmt.Sprintf("<!DOCTYPE html><html><head><title>%s</title></head></html>", titleStr)
-		res := Analyze("https://example.com", raw, make(http.Header), 200)
+		res := Analyze("https://example.com", raw, "", make(http.Header), 200)
 		c := findCheck(res.SEO.Checks, "title_length")
 		if c == nil {
 			t.Fatalf("check title_length not found")
@@ -87,7 +87,7 @@ func TestSEOMetaDescBoundaries(t *testing.T) {
 	for _, tc := range tests {
 		descStr := strings.Repeat("b", tc.descLen)
 		raw := fmt.Sprintf(`<!DOCTYPE html><html><head><meta name="description" content="%s"></head></html>`, descStr)
-		res := Analyze("https://example.com", raw, make(http.Header), 200)
+		res := Analyze("https://example.com", raw, "", make(http.Header), 200)
 		c := findCheck(res.SEO.Checks, "desc_length")
 		if c == nil {
 			t.Fatalf("check desc_length not found")
@@ -101,7 +101,7 @@ func TestSEOMetaDescBoundaries(t *testing.T) {
 func TestSEOHeadingHierarchyRules(t *testing.T) {
 	// Normal: H1 -> H2 -> H3
 	validHTML := `<!DOCTYPE html><html><body><h1>Title</h1><h2>Section</h2><h3>Sub</h3></body></html>`
-	res1 := Analyze("https://example.com", validHTML, make(http.Header), 200)
+	res1 := Analyze("https://example.com", validHTML, "", make(http.Header), 200)
 	c1 := findCheck(res1.SEO.Checks, "heading_hierarchy")
 	h1Check1 := findCheck(res1.SEO.Checks, "h1_exists")
 	if !c1.Pass || !h1Check1.Pass {
@@ -110,7 +110,7 @@ func TestSEOHeadingHierarchyRules(t *testing.T) {
 
 	// Skipped hierarchy: H1 -> H3 directly (skipping H2)
 	skippedHTML := `<!DOCTYPE html><html><body><h1>Title</h1><h3>Skipped to Sub</h3></body></html>`
-	res2 := Analyze("https://example.com", skippedHTML, make(http.Header), 200)
+	res2 := Analyze("https://example.com", skippedHTML, "", make(http.Header), 200)
 	c2 := findCheck(res2.SEO.Checks, "heading_hierarchy")
 	if c2.Pass {
 		t.Errorf("expected skipped hierarchy (H1 -> H3) to fail")
@@ -118,7 +118,7 @@ func TestSEOHeadingHierarchyRules(t *testing.T) {
 
 	// Multiple H1s
 	multiH1HTML := `<!DOCTYPE html><html><body><h1>Title 1</h1><h1>Title 2</h1></body></html>`
-	res3 := Analyze("https://example.com", multiH1HTML, make(http.Header), 200)
+	res3 := Analyze("https://example.com", multiH1HTML, "", make(http.Header), 200)
 	h1Check3 := findCheck(res3.SEO.Checks, "h1_exists")
 	if h1Check3.Pass {
 		t.Errorf("expected multiple H1s to fail h1_exists")
@@ -128,7 +128,7 @@ func TestSEOHeadingHierarchyRules(t *testing.T) {
 func TestSEOLinkSafetyAndOpener(t *testing.T) {
 	// Safe blank link
 	safeHTML := `<!DOCTYPE html><html><body><a href="https://external.com" target="_blank" rel="noopener noreferrer">External</a></body></html>`
-	res1 := Analyze("https://example.com", safeHTML, make(http.Header), 200)
+	res1 := Analyze("https://example.com", safeHTML, "", make(http.Header), 200)
 	c1 := findCheck(res1.SEO.Checks, "link_noopener")
 	if !c1.Pass {
 		t.Errorf("expected safe link with rel='noopener' to pass link_noopener")
@@ -136,7 +136,7 @@ func TestSEOLinkSafetyAndOpener(t *testing.T) {
 
 	// Unsafe blank link
 	unsafeHTML := `<!DOCTYPE html><html><body><a href="https://external.com" target="_blank">External</a></body></html>`
-	res2 := Analyze("https://example.com", unsafeHTML, make(http.Header), 200)
+	res2 := Analyze("https://example.com", unsafeHTML, "", make(http.Header), 200)
 	c2 := findCheck(res2.SEO.Checks, "link_noopener")
 	if c2.Pass {
 		t.Errorf("expected blank link missing rel='noopener' to fail link_noopener")
@@ -144,7 +144,7 @@ func TestSEOLinkSafetyAndOpener(t *testing.T) {
 
 	// Empty hrefs
 	emptyHrefHTML := `<!DOCTYPE html><html><body><a href="#">Link</a><a href="">Empty</a></body></html>`
-	res3 := Analyze("https://example.com", emptyHrefHTML, make(http.Header), 200)
+	res3 := Analyze("https://example.com", emptyHrefHTML, "", make(http.Header), 200)
 	c3 := findCheck(res3.SEO.Checks, "empty_hrefs")
 	if c3.Pass {
 		t.Errorf("expected empty hrefs to fail empty_hrefs check")
@@ -154,7 +154,7 @@ func TestSEOLinkSafetyAndOpener(t *testing.T) {
 func TestSEOImageAltAndDimensions(t *testing.T) {
 	// Image with alt, width, height
 	goodImgHTML := `<!DOCTYPE html><html><body><img src="pic.jpg" alt="Description" width="300" height="200"></body></html>`
-	res1 := Analyze("https://example.com", goodImgHTML, make(http.Header), 200)
+	res1 := Analyze("https://example.com", goodImgHTML, "", make(http.Header), 200)
 	altC1 := findCheck(res1.SEO.Checks, "img_alt")
 	dimC1 := findCheck(res1.SEO.Checks, "img_dimensions")
 	if !altC1.Pass || !dimC1.Pass {
@@ -163,7 +163,7 @@ func TestSEOImageAltAndDimensions(t *testing.T) {
 
 	// Image missing alt
 	noAltHTML := `<!DOCTYPE html><html><body><img src="pic.jpg" width="300" height="200"></body></html>`
-	res2 := Analyze("https://example.com", noAltHTML, make(http.Header), 200)
+	res2 := Analyze("https://example.com", noAltHTML, "", make(http.Header), 200)
 	altC2 := findCheck(res2.SEO.Checks, "img_alt")
 	if altC2.Pass {
 		t.Errorf("expected image missing alt to fail img_alt check")
@@ -171,7 +171,7 @@ func TestSEOImageAltAndDimensions(t *testing.T) {
 
 	// Image missing dimensions
 	noDimHTML := `<!DOCTYPE html><html><body><img src="pic.jpg" alt="Valid Alt"></body></html>`
-	res3 := Analyze("https://example.com", noDimHTML, make(http.Header), 200)
+	res3 := Analyze("https://example.com", noDimHTML, "", make(http.Header), 200)
 	dimC3 := findCheck(res3.SEO.Checks, "img_dimensions")
 	if dimC3.Pass {
 		t.Errorf("expected image missing width/height to fail img_dimensions check")
@@ -189,7 +189,7 @@ func TestAEOFAQAndAnswerBoxRules(t *testing.T) {
 	<p>` + strings.Repeat("word ", 45) + `</p>
 	</body></html>`
 
-	res := Analyze("https://example.com", faqHTML, make(http.Header), 200)
+	res := Analyze("https://example.com", faqHTML, "", make(http.Header), 200)
 	faqCheck := findCheck(res.AEO.Checks, "aeo_faq")
 	qHeadingCheck := findCheck(res.AEO.Checks, "aeo_question_headings")
 	answerBoxCheck := findCheck(res.AEO.Checks, "aeo_direct_answers")
@@ -214,7 +214,7 @@ func TestAEOStructuralElements(t *testing.T) {
 	<details><summary>Toggle</summary><p>Hidden</p></details>
 	</body></html>`
 
-	res := Analyze("https://example.com", structHTML, make(http.Header), 200)
+	res := Analyze("https://example.com", structHTML, "", make(http.Header), 200)
 
 	for _, checkID := range []string{
 		"aeo_definition_lists",
@@ -235,7 +235,7 @@ func TestAEOConversationalTone(t *testing.T) {
 	<p>When you start your project, you should ensure that we understand your goals.</p>
 	</body></html>`
 
-	res := Analyze("https://example.com", convHTML, make(http.Header), 200)
+	res := Analyze("https://example.com", convHTML, "", make(http.Header), 200)
 	c := findCheck(res.AEO.Checks, "aeo_conversational")
 	if !c.Pass {
 		t.Errorf("expected pronoun-rich text to pass aeo_conversational")
@@ -244,7 +244,7 @@ func TestAEOConversationalTone(t *testing.T) {
 	formalHTML := `<!DOCTYPE html><html><body>
 	<p>The system execution occurs upon initialization of the operational state.</p>
 	</body></html>`
-	resFormal := Analyze("https://example.com", formalHTML, make(http.Header), 200)
+	resFormal := Analyze("https://example.com", formalHTML, "", make(http.Header), 200)
 	cF := findCheck(resFormal.AEO.Checks, "aeo_conversational")
 	if cF.Pass {
 		t.Errorf("expected formal text without pronouns to fail aeo_conversational")
@@ -258,7 +258,7 @@ func TestGEOStatisticsDensityAndQuotes(t *testing.T) {
 	<a href="https://arxiv.org/abs/1234.5678">Primary Research Study</a>
 	</body></html>`
 
-	res := Analyze("https://example.com", geoHTML, make(http.Header), 200)
+	res := Analyze("https://example.com", geoHTML, "", make(http.Header), 200)
 
 	statC := findCheck(res.GEO.Checks, "geo_statistics_density")
 	if !statC.Pass {
@@ -294,7 +294,7 @@ func TestGEOKnowledgeGraphAndTrustSignals(t *testing.T) {
 	<p>By Alex Smith | <time datetime="2026-10-10">October 10, 2026</time></p>
 	</body></html>`
 
-	res := Analyze("https://example.com", kgHTML, make(http.Header), 200)
+	res := Analyze("https://example.com", kgHTML, "", make(http.Header), 200)
 
 	kgCheck := findCheck(res.GEO.Checks, "geo_knowledge_graph")
 	if !kgCheck.Pass {
@@ -318,7 +318,7 @@ func TestLocalAuditEngineOnThinPage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	scanResult := Analyze("http://localhost/01-thin-poor.html", string(htmlBytes), make(http.Header), 200)
+	scanResult := Analyze("http://localhost/01-thin-poor.html", string(htmlBytes), "", make(http.Header), 200)
 	ov := Overall(scanResult)
 
 	if ov > 45 {
@@ -341,7 +341,7 @@ func TestLocalAuditEngineOnGEOResearchPage(t *testing.T) {
 	headers.Set("X-Frame-Options", "DENY")
 	headers.Set("Content-Security-Policy", "default-src 'self'")
 
-	scanResult := Analyze("https://example.com/04-geo-research.html", string(htmlBytes), headers, 200)
+	scanResult := Analyze("https://example.com/04-geo-research.html", string(htmlBytes), "", headers, 200)
 	ov := Overall(scanResult)
 
 	if ov < 65 {
@@ -375,7 +375,7 @@ func TestLocalAuditEngineAll10Archetypes(t *testing.T) {
 		if err != nil {
 			continue
 		}
-		res := Analyze("https://example.com/"+p.name, string(b), make(http.Header), 200)
+		res := Analyze("https://example.com/"+p.name, string(b), "", make(http.Header), 200)
 		score := Overall(res)
 		if score < p.minScore || score > p.maxScore {
 			t.Errorf("%s: score %d outside expected range [%d, %d]", p.name, score, p.minScore, p.maxScore)

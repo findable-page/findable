@@ -143,7 +143,7 @@ func toolAuditHTML(a toolArgs) (text string, isError bool) {
 	if targetURL == "" {
 		targetURL = defaultVirtualURL
 	}
-	res := audit.Analyze(targetURL, rawHTML, make(http.Header), http.StatusOK)
+	res := audit.Analyze(targetURL, rawHTML, "", make(http.Header), http.StatusOK)
 	return toolResult(scanSummary(targetURL, res))
 }
 

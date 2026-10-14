@@ -6,8 +6,9 @@ import (
 	"strings"
 )
 
-func Analyze(targetURL, rawHTML string, headers http.Header, statusCode int) Scan {
+func Analyze(targetURL, rawHTML, keyphrase string, headers http.Header, statusCode int) Scan {
 	sig := extractSignals(targetURL, rawHTML, headers, statusCode)
+	sig.Keyphrase = keyphrase
 
 	s := Scan{
 		SEO:           buildCategory(evalSEO(&sig)),

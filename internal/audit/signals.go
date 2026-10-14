@@ -26,6 +26,7 @@ type ImageSignal struct {
 type PageSignals struct {
 	URL                 *url.URL
 	TargetURL           string
+	Keyphrase           string
 	RawHTML             string
 	StatusCode          int
 	Headers             http.Header

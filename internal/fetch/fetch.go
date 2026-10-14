@@ -25,22 +25,22 @@ func IsHTTPURL(target string) bool {
 	return strings.HasPrefix(target, httpSchemePrefix) || strings.HasPrefix(target, httpsSchemePrefix)
 }
 
-func Scan(client *http.Client, target, _ string) (audit.Scan, error) {
+func Scan(client *http.Client, target, keyphrase string) (audit.Scan, error) {
 	if strings.HasPrefix(target, fileSchemePrefix) || !IsHTTPURL(target) {
-		return auditLocalFile(strings.TrimPrefix(target, fileSchemePrefix))
+		return auditLocalFile(strings.TrimPrefix(target, fileSchemePrefix), keyphrase)
 	}
-	return fetchAndAudit(client, target)
+	return fetchAndAudit(client, target, keyphrase)
 }
 
-func auditLocalFile(filePath string) (audit.Scan, error) {
+func auditLocalFile(filePath, keyphrase string) (audit.Scan, error) {
 	content, err := os.ReadFile(filePath) //nolint:gosec // reading the user-named file is the feature; see the SSRF policy in SECURITY.md
 	if err != nil {
 		return audit.Scan{}, fmt.Errorf("read file: %w", err)
 	}
-	return audit.Analyze(fileSchemePrefix+filepath.Base(filePath), string(content), make(http.Header), localFileStatus), nil
+	return audit.Analyze(fileSchemePrefix+filepath.Base(filePath), string(content), keyphrase, make(http.Header), localFileStatus), nil
 }
 
-func fetchAndAudit(client *http.Client, target string) (audit.Scan, error) {
+func fetchAndAudit(client *http.Client, target, keyphrase string) (audit.Scan, error) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, target, http.NoBody)
 	if err != nil {
 		return audit.Scan{}, fmt.Errorf("create request: %w", err)
@@ -60,7 +60,7 @@ func fetchAndAudit(client *http.Client, target string) (audit.Scan, error) {
 	if len(body) > MaxPageBytes {
 		return audit.Scan{}, fmt.Errorf("%s: %w", target, ErrPageTooLarge)
 	}
-	return audit.Analyze(resp.Request.URL.String(), string(body), resp.Header, resp.StatusCode), nil
+	return audit.Analyze(resp.Request.URL.String(), string(body), keyphrase, resp.Header, resp.StatusCode), nil
 }
 
 func closeBody(resp *http.Response) {

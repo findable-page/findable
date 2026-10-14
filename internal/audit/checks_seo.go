@@ -17,6 +17,7 @@ func evalSEO(s *PageSignals) []Check {
 		seoSocial,
 		seoSecurityHeaders,
 		seoStructure,
+		seoKeyphrase,
 	)
 }
 
@@ -141,4 +142,24 @@ func seoStructure(l *checkList, s *PageSignals) {
 	l.add("jsonld", fmt.Sprintf("%d JSON-LD schema block(s) found", len(s.JSONLDs)), len(s.JSONLDs) > 0)
 	l.add("aria_landmarks", "ARIA landmarks present", s.SemanticCounts["main"] > 0 && s.SemanticCounts["nav"] > 0)
 	l.add("duplicate_ids", fmt.Sprintf("No duplicate IDs found (%d duplicates)", s.DuplicateIDs), s.DuplicateIDs == 0)
+}
+
+func seoKeyphrase(l *checkList, s *PageSignals) {
+	kp := strings.ToLower(s.Keyphrase)
+	if s.Keyphrase == "" {
+		return
+	}
+	l.add("keyphrase_in_title", fmt.Sprintf("Focus keyphrase %q in title tag", s.Keyphrase), lowerContainsAny(s.Title, kp))
+	l.add("keyphrase_in_desc", fmt.Sprintf("Focus keyphrase %q in meta description", s.Keyphrase), lowerContainsAny(s.MetaDesc, kp))
+	l.add("keyphrase_in_h1", fmt.Sprintf("Focus keyphrase %q in H1 heading", s.Keyphrase), h1Contains(s.Headings, kp))
+	l.add("keyphrase_in_content", fmt.Sprintf("Focus keyphrase %q appears in body copy", s.Keyphrase), lowerContainsAny(s.TextContent, kp))
+}
+
+func h1Contains(headings []Heading, keyphrase string) bool {
+	for _, h := range headings {
+		if h.Level == 1 && lowerContainsAny(h.Text, keyphrase) {
+			return true
+		}
+	}
+	return false
 }
