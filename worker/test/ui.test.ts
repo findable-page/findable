@@ -109,3 +109,21 @@ test("registerWebMcp exposes a scan_url tool that calls /api/scan and summarises
   expect(out).toEqual({ overall: 72, seo: 80, aeo: 60, geo: 70, failing: ["FAQ schema", "Author schema"] });
   expect(() => registerWebMcp(undefined, fetch)).not.toThrow();
 });
+
+test("the WebMCP scan_url tool reports a plain-text API error instead of throwing", async () => {
+  const html = await (await worker.fetch(new Request("https://w.test/"))).text();
+  const src = html.split("// webmcp:begin")[1]?.split("// webmcp:end")[0] ?? "";
+  const registerWebMcp = new Function(`${src}; return registerWebMcp;`)() as (mc: unknown, f: unknown) => void;
+  let execute: ((a: unknown) => Promise<{ content: { text: string }[] }>) | undefined;
+  registerWebMcp(
+    {
+      registerTool: (t: { execute: typeof execute }) => {
+        execute = t.execute;
+        return Promise.resolve();
+      },
+    },
+    async () => new Response("upstream fetch failed\n", { status: 502 }),
+  );
+  const out = JSON.parse((await execute?.({ url: "example.com" }))?.content[0]?.text ?? "{}");
+  expect(out).toEqual({ error: "upstream fetch failed" });
+});
