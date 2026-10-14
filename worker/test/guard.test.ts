@@ -31,6 +31,10 @@ test("publicTarget accepts public http(s) hosts only", () => {
     ["http://[::ffff:127.0.0.1]/", false],
     ["http://metadata.google.internal/", false],
     ["http://printer.local/", false],
+    ["http://localhost./", false],
+    ["http://foo.internal./", false],
+    ["http://printer.local../", false],
+    ["https://example.com./", true],
     ["not a url", false],
   ];
   for (const [url, want] of cases) {

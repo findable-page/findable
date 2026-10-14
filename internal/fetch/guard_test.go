@@ -52,3 +52,14 @@ func TestScanRefusesBodiesOverTheCap(t *testing.T) {
 		t.Fatalf("Scan of oversized page = %v, want ErrPageTooLarge", err)
 	}
 }
+
+func TestGuardedClientRefusesTrailingDotLocalhost(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("<html></html>"))
+	}))
+	t.Cleanup(srv.Close)
+	target := strings.Replace(srv.URL, "127.0.0.1", "localhost.", 1)
+	if _, err := Scan(NewGuardedClient(), target, "", false); !errors.Is(err, ErrBlockedAddress) {
+		t.Fatalf("Scan(%s) via guarded client = %v, want ErrBlockedAddress", target, err)
+	}
+}

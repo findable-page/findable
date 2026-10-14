@@ -58,7 +58,7 @@ export function publicTarget(target: string): boolean {
   const u = parseURL(target);
   if (!u) return false;
   if (u.protocol !== "http:" && u.protocol !== "https:") return false;
-  const host = u.hostname.toLowerCase();
+  const host = u.hostname.toLowerCase().replace(/\.+$/, "");
   if (host.startsWith("[")) return publicV6(host.slice(1, -1));
   const v4 = ipv4Number(host);
   if (v4 !== null) return publicV4(v4);
