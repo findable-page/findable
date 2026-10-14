@@ -65,7 +65,7 @@ findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
 | `-crawl` | Follow internal links, up to `-limit` pages (default 20). |
 | `-k` | Focus keyphrase. Only the edge API scores it today; the offline engine ignores it. |
 | `-o`, `-q` | Report directory; `-q` hides the failing-check list. |
-| `-serve :8080` | Local API and web UI. Keep it on localhost. |
+| `-serve 127.0.0.1:8080` | Local API and web UI. Bind to localhost; `:8080` listens on every interface. |
 | `-mcp` | MCP server over stdio. |
 | `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts. |
 
@@ -89,7 +89,7 @@ Tools: `audit_page` (URL or file), `audit_html_content` (raw HTML, no network), 
 
 ## API
 
-Hosted at https://findable.piply.xyz, or run your own with `findable -serve :8080` or `cd worker && npx wrangler deploy`.
+Hosted at https://findable.piply.xyz, or run your own with `findable -serve 127.0.0.1:8080` or `cd worker && npx wrangler deploy`.
 
 ```bash
 curl -s -X POST https://findable.piply.xyz/api/scan \

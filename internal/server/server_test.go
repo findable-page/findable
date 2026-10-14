@@ -340,3 +340,20 @@ func TestServerServesTheUIWhateverTheAcceptHeader(t *testing.T) {
 		}
 	}
 }
+
+func TestServerRejectsOversizedScanBody(t *testing.T) {
+	mux := newTestMux()
+	body := `{"url":"http://example.com/` + strings.Repeat("a", 64<<10) + `"}`
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", body))
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("expected 413, got %d", rec.Code)
+	}
+}
+
+func TestNewServerSetsEveryTimeout(t *testing.T) {
+	srv := NewServer("127.0.0.1:0")
+	if srv.ReadHeaderTimeout <= 0 || srv.ReadTimeout <= 0 || srv.WriteTimeout <= 0 {
+		t.Fatalf("timeouts = %v/%v/%v, want all set", srv.ReadHeaderTimeout, srv.ReadTimeout, srv.WriteTimeout)
+	}
+}

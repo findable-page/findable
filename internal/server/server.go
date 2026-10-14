@@ -15,6 +15,9 @@ import (
 
 const (
 	readHeaderTimeout = 10 * time.Second
+	readTimeout       = 30 * time.Second
+	writeTimeout      = 90 * time.Second
+	maxScanBodyBytes  = 64 << 10
 	healthJSON        = `{"status":"ok"}`
 	jsonContentType   = "application/json"
 	scansPerWindow    = 10
@@ -78,7 +81,7 @@ func NewMux(client *http.Client) *http.ServeMux {
 }
 
 func NewServer(addr string) *http.Server {
-	return &http.Server{Addr: addr, Handler: NewMux(fetch.NewGuardedClient()), ReadHeaderTimeout: readHeaderTimeout}
+	return &http.Server{Addr: addr, Handler: NewMux(fetch.NewGuardedClient()), ReadHeaderTimeout: readHeaderTimeout, ReadTimeout: readTimeout, WriteTimeout: writeTimeout}
 }
 
 func allowAnyOrigin(w http.ResponseWriter) {
@@ -120,7 +123,13 @@ func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {
 			return
 		}
 		var req scanRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.URL == "" {
+		err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxScanBodyBytes)).Decode(&req)
+		var tooBig *http.MaxBytesError
+		if errors.As(err, &tooBig) {
+			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
+			return
+		}
+		if err != nil || req.URL == "" {
 			http.Error(w, "bad request: missing url", http.StatusBadRequest)
 			return
 		}
