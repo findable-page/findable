@@ -1,6 +1,6 @@
 import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
-import { LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
+import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
 import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
@@ -161,7 +161,10 @@ const worker = {
 
     if (url.pathname === "/") {
       uiPolicy ??= buildUiPolicy();
-      return new Response(PAGE_HTML, {
+      const target = url.searchParams.get("url");
+      const isPreviewBot = PREVIEW_BOTS.test(request.headers.get("User-Agent") ?? "");
+      const html = target && isPreviewBot ? await sharePreviewHtml(target, env, url) : PAGE_HTML;
+      return new Response(html, {
         headers: {
           ...CORS_HEADERS,
           "Content-Type": "text/html; charset=utf-8",
@@ -220,6 +223,43 @@ const worker = {
 };
 
 export default worker;
+
+const PREVIEW_BOTS =
+  /facebookexternalhit|facebot|linkedinbot|twitterbot|slackbot|discordbot|telegrambot|whatsapp|skypeuripreview|redditbot|bluesky|mastodon|embedly|iframely/i;
+
+function replaceMeta(html: string, attr: string, key: string, value: string): string {
+  return html.replace(
+    new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`),
+    (_m, open: string, close: string) => open + escapeHtml(value) + close,
+  );
+}
+
+function scoreQuip(overall: number): string {
+  if (overall >= 90) return "Google and ChatGPT can't miss it.";
+  if (overall >= 70) return "Almost famous with the robots.";
+  if (overall >= 50) return "Half-visible to Google and AI.";
+  return "Playing hide and seek with Google and AI.";
+}
+
+async function sharePreviewHtml(target: string, env: Env, requestUrl: URL): Promise<string> {
+  try {
+    if (!(await allowScan(env, "share-preview"))) return PAGE_HTML;
+    const self: SelfRoute = { hosts: [requestUrl.hostname, ...OWN_HOSTS], handle: (r) => worker.fetch(r, env) };
+    const scan = await auditUrl(withScheme(target), self);
+    const host = new URL(scan.url).hostname;
+    const title = `${host} scored ${scan.overall}/100. ${scoreQuip(scan.overall)}`;
+    const description = `SEO ${scan.seo.score} · AEO ${scan.aeo.score} · GEO ${scan.geo.score}. Can your site beat it? Free check, no signup.`;
+    const shareUrl = `${PUBLIC_ORIGIN}/?${new URLSearchParams({ url: target })}`;
+    let html = PAGE_HTML.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
+    html = replaceMeta(html, "property", "og:title", title);
+    html = replaceMeta(html, "name", "twitter:title", title);
+    html = replaceMeta(html, "property", "og:description", description);
+    html = replaceMeta(html, "name", "twitter:description", description);
+    return replaceMeta(html, "property", "og:url", shareUrl);
+  } catch {
+    return PAGE_HTML;
+  }
+}
 
 interface ScanBody {
   url: string;

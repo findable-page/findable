@@ -17,7 +17,7 @@ export const LEARN_STYLE =
   "pre{overflow-x:auto;background:#f4f4f4;padding:.75rem}code{background:#f4f4f4;padding:0 .2rem}pre code{padding:0}" +
   ".byline{color:#555}details{margin:1rem 0}dt{font-weight:600;margin-top:1rem}dd{margin:.25rem 0 0}";
 
-const escapeHtml = (text: string): string =>
+export const escapeHtml = (text: string): string =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 const jsonLd = (data: unknown): string =>

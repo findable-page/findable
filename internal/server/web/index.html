@@ -896,6 +896,7 @@ findable https://example.com</code></pre>
       const resultsEl = $("results");
       resultsEl.classList.remove("hidden");
       $("resultUrl").textContent = url;
+      document.title = `${recentHost(url) || url} scored ${overallScore(data)}/100 · findable`;
       const keyphrase = keyphraseInput.value.trim();
       $("resultDate").textContent = `Audited ${new Date().toLocaleString()}` + (keyphrase ? ` · keyphrase: ${keyphrase}` : "");
       setMode("page");
