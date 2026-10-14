@@ -72,7 +72,7 @@ func fetchAndAudit(client *http.Client, target string) (audit.Scan, error) {
 	if len(body) > MaxPageBytes {
 		return audit.Scan{}, fmt.Errorf("%s: %w", target, ErrPageTooLarge)
 	}
-	return audit.Analyze(target, string(body), resp.Header, resp.StatusCode), nil
+	return audit.Analyze(resp.Request.URL.String(), string(body), resp.Header, resp.StatusCode), nil
 }
 
 func closeBody(resp *http.Response) {
@@ -164,6 +164,9 @@ func Crawl(client *http.Client, start string, opts CrawlOptions) ([]audit.Page, 
 			continue
 		}
 
+		if len(pages) == 0 && len(s.InternalLinks) > 0 {
+			c.anchorTo(s.InternalLinks[0])
+		}
 		pages = append(pages, audit.Page{URL: curr, Scan: s})
 		if opts.OnPage != nil {
 			opts.OnPage(len(pages), opts.Limit, pages[len(pages)-1])
@@ -175,6 +178,12 @@ func Crawl(client *http.Client, start string, opts CrawlOptions) ([]audit.Page, 
 		}
 	}
 	return pages, nil
+}
+
+func (c *crawler) anchorTo(link string) {
+	if u, err := url.Parse(link); err == nil {
+		c.start = u
+	}
 }
 
 func (c *crawler) enqueue(links []string) {

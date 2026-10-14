@@ -70,6 +70,20 @@ test("guardedFetch refuses a redirect to a non-web port", async () => {
   await expect(guardedFetch("https://example.com/")).rejects.toBeInstanceOf(BlockedTargetError);
 });
 
+test("guardedFetch cancels the body of each redirect response", async () => {
+  let cancelled = false;
+  mockFetch((url) =>
+    url === "https://example.com/"
+      ? new Response(new ReadableStream({ cancel: () => void (cancelled = true) }), {
+          status: 302,
+          headers: { location: "/home" },
+        })
+      : new Response("home"),
+  );
+  await guardedFetch("https://example.com/");
+  expect(cancelled).toBe(true);
+});
+
 test("guardedFetch follows public redirects and returns the final body", async () => {
   mockFetch((url) =>
     url === "https://example.com/"

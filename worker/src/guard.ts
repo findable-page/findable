@@ -101,6 +101,7 @@ export async function guardedFetch(target: string, headers: Record<string, strin
     const resp = await fetch(current, { headers, redirect: "manual", signal });
     const location = resp.headers.get("location");
     if (resp.status >= 300 && resp.status < 400 && location) {
+      await resp.body?.cancel();
       current = new URL(location, current).toString();
       continue;
     }

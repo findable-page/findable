@@ -112,7 +112,8 @@ async function auditUrl(targetUrl: string, keyphrase?: string): Promise<ScanResp
     "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
     Accept: "text/html,application/xhtml+xml",
   });
-  return analyzeHtml(targetUrl, page.body.slice(0, MAX_ANALYZED_HTML_CHARS), page.headers, keyphrase);
+  const scan = analyzeHtml(page.url, page.body.slice(0, MAX_ANALYZED_HTML_CHARS), page.headers, keyphrase);
+  return { ...scan, url: targetUrl };
 }
 
 function firstGroup(match: RegExpMatchArray | null): string {

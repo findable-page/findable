@@ -47,3 +47,15 @@ test("/api/scan analyses only the first 1MB of HTML", async () => {
   };
   expect([await scanH2(1000), await scanH2(1_100_000)]).toEqual([true, false]);
 });
+
+test("/api/scan resolves links against the final URL after redirects", async () => {
+  globalThis.fetch = (async (input: RequestInfo | URL) =>
+    String(input) === "https://example.com/a"
+      ? new Response(null, { status: 301, headers: { location: "/dir/page" } })
+      : new Response('<html><body><a href="next">next</a></body></html>')) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/a" }) }),
+  );
+  const scan = (await resp.json()) as { url: string; internalLinks: string[] };
+  expect([scan.url, scan.internalLinks]).toEqual(["https://example.com/a", ["https://example.com/dir/next"]]);
+});
