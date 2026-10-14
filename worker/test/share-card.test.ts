@@ -55,14 +55,16 @@ test("a second bot asking about the same host within the hour reuses the first s
     return new Response("<html></html>");
   }) as unknown as typeof fetch;
   try {
-    const first = await (await worker.fetch(new Request("https://w.test/example.com", { headers: BOT }), ENV)).text();
+    const firstResp = await worker.fetch(new Request("https://w.test/example.com", { headers: BOT }), ENV);
+    const first = await firstResp.text();
     const afterFirst = fetches;
-    const second = await (
-      await worker.fetch(new Request("https://w.test/?url=example.com", { headers: BOT }), ENV)
-    ).text();
+    const secondResp = await worker.fetch(new Request("https://w.test/?url=example.com", { headers: BOT }), ENV);
+    const second = await secondResp.text();
     expect(afterFirst).toBeGreaterThan(0);
     expect(fetches).toBe(afterFirst);
     expect(second).toBe(first);
+    expect(firstResp.headers.get("X-Findable-Cache")).toBe("miss");
+    expect(secondResp.headers.get("X-Findable-Cache")).toBe("hit");
   } finally {
     globalThis.fetch = realFetch;
     delete g.caches;

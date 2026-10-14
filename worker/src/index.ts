@@ -224,24 +224,29 @@ const worker = {
 };
 
 // Bots from many platforms unfurl a viral link at once; one scan per host per hour keeps them under the scan limit.
-async function cachedSharePreview(target: string, env: Env, url: URL): Promise<string> {
+async function cachedSharePreview(
+  target: string,
+  env: Env,
+  url: URL,
+): Promise<{ html: string; cacheStatus: "hit" | "miss" }> {
   const cache = (globalThis as { caches?: { default: Cache } }).caches?.default;
   const key = new Request(`${PUBLIC_ORIGIN}/__share-preview/v2/${withScheme(target).toLowerCase()}`);
   const hit = await cache?.match(key);
-  if (hit) return hit.text();
+  if (hit) return { html: await hit.text(), cacheStatus: "hit" };
   const html = await sharePreviewHtml(target, env, url);
   if (html !== PAGE_HTML) {
     await cache?.put(key, new Response(html, { headers: { "Cache-Control": "public, max-age=3600" } }));
   }
-  return html;
+  return { html, cacheStatus: "miss" };
 }
 
 async function pageResponse(target: string | null, request: Request, env: Env, url: URL): Promise<Response> {
   uiPolicy ??= buildUiPolicy();
   const isPreviewBot = PREVIEW_BOTS.test(request.headers.get("User-Agent") ?? "");
-  const html = target && isPreviewBot ? await cachedSharePreview(target, env, url) : PAGE_HTML;
-  return new Response(html, {
+  const preview = target && isPreviewBot ? await cachedSharePreview(target, env, url) : null;
+  return new Response(preview?.html ?? PAGE_HTML, {
     headers: {
+      ...(preview && { "X-Findable-Cache": preview.cacheStatus }),
       ...CORS_HEADERS,
       "Content-Type": "text/html; charset=utf-8",
       ...securityHeaders(await uiPolicy),
@@ -287,15 +292,17 @@ async function shareCardResponse(url: URL, request: Request): Promise<Response> 
   if (!scores) return Response.redirect(`${url.origin}/og.png`, 302);
   const cache = (globalThis as { caches?: { default: Cache } }).caches?.default;
   const hit = await cache?.match(request);
-  if (hit) return hit;
+  if (hit) {
+    const resp = new Response(hit.body, hit);
+    resp.headers.set("X-Findable-Cache", "hit");
+    return resp;
+  }
   try {
     const { renderShareCard } = await import("./og-render");
     const png = await (await renderShareCard(scores)).arrayBuffer();
-    const resp = new Response(png, {
-      headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" },
-    });
-    await cache?.put(request, resp.clone());
-    return resp;
+    const headers = { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" };
+    await cache?.put(request, new Response(png, { headers }));
+    return new Response(png, { headers: { ...headers, "X-Findable-Cache": "miss" } });
   } catch {
     return Response.redirect(`${url.origin}/og.png`, 302);
   }
