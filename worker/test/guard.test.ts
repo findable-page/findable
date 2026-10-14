@@ -131,7 +131,5 @@ test("a trailing dot on the worker's own host still routes in-process and keeps 
   const self: SelfRoute = { hosts: ["findable.page"], handle: async () => new Response("in-process") };
   const page = await guardedFetch("https://findable.page./", {}, self);
   expect(page.body).toBe("in-process");
-  await expect(guardedFetch("https://findable.page./api/scan", {}, self)).rejects.toBeInstanceOf(
-    BlockedTargetError,
-  );
+  await expect(guardedFetch("https://findable.page./api/scan", {}, self)).rejects.toBeInstanceOf(BlockedTargetError);
 });
