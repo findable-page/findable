@@ -85,7 +85,7 @@ The server also offers a prompt called `seo_audit_prompt`. It speaks over stdio,
 Open [findable.piply.xyz](https://findable.piply.xyz) and paste a URL to get a scored report in your browser, with no install at all. If you want it local, serve it yourself. The same binary hosts the web UI and the API on a port you choose.
 
 ```bash
-seoscore -serve :8080
+seoscore -serve 127.0.0.1:8080
 ```
 
 ## How do you call the API with curl?
@@ -109,7 +109,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: nadimtuhin/findable@main
+      - uses: nadimtuhin/findable@v0.2.0
         with:
           url: https://example.com
           fail-under: 80
@@ -123,5 +123,5 @@ You can get the same gate locally with `seoscore https://example.com -fail-under
 - Install with one `go install` line. The binary is `seoscore`.
 - Run `seoscore <url> -k "phrase" -site` and read the failing check ids first.
 - Fix the top three failures, then re-run to confirm.
-- Use `-mcp` for editors, `-serve :8080` for a local UI, and POST `/api/scan` for scripts.
-- Gate CI with `-fail-under N` or the `nadimtuhin/findable@main` action.
+- Use `-mcp` for editors, `-serve 127.0.0.1:8080` for a local UI, and POST `/api/scan` for scripts.
+- Gate CI with `-fail-under N` or the `nadimtuhin/findable@v0.2.0` action.

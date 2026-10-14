@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	usageLine     = "findable: is your site findable by Google and by AI answer engines?\nusage: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] [-allow-private] <url or file>"
+	usageLine     = "findable: is your site findable by Google and by AI answer engines?\nusage: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-serve 127.0.0.1:8080] [-mcp] [-allow-private] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -48,7 +48,7 @@ func parseFlags() options {
 	flag.BoolVar(&o.site, "site", false, "also check robots.txt (search and AI crawlers) and /llms.txt")
 	flag.StringVar(&o.sitemap, "sitemap", "", "audit the pages listed in this sitemap.xml, up to limit pages")
 	flag.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl or -sitemap is enabled")
-	flag.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. :8080)")
+	flag.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. 127.0.0.1:8080)")
 	flag.BoolVar(&o.mcp, "mcp", false, "run Model Context Protocol (MCP) server over stdio")
 	flag.BoolVar(&o.allowPrivate, "allow-private", false, "allow scanning localhost and private-network targets")
 	flag.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when the overall score of any page is below N")
