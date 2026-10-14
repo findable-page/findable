@@ -216,3 +216,21 @@ func TestServerServesTheSingleUISourceByteForByte(t *testing.T) {
 		t.Errorf("served UI (%d bytes) differs from web/index.html (%d bytes)", rec.Body.Len(), len(want))
 	}
 }
+
+func TestServerScanReportsTheCompositeScore(t *testing.T) {
+	mux, page := fixturePage(t)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", `{"url":"`+page+`"}`))
+	var res struct {
+		Overall *int                    `json:"overall"`
+		SEO     struct{ Score float64 } `json:"seo"`
+		AEO     struct{ Score float64 } `json:"aeo"`
+		GEO     struct{ Score float64 } `json:"geo"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil || res.Overall == nil {
+		t.Fatalf("response has no overall: %v %s", err, rec.Body.String()[:min(200, rec.Body.Len())])
+	}
+	if want := int(res.SEO.Score*0.5 + res.AEO.Score*0.25 + res.GEO.Score*0.25 + 0.5); *res.Overall != want {
+		t.Errorf("overall = %d, want %d", *res.Overall, want)
+	}
+}

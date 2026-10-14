@@ -9,13 +9,16 @@ import (
 func Analyze(targetURL, rawHTML string, headers http.Header, statusCode int) Scan {
 	sig := extractSignals(targetURL, rawHTML, headers, statusCode)
 
-	return Scan{
+	s := Scan{
 		SEO:           buildCategory(evalSEO(&sig)),
 		AEO:           buildCategory(evalAEO(&sig)),
 		GEO:           buildCategory(evalGEO(&sig)),
 		CWV:           Category{Checks: []Check{}},
 		InternalLinks: sig.InternalLinks,
 	}
+	overall := Overall(s)
+	s.Overall = &overall
+	return s
 }
 
 func buildCategory(checks []Check) Category {

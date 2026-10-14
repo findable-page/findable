@@ -20,6 +20,7 @@ type Category struct {
 }
 
 type Scan struct {
+	Overall       *int      `json:"overall,omitempty"`
 	SEO           Category  `json:"seo"`
 	AEO           Category  `json:"aeo"`
 	GEO           Category  `json:"geo"`

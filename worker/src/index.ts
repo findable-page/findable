@@ -20,6 +20,7 @@ export interface CategoryResult {
 
 export interface ScanResponse {
   url: string;
+  overall: number;
   seo: CategoryResult;
   aeo: CategoryResult;
   geo: CategoryResult;
@@ -399,11 +400,15 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     return { score, passed, total, checks };
   };
 
+  const seo = calcCat(seoChecks);
+  const aeo = calcCat(aeoChecks);
+  const geo = calcCat(geoChecks);
   return {
     url: targetUrl,
-    seo: calcCat(seoChecks),
-    aeo: calcCat(aeoChecks),
-    geo: calcCat(geoChecks),
+    overall: Math.round(seo.score * 0.5 + aeo.score * 0.25 + geo.score * 0.25),
+    seo,
+    aeo,
+    geo,
     cwv: { score: null, checks: [], passed: 0, total: 0 },
     internalLinks: [...new Set(internalLinks)],
     scannedAt: new Date().toISOString(),
