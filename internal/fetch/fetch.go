@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 const (
-	userAgent         = "Mozilla/5.0 (compatible; seoscore-cli/1.0; +https://github.com/nadimtuhin/seoscore-cli)"
+	userAgent         = "Mozilla/5.0 (compatible; findable/1.0; +https://github.com/nadimtuhin/findable)"
 	defaultRemoteAPI  = "https://seoscore.tools/api/scan"
 	remoteAttempts    = 3
 	rateLimitBackoff  = 10 * time.Second

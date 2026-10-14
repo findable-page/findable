@@ -1,5 +1,5 @@
 {
-  "name": "seoscore-api",
+  "name": "findable",
   "version": "1.0.0",
   "description": "Cloudflare Worker SEO, AEO & GEO Audit API",
   "main": "src/index.ts",

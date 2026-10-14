@@ -1,4 +1,4 @@
-// seoscore scans a site locally or via seoscore.tools and saves the report CSV.
+// findable scans a site locally or via the seoscore.tools API and saves the report CSV.
 package main
 
 import (
@@ -9,15 +9,15 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
-	"github.com/nadimtuhin/seoscore-cli/internal/fetch"
-	"github.com/nadimtuhin/seoscore-cli/internal/mcpserver"
-	"github.com/nadimtuhin/seoscore-cli/internal/report"
-	"github.com/nadimtuhin/seoscore-cli/internal/server"
+	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/nadimtuhin/findable/internal/fetch"
+	"github.com/nadimtuhin/findable/internal/mcpserver"
+	"github.com/nadimtuhin/findable/internal/report"
+	"github.com/nadimtuhin/findable/internal/server"
 )
 
 const (
-	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
+	usageLine     = "findable: is your site findable by Google and by AI answer engines?\nusage: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -59,7 +59,7 @@ func parseFlags() options {
 	flag.Parse()
 	f, err := report.ParseFormat(*format)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "seoscore:", err)
+		fmt.Fprintln(os.Stderr, "findable:", err)
 		flag.Usage()
 		os.Exit(exitUsage)
 	}
@@ -94,7 +94,7 @@ func main() {
 }
 
 func serveHTTP(addr string, remote bool) {
-	fmt.Printf("seoscore API server listening on %s (remote=%v)\n", addr, remote)
+	fmt.Printf("findable API server listening on %s (remote=%v)\n", addr, remote)
 	if err := server.NewServer(addr, remote).ListenAndServe(); err != nil {
 		fail("server error: %v", err)
 	}
@@ -123,7 +123,7 @@ func runAudit(client *http.Client, target string, opts options) {
 	if opts.site {
 		s.Site = fetch.SiteChecks(client, target)
 	}
-	path := reportPath(opts.outDir, "seoscore-report", hostName, opts.format)
+	path := reportPath(opts.outDir, "findable-report", hostName, opts.format)
 	writeReport(path, report.PageReport(opts.format, hostName, audit.Page{URL: target, Scan: s}))
 
 	fmt.Printf("overall %d  SEO %s  AEO %s  GEO %s\n", audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO))
@@ -186,7 +186,7 @@ func crawlOptions(opts options) fetch.CrawlOptions {
 }
 
 func saveSiteReport(pages []audit.Page, hostName string, opts options) {
-	path := reportPath(opts.outDir, "seoscore-site-report", hostName, opts.format)
+	path := reportPath(opts.outDir, "findable-site-report", hostName, opts.format)
 	writeReport(path, report.SiteReport(opts.format, hostName, pages))
 	fmt.Printf("saved %s (%d pages)\n", path, len(pages))
 	exitIfBelow(pages, opts.failUnder)
@@ -195,7 +195,7 @@ func saveSiteReport(pages []audit.Page, hostName string, opts options) {
 func exitIfBelow(pages []audit.Page, minimum int) {
 	below := audit.PagesBelow(pages, minimum)
 	for _, p := range below {
-		fmt.Fprintf(os.Stderr, "seoscore: %s overall %d is below -fail-under %d\n", p.URL, audit.Overall(p.Scan), minimum)
+		fmt.Fprintf(os.Stderr, "findable: %s overall %d is below -fail-under %d\n", p.URL, audit.Overall(p.Scan), minimum)
 	}
 	if len(below) > 0 {
 		os.Exit(1)
@@ -232,6 +232,6 @@ func writeReport(path, content string) {
 }
 
 func fail(f string, a ...any) {
-	fmt.Fprintf(os.Stderr, "seoscore: "+f+"\n", a...)
+	fmt.Fprintf(os.Stderr, "findable: "+f+"\n", a...)
 	os.Exit(1)
 }

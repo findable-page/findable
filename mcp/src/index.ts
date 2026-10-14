@@ -4,7 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod/v3";
 
-const API_ENDPOINT = process.env.SEOSCORE_API_URL || "https://seoscore-api.nadimtuhin.workers.dev/api/scan";
+const API_ENDPOINT = process.env.SEOSCORE_API_URL || "https://findable.piply.xyz/api/scan";
 
 interface CategoryPayload {
   score?: number | null;
@@ -28,7 +28,7 @@ interface PageSummary {
 }
 
 const server = new McpServer({
-  name: "seoscore-mcp",
+  name: "findable-mcp",
   version: "1.0.0",
 });
 
@@ -75,10 +75,7 @@ server.tool(
       .string()
       .optional()
       .describe("Optional focus keyphrase to evaluate in title, meta description, and headings."),
-    site: z
-      .boolean()
-      .optional()
-      .describe("If true, also checks robots.txt (search and AI crawlers) and /llms.txt."),
+    site: z.boolean().optional().describe("If true, also checks robots.txt (search and AI crawlers) and /llms.txt."),
   },
   async ({ url, keyphrase, site }) => {
     try {
@@ -166,7 +163,7 @@ server.prompt(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("seoscore-mcp server running on stdio");
+  console.error("findable-mcp server running on stdio");
 }
 
 main().catch((err) => {

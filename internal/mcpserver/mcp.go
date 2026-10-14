@@ -111,7 +111,7 @@ func initializeResult() map[string]any {
 			"resources": map[string]any{},
 		},
 		"serverInfo": map[string]any{
-			"name":    "seoscore-mcp",
+			"name":    "findable-mcp",
 			"version": "1.0.0",
 		},
 	}

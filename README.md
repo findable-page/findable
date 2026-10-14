@@ -1,17 +1,19 @@
-# seoscore-cli
+# findable
 
-[![CI](https://github.com/nadimtuhin/seoscore-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/nadimtuhin/seoscore-cli/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nadimtuhin/seoscore-cli)](https://goreportcard.com/report/github.com/nadimtuhin/seoscore-cli)
+**findable: is your site findable by Google and by AI answer engines?**
+
+[![CI](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml/badge.svg)](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nadimtuhin/findable)](https://goreportcard.com/report/github.com/nadimtuhin/findable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Quick start
 
 ```bash
-go install github.com/nadimtuhin/seoscore-cli/cmd/seoscore@latest
-seoscore https://example.com
+go install github.com/nadimtuhin/findable/cmd/findable@latest
+findable https://example.com
 ```
 
-Or try it in the browser: **https://seoscore.piply.xyz**
+Or try it in the browser: **https://findable.piply.xyz**
 
 A fast, unified open-source website auditor for **Traditional SEO**, **Answer Engine Optimization (AEO)**, and **Generative Engine Optimization (GEO)**.
 
@@ -19,7 +21,7 @@ Audits live URLs or local HTML files completely offline in Go, exports identical
 
 ## Features
 
-- **100% Offline / Local Engine:** Evaluates 80+ checks in Go without rate limits or external dependencies.
+- **100% Offline / Local Engine:** Evaluates 72 checks in Go without rate limits or external dependencies.
 - **Tri-Family Scoring:** Traditional SEO (50%), AEO (25%), and GEO (25%) composite score.
 - **Model Context Protocol (MCP):** Native `-mcp` mode for Claude Desktop, Cursor, Hermes Agent, and Windsurf.
 - **Interactive Web UI:** Dark/Light theme, circular SVG score rings, interactive fix recommendations, and direct share links.
@@ -29,7 +31,7 @@ Audits live URLs or local HTML files completely offline in Go, exports identical
 ## Install
 
 ```bash
-go install github.com/nadimtuhin/seoscore-cli/cmd/seoscore@latest
+go install github.com/nadimtuhin/findable/cmd/findable@latest
 ```
 
 ## CLI Usage
@@ -38,29 +40,29 @@ go install github.com/nadimtuhin/seoscore-cli/cmd/seoscore@latest
 
 Audit a live URL:
 ```bash
-seoscore https://example.com
+findable https://example.com
 ```
 
 Audit a local HTML file directly without any web server:
 ```bash
-seoscore ./path/to/page.html
+findable ./path/to/page.html
 ```
 
 With focus keyphrase:
 ```bash
-seoscore -k "cloud performance" https://example.com
+findable -k "cloud performance" https://example.com
 ```
 
 ### 2. Multi-Page Site Crawl
 
 ```bash
-seoscore -crawl -limit 20 https://example.com
+findable -crawl -limit 20 https://example.com
 ```
 
 Or audit the pages a sitemap lists (sitemap indexes are followed, `-limit` still applies):
 
 ```bash
-seoscore -sitemap https://example.com/sitemap.xml -limit 50
+findable -sitemap https://example.com/sitemap.xml -limit 50
 ```
 
 ### Site checks
@@ -97,7 +99,7 @@ The action builds the CLI, uploads failing checks to code scanning as SARIF, the
 ### 3. Run Local REST API & Web UI
 
 ```bash
-seoscore -serve :8080
+findable -serve :8080
 ```
 Open `http://localhost:8080` in your browser for the full web dashboard.
 
@@ -105,7 +107,7 @@ Open `http://localhost:8080` in your browser for the full web dashboard.
 
 ## Model Context Protocol (MCP) Tools
 
-Use `seoscore` directly inside Claude Desktop, Cursor, Windsurf, or Hermes Agent to audit sites and optimize content for AI search engines (Google AI Overviews, Perplexity, ChatGPT).
+Use `findable` directly inside Claude Desktop, Cursor, Windsurf, or Hermes Agent to audit sites and optimize content for AI search engines (Google AI Overviews, Perplexity, ChatGPT).
 
 ### 1. Native Go CLI MCP Server (Zero Dependencies)
 
@@ -114,8 +116,8 @@ Add to your `claude_desktop_config.json` or Cursor `settings.json`:
 ```json
 {
   "mcpServers": {
-    "seoscore": {
-      "command": "seoscore",
+    "findable": {
+      "command": "findable",
       "args": ["-mcp"]
     }
   }
@@ -127,9 +129,9 @@ Add to your `claude_desktop_config.json` or Cursor `settings.json`:
 ```json
 {
   "mcpServers": {
-    "seoscore": {
+    "findable": {
       "command": "npx",
-      "args": ["-y", "seoscore-mcp"]
+      "args": ["-y", "findable-mcp"]
     }
   }
 }
@@ -149,11 +151,11 @@ Add to your `claude_desktop_config.json` or Cursor `settings.json`:
 
 A production-ready edge API is deployable via Wrangler or accessible directly:
 
-- **Live Endpoint:** `https://seoscore.piply.xyz`
-- **Audit Endpoint:** `POST https://seoscore.piply.xyz/api/scan`
+- **Live Endpoint:** `https://findable.piply.xyz`
+- **Audit Endpoint:** `POST https://findable.piply.xyz/api/scan`
 
 ```bash
-curl -s -X POST https://seoscore.piply.xyz/api/scan \
+curl -s -X POST https://findable.piply.xyz/api/scan \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","keyphrase":"example"}'
 ```

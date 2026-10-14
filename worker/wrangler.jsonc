@@ -4,7 +4,7 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-10",
   "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": true }],
-  "routes": [{ "pattern": "seoscore.piply.xyz", "custom_domain": true }],
+  "routes": [{ "pattern": "seoscore.piply.xyz", "custom_domain": true }, { "pattern": "findable.piply.xyz", "custom_domain": true }],
   "ratelimits": [{ "name": "SCAN_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }],
   "observability": {
     "enabled": true

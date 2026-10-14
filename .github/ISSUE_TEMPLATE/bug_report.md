@@ -7,7 +7,7 @@ labels: bug
 **Command or request**
 
 ```
-seoscore ...
+findable ...
 ```
 
 **Expected**

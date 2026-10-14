@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 func statusOf(c *audit.Category) map[string]string {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 type Format string

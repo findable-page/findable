@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 const recorded = `{

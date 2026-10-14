@@ -32,7 +32,7 @@ func TestMCPInitialize(t *testing.T) {
 		t.Fatalf("missing result object")
 	}
 	serverInfo, ok := result["serverInfo"].(map[string]interface{})
-	if !ok || serverInfo["name"] != "seoscore-mcp" {
+	if !ok || serverInfo["name"] != "findable-mcp" {
 		t.Errorf("unexpected serverInfo: %v", serverInfo)
 	}
 }

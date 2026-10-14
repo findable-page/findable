@@ -100,7 +100,7 @@ const worker = {
     }
 
     if (url.pathname === "/health") {
-      return new Response(JSON.stringify({ status: "ok", name: "seoscore-api", version: "1.0.0" }), {
+      return new Response(JSON.stringify({ status: "ok", name: "findable", version: "1.0.0" }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
@@ -165,7 +165,7 @@ async function auditUrl(targetUrl: string, self: SelfRoute, keyphrase?: string):
   const page = await guardedFetch(
     targetUrl,
     {
-      "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
+      "User-Agent": "Mozilla/5.0 (compatible; findable-worker/1.0; +https://findable.piply.xyz)",
       Accept: "text/html,application/xhtml+xml",
     },
     self,

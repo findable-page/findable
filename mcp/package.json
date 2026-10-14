@@ -1,10 +1,10 @@
 {
-  "name": "seoscore-mcp",
+  "name": "findable-mcp",
   "version": "1.0.0",
-  "description": "Model Context Protocol (MCP) server for SEO, AEO & GEO Auditing",
+  "description": "findable: is your site findable by Google and by AI answer engines? MCP server for SEO, AEO and GEO audits.",
   "type": "module",
   "bin": {
-    "seoscore-mcp": "./dist/index.js"
+    "findable-mcp": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

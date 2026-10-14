@@ -3,15 +3,15 @@ package report
 import (
 	"strings"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 const (
 	sarifSchema  = "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json"
 	sarifVersion = "2.1.0"
 	sarifLevel   = "warning"
-	toolName     = "seoscore"
-	toolInfoURI  = "https://github.com/nadimtuhin/seoscore-cli"
+	toolName     = "findable"
+	toolInfoURI  = "https://github.com/nadimtuhin/findable"
 )
 
 type sarifText struct {

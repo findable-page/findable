@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
-	"github.com/nadimtuhin/seoscore-cli/internal/fetch"
-	"github.com/nadimtuhin/seoscore-cli/internal/report"
+	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/nadimtuhin/findable/internal/fetch"
+	"github.com/nadimtuhin/findable/internal/report"
 )
 
 const (

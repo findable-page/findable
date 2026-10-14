@@ -4,13 +4,13 @@
 *.dll
 *.so
 *.dylib
-seoscore-cli
+findable
 seoscore-bin
-/seoscore
+/findable
 
 # Test CSVs
-seoscore-report-*.csv
-seoscore-site-report-*.csv
+findable-report-*.csv
+findable-site-report-*.csv
 
 # Cloudflare Wrangler cache
 worker/.wrangler/

@@ -1,4 +1,4 @@
-name: seoscore audit
+name: findable audit
 description: Audit a URL for SEO, AEO and GEO, upload the failing checks as SARIF and fail below a score.
 branding:
   icon: search
@@ -34,10 +34,10 @@ runs:
       with:
         go-version-file: ${{ github.action_path }}/go.mod
         cache: false
-    - name: Build seoscore
+    - name: Build findable
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: go build -o "$RUNNER_TEMP/seoscore" ./cmd/seoscore
+      run: go build -o "$RUNNER_TEMP/findable" ./cmd/findable
     - name: Audit
       id: audit
       shell: bash
@@ -46,10 +46,10 @@ runs:
         FAIL_UNDER: ${{ inputs.fail-under }}
         EXTRA_ARGS: ${{ inputs.args }}
       run: |
-        out="$RUNNER_TEMP/seoscore-report"
+        out="$RUNNER_TEMP/findable-report"
         mkdir -p "$out"
         set +e
-        "$RUNNER_TEMP/seoscore" -q -format sarif -fail-under "$FAIL_UNDER" -o "$out" $EXTRA_ARGS ${AUDIT_URL:+"$AUDIT_URL"}
+        "$RUNNER_TEMP/findable" -q -format sarif -fail-under "$FAIL_UNDER" -o "$out" $EXTRA_ARGS ${AUDIT_URL:+"$AUDIT_URL"}
         code=$?
         set -e
         sarif="$(find "$out" -name '*.sarif' -print -quit)"
@@ -60,7 +60,7 @@ runs:
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: ${{ steps.audit.outputs.sarif-file }}
-        category: seoscore
+        category: findable
     - name: Apply score gate
       if: always()
       shell: bash

@@ -1,9 +1,9 @@
 version: 2
-project_name: seoscore
+project_name: findable
 
 builds:
-  - main: ./cmd/seoscore
-    binary: seoscore
+  - main: ./cmd/findable
+    binary: findable
     env:
       - CGO_ENABLED=0
     goos: [linux, darwin, windows]

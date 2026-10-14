@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 const (

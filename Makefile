@@ -1,4 +1,4 @@
-BIN := seoscore
+BIN := findable
 
 .PHONY: lint test build
 
@@ -12,4 +12,4 @@ test:
 	go test -race -timeout 10s ./...
 
 build:
-	go build -o $(BIN) ./cmd/seoscore
+	go build -o $(BIN) ./cmd/findable

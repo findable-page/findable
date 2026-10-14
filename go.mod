@@ -1,4 +1,4 @@
-module github.com/nadimtuhin/seoscore-cli
+module github.com/nadimtuhin/findable
 
 go 1.26.0
 

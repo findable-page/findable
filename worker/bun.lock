@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "seoscore-api",
+      "name": "findable",
       "devDependencies": {
         "@biomejs/biome": "2.5.15",
         "@cloudflare/workers-types": "^4.20250214.0",

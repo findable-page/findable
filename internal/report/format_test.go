@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 const (
@@ -114,7 +114,7 @@ func TestSARIFReportsEachFailingCheckOnce(t *testing.T) {
 		t.Fatalf("sarif envelope = %s", out)
 	}
 	run := log.Runs[0]
-	if run.Tool.Driver.Name != "seoscore" {
+	if run.Tool.Driver.Name != "findable" {
 		t.Errorf("driver name = %q", run.Tool.Driver.Name)
 	}
 	if len(run.Tool.Driver.Rules) != 2 {

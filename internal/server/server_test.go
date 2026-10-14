@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 func newTestMux() *http.ServeMux {
@@ -73,8 +73,8 @@ func TestServerWebUIRender(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200 OK, got %d", rec.Code)
 	}
-	if !strings.Contains(rec.Body.String(), "SEOScore Tools") {
-		t.Errorf("expected HTML body to contain 'SEOScore Tools', got: %s", rec.Body.String()[:100])
+	if !strings.Contains(rec.Body.String(), "findable") {
+		t.Errorf("expected HTML body to contain 'findable', got: %s", rec.Body.String()[:100])
 	}
 }
 
