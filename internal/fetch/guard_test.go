@@ -28,6 +28,10 @@ func TestPublicAddrRejectsLoopbackPrivateLinkLocalAndMetadata(t *testing.T) {
 		"2001::1":              false,
 		"2001:0:4136:e378::1":  false,
 		"2001:4860:4860::8888": true,
+		"64:ff9b::7f00:1":      false,
+		"0.1.2.3":              false,
+		"198.18.0.1":           false,
+		"198.19.255.1":         false,
 	} {
 		if got := PublicAddr(netip.MustParseAddr(addr)); got != want {
 			t.Errorf("PublicAddr(%s) = %v, want %v", addr, got, want)
