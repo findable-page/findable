@@ -75,7 +75,7 @@ func main() {
 	case opts.mcp:
 		mcpserver.Run(os.Stdin, os.Stdout, client)
 	case opts.serve != "":
-		serveHTTP(opts.serve, client, opts.remote)
+		serveHTTP(opts.serve, opts.remote)
 	default:
 		if opts.sitemap != "" {
 			if flag.NArg() != 0 {
@@ -93,9 +93,9 @@ func main() {
 	}
 }
 
-func serveHTTP(addr string, client *http.Client, remote bool) {
+func serveHTTP(addr string, remote bool) {
 	fmt.Printf("seoscore API server listening on %s (remote=%v)\n", addr, remote)
-	if err := server.NewServer(addr, client, remote).ListenAndServe(); err != nil {
+	if err := server.NewServer(addr, remote).ListenAndServe(); err != nil {
 		fail("server error: %v", err)
 	}
 }

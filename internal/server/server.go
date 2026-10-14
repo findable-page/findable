@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -40,8 +41,8 @@ func NewMux(client *http.Client, remote bool) *http.ServeMux {
 	return mux
 }
 
-func NewServer(addr string, client *http.Client, remote bool) *http.Server {
-	return &http.Server{Addr: addr, Handler: NewMux(client, remote), ReadHeaderTimeout: readHeaderTimeout}
+func NewServer(addr string, remote bool) *http.Server {
+	return &http.Server{Addr: addr, Handler: NewMux(fetch.NewGuardedClient(), remote), ReadHeaderTimeout: readHeaderTimeout}
 }
 
 func allowAnyOrigin(w http.ResponseWriter) {
@@ -86,6 +87,10 @@ func scanHandler(client *http.Client, remote bool) http.HandlerFunc {
 			http.Error(w, "bad request: missing url", http.StatusBadRequest)
 			return
 		}
+		if !fetch.IsHTTPURL(req.URL) {
+			http.Error(w, "bad request: url must start with http:// or https://", http.StatusBadRequest)
+			return
+		}
 		format := report.FormatJSON
 		if req.Format != "" {
 			f, err := report.ParseFormat(req.Format)
@@ -96,6 +101,10 @@ func scanHandler(client *http.Client, remote bool) http.HandlerFunc {
 			format = f
 		}
 		res, err := fetch.Scan(client, req.URL, req.Keyphrase, remote)
+		if errors.Is(err, fetch.ErrBlockedAddress) {
+			http.Error(w, "bad request: "+fetch.ErrBlockedAddress.Error(), http.StatusBadRequest)
+			return
+		}
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

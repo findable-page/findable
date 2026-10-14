@@ -15,6 +15,13 @@ func newTestMux() *http.ServeMux {
 	return NewMux(&http.Client{}, false)
 }
 
+func fixturePage(t *testing.T) (*http.ServeMux, string) {
+	t.Helper()
+	site := httptest.NewServer(http.FileServer(http.Dir("../../testdata/site")))
+	t.Cleanup(site.Close)
+	return NewMux(site.Client(), false), site.URL + "/01-thin-poor.html"
+}
+
 func newRequest(method, target, body string) *http.Request {
 	return httptest.NewRequestWithContext(context.Background(), method, target, strings.NewReader(body))
 }
@@ -97,10 +104,9 @@ func TestServerScanMissingOrEmptyURL(t *testing.T) {
 	}
 }
 
-func TestServerScanLocalFile(t *testing.T) {
-	mux := newTestMux()
-	reqBody := `{"url":"../../testdata/site/01-thin-poor.html"}`
-	req := newRequest(http.MethodPost, "/api/scan", reqBody)
+func TestServerScanLivePage(t *testing.T) {
+	mux, page := fixturePage(t)
+	req := newRequest(http.MethodPost, "/api/scan", `{"url":"`+page+`"}`)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -121,11 +127,12 @@ func TestServerScanFormats(t *testing.T) {
 		format, contentType, prefix string
 	}{
 		{"sarif", "application/sarif+json", `{"$schema":"https://docs.oasis-open.org/sarif/`},
-		{"csv", "text/csv; charset=utf-8", "\xef\xbb\xbfSEO/AEO/GEO Report,01-thin-poor.html,"},
+		{"csv", "text/csv; charset=utf-8", "\xef\xbb\xbfSEO/AEO/GEO Report,127.0.0.1:"},
 	} {
+		mux, page := fixturePage(t)
 		rec := httptest.NewRecorder()
-		body := `{"url":"../../testdata/site/01-thin-poor.html","format":"` + tc.format + `"}`
-		newTestMux().ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", body))
+		body := `{"url":"` + page + `","format":"` + tc.format + `"}`
+		mux.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", body))
 		if rec.Code != http.StatusOK {
 			t.Fatalf("%s: status %d: %s", tc.format, rec.Code, rec.Body.String())
 		}
@@ -175,6 +182,21 @@ func TestServerScanAddsSiteChecksOnlyWhenAsked(t *testing.T) {
 		}
 		if (res.Site != nil) != tc.wantSite {
 			t.Errorf("%s: site present = %v, want %v", tc.body, res.Site != nil, tc.wantSite)
+		}
+	}
+}
+
+func TestGuardedServerRejectsLocalFilesAndPrivateAddresses(t *testing.T) {
+	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("<html></html>"))
+	}))
+	t.Cleanup(site.Close)
+	handler := NewServer(":0", false).Handler
+	for _, target := range []string{"../../testdata/site/01-thin-poor.html", "file:///etc/passwd", "ftp://example.com/", site.URL} {
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", `{"url":"`+target+`"}`))
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("%s: status %d, want 400 (%s)", target, rec.Code, rec.Body.String())
 		}
 	}
 }

@@ -65,9 +65,12 @@ func fetchAndAudit(client *http.Client, target string) (audit.Scan, error) {
 	}
 	defer closeBody(resp)
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, MaxPageBytes+1))
 	if err != nil {
 		return audit.Scan{}, fmt.Errorf("read body: %w", err)
+	}
+	if len(body) > MaxPageBytes {
+		return audit.Scan{}, fmt.Errorf("%s: %w", target, ErrPageTooLarge)
 	}
 	return audit.Analyze(target, string(body), resp.Header, resp.StatusCode), nil
 }
