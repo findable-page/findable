@@ -1,6 +1,8 @@
 package report
 
 import (
+	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -9,6 +11,17 @@ import (
 )
 
 const DateLayout = "2006-01-02"
+
+func HostName(target string) (string, bool) {
+	if !strings.HasPrefix(target, "http://") && !strings.HasPrefix(target, "https://") {
+		return filepath.Base(target), true
+	}
+	u, err := url.Parse(target)
+	if err != nil {
+		return "", false
+	}
+	return u.Host, u.Host != ""
+}
 
 func quote(s string) string { return `"` + strings.ReplaceAll(s, `"`, `""`) + `"` }
 

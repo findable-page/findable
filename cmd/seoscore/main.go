@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -18,7 +17,7 @@ import (
 )
 
 const (
-	usageLine     = "usage: seoscore [-o dir] [-q] [-k keyphrase] [-crawl] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
+	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-q] [-k keyphrase] [-crawl] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -35,6 +34,7 @@ type options struct {
 	remote    bool
 	serve     string
 	mcp       bool
+	format    report.Format
 }
 
 func parseFlags() options {
@@ -48,8 +48,16 @@ func parseFlags() options {
 	flag.BoolVar(&o.remote, "remote", false, "use remote seoscore.tools API instead of local engine")
 	flag.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. :8080)")
 	flag.BoolVar(&o.mcp, "mcp", false, "run Model Context Protocol (MCP) server over stdio")
+	format := flag.String("format", string(report.FormatCSV), "report format: csv, json or sarif")
 	flag.Usage = func() { fmt.Fprintln(os.Stderr, usageLine) }
 	flag.Parse()
+	f, err := report.ParseFormat(*format)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "seoscore:", err)
+		flag.Usage()
+		os.Exit(exitUsage)
+	}
+	o.format = f
 	return o
 }
 
@@ -95,8 +103,8 @@ func runAudit(client *http.Client, target string, opts options) {
 	if err != nil {
 		fail("%v", err)
 	}
-	path := reportPath(opts.outDir, "seoscore-report", hostName)
-	writeReport(path, report.CSV(hostName, s))
+	path := reportPath(opts.outDir, "seoscore-report", hostName, opts.format)
+	writeReport(path, report.PageReport(opts.format, hostName, audit.Page{URL: target, Scan: s}))
 
 	fmt.Printf("overall %d  SEO %s  AEO %s  GEO %s\n", audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO))
 	if !opts.quiet {
@@ -106,14 +114,11 @@ func runAudit(client *http.Client, target string, opts options) {
 }
 
 func reportHostName(target string) string {
-	if !fetch.IsHTTPURL(target) {
-		return filepath.Base(target)
-	}
-	u, err := url.Parse(target)
-	if err != nil || u.Host == "" {
+	host, ok := report.HostName(target)
+	if !ok {
 		fail("need a valid URL or local HTML file path, got %q", target)
 	}
-	return u.Host
+	return host
 }
 
 func runCrawl(client *http.Client, start, hostName string, opts options) {
@@ -129,8 +134,8 @@ func runCrawl(client *http.Client, start, hostName string, opts options) {
 	if err != nil {
 		fail("%v", err)
 	}
-	path := reportPath(opts.outDir, "seoscore-site-report", hostName)
-	writeReport(path, report.CrawlCSV(hostName, pages))
+	path := reportPath(opts.outDir, "seoscore-site-report", hostName, opts.format)
+	writeReport(path, report.SiteReport(opts.format, hostName, pages))
 	fmt.Printf("saved %s (%d pages)\n", path, len(pages))
 }
 
@@ -153,8 +158,8 @@ func printFailures(indent string, s audit.Scan) {
 	}
 }
 
-func reportPath(outDir, prefix, hostName string) string {
-	return filepath.Join(outDir, fmt.Sprintf("%s-%s-%s.csv", prefix, hostName, time.Now().Format(report.DateLayout)))
+func reportPath(outDir, prefix, hostName string, f report.Format) string {
+	return filepath.Join(outDir, fmt.Sprintf("%s-%s-%s%s", prefix, hostName, time.Now().Format(report.DateLayout), f.Ext()))
 }
 
 func writeReport(path, content string) {

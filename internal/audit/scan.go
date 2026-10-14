@@ -28,8 +28,8 @@ type Scan struct {
 }
 
 type Page struct {
-	URL  string
-	Scan Scan
+	URL  string `json:"url"`
+	Scan Scan   `json:"scan"`
 }
 
 type NamedCategory struct {

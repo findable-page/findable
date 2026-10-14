@@ -57,6 +57,11 @@ seoscore -k "cloud performance" https://example.com
 seoscore -crawl -limit 20 https://example.com
 ```
 
+### Output formats
+
+`-format csv` (default), `-format json` (the same object `/api/scan` returns) or `-format sarif`
+(SARIF 2.1.0 for GitHub code scanning). `/api/scan` takes the same choice as `"format"` in the body.
+
 ### 3. Run Local REST API & Web UI
 
 ```bash

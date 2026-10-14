@@ -83,7 +83,7 @@ func TestCSVHasBOMCategoriesAndQuotedLabels(t *testing.T) {
 func TestCrawlCSVGeneratesCorrectFormat(t *testing.T) {
 	s := decode(t)
 	pages := []audit.Page{
-		{URL: "https://example.com", Scan: s},
+		{URL: examplePage, Scan: s},
 		{URL: "https://example.com/about", Scan: s},
 	}
 	lines := strings.Split(CrawlCSV("example.com", pages), "\n")

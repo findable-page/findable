@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nadimtuhin/seoscore-cli/internal/audit"
 	"github.com/nadimtuhin/seoscore-cli/internal/fetch"
+	"github.com/nadimtuhin/seoscore-cli/internal/report"
 )
 
 const (
@@ -20,6 +22,12 @@ const (
 type scanRequest struct {
 	URL       string `json:"url"`
 	Keyphrase string `json:"keyphrase"`
+	Format    string `json:"format"`
+}
+
+var formatContentTypes = map[report.Format]string{
+	report.FormatCSV:   "text/csv; charset=utf-8",
+	report.FormatSARIF: "application/sarif+json",
 }
 
 func NewMux(client *http.Client, remote bool) *http.ServeMux {
@@ -77,13 +85,28 @@ func scanHandler(client *http.Client, remote bool) http.HandlerFunc {
 			http.Error(w, "bad request: missing url", http.StatusBadRequest)
 			return
 		}
+		format := report.FormatJSON
+		if req.Format != "" {
+			f, err := report.ParseFormat(req.Format)
+			if err != nil {
+				http.Error(w, "bad request: "+err.Error(), http.StatusBadRequest)
+				return
+			}
+			format = f
+		}
 		res, err := fetch.Scan(client, req.URL, req.Keyphrase, remote)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Header().Set("Content-Type", jsonContentType)
-		_ = json.NewEncoder(w).Encode(res)
+		if format == report.FormatJSON {
+			w.Header().Set("Content-Type", jsonContentType)
+			_ = json.NewEncoder(w).Encode(res)
+			return
+		}
+		host, _ := report.HostName(req.URL)
+		w.Header().Set("Content-Type", formatContentTypes[format])
+		writeBody(w, report.PageReport(format, host, audit.Page{URL: req.URL, Scan: res}))
 	}
 }
 

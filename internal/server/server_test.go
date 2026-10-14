@@ -115,3 +115,33 @@ func TestServerScanLocalFile(t *testing.T) {
 		t.Errorf("expected valid SEO score, got %v", res.SEO.Score)
 	}
 }
+
+func TestServerScanFormats(t *testing.T) {
+	for _, tc := range []struct {
+		format, contentType, prefix string
+	}{
+		{"sarif", "application/sarif+json", `{"$schema":"https://docs.oasis-open.org/sarif/`},
+		{"csv", "text/csv; charset=utf-8", "\xef\xbb\xbfSEO/AEO/GEO Report,01-thin-poor.html,"},
+	} {
+		rec := httptest.NewRecorder()
+		body := `{"url":"../../testdata/site/01-thin-poor.html","format":"` + tc.format + `"}`
+		newTestMux().ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", body))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: status %d: %s", tc.format, rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("Content-Type"); got != tc.contentType {
+			t.Errorf("%s: Content-Type = %q", tc.format, got)
+		}
+		if !strings.HasPrefix(rec.Body.String(), tc.prefix) {
+			t.Errorf("%s: body starts %q", tc.format, rec.Body.String()[:min(80, rec.Body.Len())])
+		}
+	}
+}
+
+func TestServerScanRejectsUnknownFormat(t *testing.T) {
+	rec := httptest.NewRecorder()
+	newTestMux().ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", `{"url":"../../testdata/site/01-thin-poor.html","format":"xml"}`))
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want 400", rec.Code)
+	}
+}
