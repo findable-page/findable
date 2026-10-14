@@ -363,28 +363,50 @@ func parseJSONLD(raw string, sig *PageSignals) {
 	inspectJSONLD(root, sig)
 }
 
+type schemaScope struct {
+	counted  bool
+	personOK bool
+}
+
 func inspectJSONLD(item any, sig *PageSignals) {
+	walkSchema(item, sig, schemaScope{counted: true, personOK: true})
+}
+
+func walkSchema(item any, sig *PageSignals, scope schemaScope) {
 	switch v := item.(type) {
 	case map[string]any:
-		collectSchemaNode(v, sig)
+		collectSchemaNode(v, sig, scope)
 	case []any:
 		for _, sub := range v {
-			inspectJSONLD(sub, sig)
+			walkSchema(sub, sig, scope)
 		}
 	}
 }
 
-func collectSchemaNode(node map[string]any, sig *PageSignals) {
-	sig.JSONLDs = append(sig.JSONLDs, node)
-	if t, ok := node["@type"].(string); ok {
-		sig.SchemaTypes = append(sig.SchemaTypes, t)
+func collectSchemaNode(node map[string]any, sig *PageSignals, scope schemaScope) {
+	if scope.counted {
+		sig.JSONLDs = append(sig.JSONLDs, node)
+		sig.SameAsLinks = append(sig.SameAsLinks, sameAsLinks(node["sameAs"])...)
 	}
-	if graph, ok := node["@graph"].([]any); ok {
-		for _, g := range graph {
-			inspectJSONLD(g, sig)
+	for _, t := range schemaTypeNames(node["@type"]) {
+		if scope.personOK || !strings.EqualFold(t, "Person") {
+			sig.SchemaTypes = append(sig.SchemaTypes, t)
 		}
 	}
-	sig.SameAsLinks = append(sig.SameAsLinks, sameAsLinks(node["sameAs"])...)
+	for key, child := range node {
+		switch key {
+		case "@graph":
+			walkSchema(child, sig, scope)
+		case "author":
+			walkSchema(child, sig, schemaScope{personOK: true})
+		case "@context", "@type", "sameAs":
+		default:
+			walkSchema(child, sig, schemaScope{})
+		}
+	}
+	if !scope.counted {
+		return
+	}
 	if author, ok := node["author"].(map[string]any); ok {
 		if name, ok := author["name"].(string); ok {
 			sig.AuthorInSchema = name
@@ -396,6 +418,22 @@ func collectSchemaNode(node map[string]any, sig *PageSignals) {
 	if modified, ok := node["dateModified"].(string); ok {
 		sig.DateModified = modified
 	}
+}
+
+func schemaTypeNames(raw any) []string {
+	switch v := raw.(type) {
+	case string:
+		return []string{v}
+	case []any:
+		names := make([]string, 0, len(v))
+		for _, item := range v {
+			if name, ok := item.(string); ok {
+				names = append(names, name)
+			}
+		}
+		return names
+	}
+	return nil
 }
 
 func sameAsLinks(sameAs any) []string {
