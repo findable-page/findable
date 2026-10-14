@@ -90,6 +90,21 @@ describe("routing", () => {
     }
   });
 
+  test("every page head carries the icon links and the CSP allows them", async () => {
+    for (const path of learnPaths()) {
+      const resp = await get(path);
+      const html = await resp.text();
+      expect(html).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">');
+      expect(html).toContain('<link rel="icon" href="/favicon.ico" sizes="any">');
+      expect(html).toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png">');
+      expect(html).toContain('<link rel="manifest" href="/site.webmanifest">');
+      expect(html).toContain('<meta name="theme-color" content="#6d5efc">');
+      const csp = resp.headers.get("content-security-policy") ?? "";
+      expect(csp).toContain("img-src 'self'");
+      expect(csp).toContain("manifest-src 'self'");
+    }
+  });
+
   test("GET /learn/<slug> serves the post", async () => {
     const slug = learnPosts[0]?.slug ?? "";
     const resp = await get(`/learn/${slug}`);
