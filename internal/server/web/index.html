@@ -1142,31 +1142,48 @@ seoscore-cli https://example.com</div>
     }).catch(() => {});
 
     // Recent Scans Storage
+    function recentHost(url) {
+      try {
+        const u = new URL(url);
+        return u.protocol === "http:" || u.protocol === "https:" ? u.hostname : null;
+      } catch { return null; }
+    }
+    function validRecent(item) {
+      return item && typeof item.url === "string" && recentHost(item.url) !== null &&
+        typeof item.score === "number" && Number.isFinite(item.score) && item.score >= 0 && item.score <= 100;
+    }
     function getRecentScans() {
-      try { return JSON.parse(localStorage.getItem("seoscore_recent") || "[]"); } catch { return []; }
+      try {
+        const parsed = JSON.parse(localStorage.getItem("seoscore_recent") || "[]");
+        return Array.isArray(parsed) ? parsed.filter(validRecent) : [];
+      } catch { return []; }
     }
     function saveRecentScan(url, score) {
       const list = getRecentScans().filter(x => x.url !== url);
       list.unshift({ url, score, date: new Date().toISOString() });
-      localStorage.setItem("seoscore_recent", JSON.stringify(list.slice(0, 6)));
+      try { localStorage.setItem("seoscore_recent", JSON.stringify(list.filter(validRecent).slice(0, 6))); } catch {}
       renderRecentScans();
     }
     function renderRecentScans() {
       const list = getRecentScans();
       const wrap = document.getElementById("recentScansWrap");
       const container = document.getElementById("recentList");
-      if (!list || list.length === 0) {
+      if (list.length === 0) {
         wrap.classList.add("hidden");
         return;
       }
       wrap.classList.remove("hidden");
-      container.innerHTML = "";
+      container.replaceChildren();
       list.forEach(item => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "recent-pill";
-        const hostname = new URL(item.url).hostname || item.url;
-        btn.innerHTML = `<span class="recent-score">${item.score}</span><span>${hostname}</span>`;
+        const score = document.createElement("span");
+        score.className = "recent-score";
+        score.textContent = String(Math.round(item.score));
+        const host = document.createElement("span");
+        host.textContent = recentHost(item.url);
+        btn.append(score, host);
         btn.addEventListener("click", () => {
           document.getElementById("urlInput").value = item.url;
           document.getElementById("scanForm").requestSubmit();
@@ -1175,7 +1192,7 @@ seoscore-cli https://example.com</div>
       });
     }
     document.getElementById("btnClearHistory").addEventListener("click", () => {
-      localStorage.removeItem("seoscore_recent");
+      try { localStorage.removeItem("seoscore_recent"); } catch {}
       renderRecentScans();
       showToast("History cleared");
     });
