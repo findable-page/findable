@@ -33,7 +33,7 @@ func Scan(client *http.Client, target, _ string) (audit.Scan, error) {
 }
 
 func auditLocalFile(filePath string) (audit.Scan, error) {
-	content, err := os.ReadFile(filePath) //nolint:gosec // reading the user-named file is the feature; see QUALITY-REPORT.md for the -serve exposure
+	content, err := os.ReadFile(filePath) //nolint:gosec // reading the user-named file is the feature; see the SSRF policy in SECURITY.md
 	if err != nil {
 		return audit.Scan{}, fmt.Errorf("read file: %w", err)
 	}
@@ -47,7 +47,7 @@ func fetchAndAudit(client *http.Client, target string) (audit.Scan, error) {
 	}
 	req.Header.Set("User-Agent", userAgent)
 
-	resp, err := client.Do(req) //nolint:gosec // fetching the user-named URL is the feature; see QUALITY-REPORT.md for the -serve exposure
+	resp, err := client.Do(req) //nolint:gosec // fetching the user-named URL is the feature; see the SSRF policy in SECURITY.md
 	if err != nil {
 		return audit.Scan{}, fmt.Errorf("fetch %s: %w", target, err)
 	}

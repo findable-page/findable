@@ -99,7 +99,7 @@ func getBody(client *http.Client, target string) ([]byte, error) {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
-	resp, err := client.Do(req) //nolint:gosec // fetching the user-named sitemap is the feature
+	resp, err := client.Do(req) //nolint:gosec // fetching the user-named sitemap is the feature; see the SSRF policy in SECURITY.md
 	if err != nil {
 		return nil, fmt.Errorf("fetch %s: %w", target, err)
 	}
