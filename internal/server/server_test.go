@@ -20,14 +20,14 @@ import (
 )
 
 func newTestMux() *http.ServeMux {
-	return NewMux(&http.Client{}, false)
+	return NewMux(&http.Client{})
 }
 
 func fixturePage(t *testing.T) (*http.ServeMux, string) {
 	t.Helper()
 	site := httptest.NewServer(http.FileServer(http.Dir("../../testdata/site")))
 	t.Cleanup(site.Close)
-	return NewMux(site.Client(), false), site.URL + "/01-thin-poor.html"
+	return NewMux(site.Client()), site.URL + "/01-thin-poor.html"
 }
 
 func newRequest(method, target, body string) *http.Request {
@@ -170,7 +170,7 @@ func TestServerScanAddsSiteChecksOnlyWhenAsked(t *testing.T) {
 		_, _ = w.Write([]byte("<html><head><title>x</title></head><body></body></html>"))
 	}))
 	t.Cleanup(site.Close)
-	mux := NewMux(site.Client(), false)
+	mux := NewMux(site.Client())
 	for _, tc := range []struct {
 		body     string
 		wantSite bool
@@ -199,7 +199,7 @@ func TestGuardedServerRejectsLocalFilesAndPrivateAddresses(t *testing.T) {
 		_, _ = w.Write([]byte("<html></html>"))
 	}))
 	t.Cleanup(site.Close)
-	handler := NewServer(":0", false).Handler
+	handler := NewServer(":0").Handler
 	for _, target := range []string{"../../testdata/site/01-thin-poor.html", "file:///etc/passwd", "ftp://example.com/", site.URL} {
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", `{"url":"`+target+`"}`))

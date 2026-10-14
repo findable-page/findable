@@ -1,10 +1,7 @@
 package fetch
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,32 +9,23 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/nadimtuhin/findable/internal/audit"
 )
 
 const (
 	userAgent         = "Mozilla/5.0 (compatible; findable/1.0; +https://github.com/nadimtuhin/findable)"
-	defaultRemoteAPI  = "https://seoscore.tools/api/scan"
-	remoteAttempts    = 3
-	rateLimitBackoff  = 10 * time.Second
 	localFileStatus   = http.StatusOK
 	fileSchemePrefix  = "file://"
 	httpSchemePrefix  = "http://"
 	httpsSchemePrefix = "https://"
 )
 
-var errStillRateLimited = errors.New("still rate limited after 3 tries")
-
 func IsHTTPURL(target string) bool {
 	return strings.HasPrefix(target, httpSchemePrefix) || strings.HasPrefix(target, httpsSchemePrefix)
 }
 
-func Scan(client *http.Client, target, keyphrase string, remote bool) (audit.Scan, error) {
-	if remote {
-		return fetchRemote(client, target, keyphrase)
-	}
+func Scan(client *http.Client, target, _ string) (audit.Scan, error) {
 	if strings.HasPrefix(target, fileSchemePrefix) || !IsHTTPURL(target) {
 		return auditLocalFile(strings.TrimPrefix(target, fileSchemePrefix))
 	}
@@ -79,60 +67,9 @@ func closeBody(resp *http.Response) {
 	_ = resp.Body.Close()
 }
 
-func fetchRemote(client *http.Client, target, keyphrase string) (audit.Scan, error) {
-	endpoint := os.Getenv("SEOSCORE_API_URL")
-	if endpoint == "" {
-		endpoint = defaultRemoteAPI
-	}
-	reqBody := map[string]string{"url": target}
-	if keyphrase != "" {
-		reqBody["keyphrase"] = keyphrase
-	}
-	body, err := json.Marshal(reqBody)
-	if err != nil {
-		return audit.Scan{}, fmt.Errorf("encode request: %w", err)
-	}
-	for range remoteAttempts {
-		s, rateLimited, err := postScan(client, endpoint, body)
-		if !rateLimited {
-			return s, err
-		}
-		fmt.Fprintln(os.Stderr, "rate limited, waiting 10s")
-		time.Sleep(rateLimitBackoff)
-	}
-	return audit.Scan{}, errStillRateLimited
-}
-
-func postScan(client *http.Client, endpoint string, body []byte) (s audit.Scan, rateLimited bool, err error) {
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, endpoint, bytes.NewReader(body)) //nolint:gosec // endpoint is the operator's own SEOSCORE_API_URL or the default service
-	if err != nil {
-		return audit.Scan{}, false, fmt.Errorf("request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := client.Do(req) //nolint:gosec // endpoint is the operator's own SEOSCORE_API_URL or the default service
-	if err != nil {
-		return audit.Scan{}, false, fmt.Errorf("request: %w", err)
-	}
-	defer closeBody(resp)
-
-	switch resp.StatusCode {
-	case http.StatusTooManyRequests:
-		return audit.Scan{}, true, nil
-	case http.StatusOK:
-	default:
-		return audit.Scan{}, false, fmt.Errorf("scan answered %s", resp.Status)
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&s); err != nil {
-		return audit.Scan{}, false, fmt.Errorf("decode: %w", err)
-	}
-	return s, false, nil
-}
-
 type CrawlOptions struct {
 	Keyphrase string
 	Limit     int
-	Delay     time.Duration
-	Remote    bool
 	Site      bool
 	OnPage    func(done, limit int, page audit.Page)
 }
@@ -172,10 +109,6 @@ func Crawl(client *http.Client, start string, opts CrawlOptions) ([]audit.Page, 
 			opts.OnPage(len(pages), opts.Limit, pages[len(pages)-1])
 		}
 		c.enqueue(s.InternalLinks)
-
-		if len(c.queue) > 0 && len(pages) < opts.Limit && opts.Delay > 0 && opts.Remote {
-			time.Sleep(opts.Delay)
-		}
 	}
 	return pages, nil
 }

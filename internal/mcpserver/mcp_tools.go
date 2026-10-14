@@ -36,7 +36,6 @@ func toolDefinitions() []map[string]any {
 			schemaProps{
 				argURL:       prop(typeString, "The URL (http:// or https://) or local file path to audit."),
 				argKeyphrase: prop(typeString, "Optional focus keyword to evaluate in title, description, and headings."),
-				"remote":     prop("boolean", "If true, queries remote seoscore.tools instead of the local offline engine."),
 				"site":       prop("boolean", "If true, also checks robots.txt (search and AI crawlers) and /llms.txt for a live URL."),
 			}, argURL),
 		tool("audit_html_content",
@@ -125,8 +124,7 @@ func toolAuditPage(a toolArgs, client *http.Client) (text string, isError bool) 
 	if !ok {
 		return errMissedURL, true
 	}
-	remote, _ := a["remote"].(bool)
-	res, err := fetch.Scan(client, targetURL, a.str(argKeyphrase), remote)
+	res, err := fetch.Scan(client, targetURL, a.str(argKeyphrase))
 	if err != nil {
 		return fmt.Sprintf("Error auditing %s: %v", targetURL, err), true
 	}
@@ -172,7 +170,7 @@ func toolCrawlSite(a toolArgs, client *http.Client) (text string, isError bool) 
 		return errMissedURL, true
 	}
 	keyphrase := a.str(argKeyphrase)
-	first, err := fetch.Scan(client, targetURL, keyphrase, false)
+	first, err := fetch.Scan(client, targetURL, keyphrase)
 	if err != nil {
 		return fmt.Sprintf("Error crawling start URL %s: %v", targetURL, err), true
 	}
@@ -209,7 +207,7 @@ func followLinks(client *http.Client, first audit.Page, keyphrase string, limit 
 		}
 		visited[curr] = true
 
-		s, err := fetch.Scan(client, curr, keyphrase, false)
+		s, err := fetch.Scan(client, curr, keyphrase)
 		if err != nil {
 			continue
 		}
@@ -228,7 +226,7 @@ func toolCSVReport(a toolArgs, client *http.Client) (text string, isError bool) 
 	if !ok {
 		return errMissedURL, true
 	}
-	res, err := fetch.Scan(client, targetURL, a.str(argKeyphrase), false)
+	res, err := fetch.Scan(client, targetURL, a.str(argKeyphrase))
 	if err != nil {
 		return fmt.Sprintf("Error generating CSV for %s: %v", targetURL, err), true
 	}

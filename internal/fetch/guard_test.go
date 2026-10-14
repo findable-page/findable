@@ -44,7 +44,7 @@ func TestGuardedClientRefusesLoopbackTargets(t *testing.T) {
 		_, _ = w.Write([]byte("<html></html>"))
 	}))
 	t.Cleanup(srv.Close)
-	_, err := Scan(NewGuardedClient(), srv.URL, "", false)
+	_, err := Scan(NewGuardedClient(), srv.URL, "")
 	if !errors.Is(err, ErrBlockedAddress) {
 		t.Fatalf("Scan via guarded client = %v, want ErrBlockedAddress", err)
 	}
@@ -56,7 +56,7 @@ func TestScanRefusesBodiesOverTheCap(t *testing.T) {
 		_, _ = w.Write([]byte(big))
 	}))
 	t.Cleanup(srv.Close)
-	if _, err := Scan(srv.Client(), srv.URL, "", false); !errors.Is(err, ErrPageTooLarge) {
+	if _, err := Scan(srv.Client(), srv.URL, ""); !errors.Is(err, ErrPageTooLarge) {
 		t.Fatalf("Scan of oversized page = %v, want ErrPageTooLarge", err)
 	}
 }
@@ -67,13 +67,13 @@ func TestGuardedClientRefusesTrailingDotLocalhost(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 	target := strings.Replace(srv.URL, "127.0.0.1", "localhost.", 1)
-	if _, err := Scan(NewGuardedClient(), target, "", false); !errors.Is(err, ErrBlockedAddress) {
+	if _, err := Scan(NewGuardedClient(), target, ""); !errors.Is(err, ErrBlockedAddress) {
 		t.Fatalf("Scan(%s) via guarded client = %v, want ErrBlockedAddress", target, err)
 	}
 }
 
 func TestGuardedClientRefusesNonWebPorts(t *testing.T) {
-	if _, err := Scan(NewGuardedClient(), "http://8.8.8.8:8080/", "", false); !errors.Is(err, ErrBlockedAddress) {
+	if _, err := Scan(NewGuardedClient(), "http://8.8.8.8:8080/", ""); !errors.Is(err, ErrBlockedAddress) {
 		t.Fatalf("Scan of a public IP on port 8080 = %v, want ErrBlockedAddress", err)
 	}
 }

@@ -28,7 +28,7 @@ func optionalBody(client *http.Client, target string) *string {
 }
 
 func scanPage(client *http.Client, target string, opts CrawlOptions) (audit.Scan, error) {
-	s, err := Scan(client, target, opts.Keyphrase, opts.Remote)
+	s, err := Scan(client, target, opts.Keyphrase)
 	if err == nil && opts.Site && IsHTTPURL(target) {
 		s.Site = SiteChecks(client, target)
 	}

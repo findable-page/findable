@@ -17,7 +17,7 @@ func TestScanResolvesLinksAgainstTheFinalURLAfterRedirects(t *testing.T) {
 	})
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
-	s, err := Scan(srv.Client(), srv.URL+"/a", "", false)
+	s, err := Scan(srv.Client(), srv.URL+"/a", "")
 	if err != nil {
 		t.Fatal(err)
 	}

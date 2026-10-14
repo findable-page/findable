@@ -1,4 +1,4 @@
-// findable scans a site locally or via the seoscore.tools API and saves the report CSV.
+// findable scans a site locally and saves the report CSV.
 package main
 
 import (
@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	usageLine     = "findable: is your site findable by Google and by AI answer engines?\nusage: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
+	usageLine     = "findable: is your site findable by Google and by AI answer engines?\nusage: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -32,8 +32,6 @@ type options struct {
 	sitemap   string
 	site      bool
 	limit     int
-	delay     time.Duration
-	remote    bool
 	serve     string
 	mcp       bool
 	format    report.Format
@@ -49,8 +47,6 @@ func parseFlags() options {
 	flag.BoolVar(&o.site, "site", false, "also check robots.txt (search and AI crawlers) and /llms.txt")
 	flag.StringVar(&o.sitemap, "sitemap", "", "audit the pages listed in this sitemap.xml, up to limit pages")
 	flag.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl or -sitemap is enabled")
-	flag.DurationVar(&o.delay, "delay", 3*time.Second, "delay between crawl requests")
-	flag.BoolVar(&o.remote, "remote", false, "use remote seoscore.tools API instead of local engine")
 	flag.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. :8080)")
 	flag.BoolVar(&o.mcp, "mcp", false, "run Model Context Protocol (MCP) server over stdio")
 	flag.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when the overall score of any page is below N")
@@ -75,7 +71,7 @@ func main() {
 	case opts.mcp:
 		mcpserver.Run(os.Stdin, os.Stdout, client)
 	case opts.serve != "":
-		serveHTTP(opts.serve, opts.remote)
+		serveHTTP(opts.serve)
 	default:
 		if opts.sitemap != "" {
 			if flag.NArg() != 0 {
@@ -93,9 +89,9 @@ func main() {
 	}
 }
 
-func serveHTTP(addr string, remote bool) {
-	fmt.Printf("findable API server listening on %s (remote=%v)\n", addr, remote)
-	if err := server.NewServer(addr, remote).ListenAndServe(); err != nil {
+func serveHTTP(addr string) {
+	fmt.Printf("findable API server listening on %s\n", addr)
+	if err := server.NewServer(addr).ListenAndServe(); err != nil {
 		fail("server error: %v", err)
 	}
 }
@@ -116,7 +112,7 @@ func runAudit(client *http.Client, target string, opts options) {
 		return
 	}
 
-	s, err := fetch.Scan(client, target, opts.keyphrase, opts.remote)
+	s, err := fetch.Scan(client, target, opts.keyphrase)
 	if err != nil {
 		fail("%v", err)
 	}
@@ -176,8 +172,6 @@ func crawlOptions(opts options) fetch.CrawlOptions {
 	return fetch.CrawlOptions{
 		Keyphrase: opts.keyphrase,
 		Limit:     opts.limit,
-		Delay:     opts.delay,
-		Remote:    opts.remote,
 		Site:      opts.site,
 		OnPage: func(done, limit int, p audit.Page) {
 			printCrawlProgress(done, limit, p, opts.quiet)

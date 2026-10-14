@@ -70,17 +70,17 @@ var formatContentTypes = map[report.Format]string{
 	report.FormatSARIF: "application/sarif+json",
 }
 
-func NewMux(client *http.Client, remote bool) *http.ServeMux {
+func NewMux(client *http.Client) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handleRoot)
-	mux.HandleFunc("/api/scan", scanHandler(client, remote, newRateLimiter(scansPerWindow, scanWindow, time.Now)))
+	mux.HandleFunc("/api/scan", scanHandler(client, newRateLimiter(scansPerWindow, scanWindow, time.Now)))
 	mux.HandleFunc("/api/scan-count", handleScanCount)
 	mux.HandleFunc("/health", handleHealth)
 	return mux
 }
 
-func NewServer(addr string, remote bool) *http.Server {
-	return &http.Server{Addr: addr, Handler: NewMux(fetch.NewGuardedClient(), remote), ReadHeaderTimeout: readHeaderTimeout}
+func NewServer(addr string) *http.Server {
+	return &http.Server{Addr: addr, Handler: NewMux(fetch.NewGuardedClient()), ReadHeaderTimeout: readHeaderTimeout}
 }
 
 func allowAnyOrigin(w http.ResponseWriter) {
@@ -103,7 +103,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	writeBody(w, localWebUIHTML)
 }
 
-func scanHandler(client *http.Client, remote bool, limiter *rateLimiter) http.HandlerFunc {
+func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		allowAnyOrigin(w)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -139,7 +139,7 @@ func scanHandler(client *http.Client, remote bool, limiter *rateLimiter) http.Ha
 			}
 			format = f
 		}
-		res, err := fetch.Scan(client, req.URL, req.Keyphrase, remote)
+		res, err := fetch.Scan(client, req.URL, req.Keyphrase)
 		if errors.Is(err, fetch.ErrBlockedAddress) {
 			http.Error(w, "bad request: "+fetch.ErrBlockedAddress.Error(), http.StatusBadRequest)
 			return
