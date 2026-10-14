@@ -11,9 +11,9 @@ faq:
   - q: "Do I need to pass every SEO check?"
     a: "No. Some checks are rules of thumb, like word_count and dom_size. Treat them as prompts to look at the page, not as laws. Fix the failing basics first, then decide on the rest."
   - q: "How do I see only SEO failures for my page?"
-    a: "Run seoscore on the URL and read the SEO family card. The issue list puts failing checks first, and each row shows the check id from this guide."
+    a: "Run findable on the URL and read the SEO family card. The issue list puts failing checks first, and each row shows the check id from this guide."
   - q: "Can I run these checks in CI?"
-    a: "Yes. Use the -fail-under flag, for example seoscore -fail-under 80 https://example.com. The command exits with code 1 when the score is below your number."
+    a: "Yes. Use the -fail-under flag, for example findable -fail-under 80 https://example.com. The command exits with code 1 when the score is below your number."
 ---
 
 # Every SEO check findable runs, and how to fix each one
@@ -129,7 +129,7 @@ Six checks cover sharing and duplicates: `canonical`, `og_title`, `og_desc`, `og
 
 ## How do I fix the security header checks?
 
-Five checks look at transport and headers: `https`, `hsts`, `x_content_type`, `x_frame_options` and `csp`. They test your server response, not your HTML. A check passes when the header is present. It does not judge how strong the value is. If you audit a local file with `seoscore ./page.html`, there are no response headers, so expect these five to fail.
+Five checks look at transport and headers: `https`, `hsts`, `x_content_type`, `x_frame_options` and `csp`. They test your server response, not your HTML. A check passes when the header is present. It does not judge how strong the value is. If you audit a local file with `findable ./page.html`, there are no response headers, so expect these five to fail.
 
 ```
 Strict-Transport-Security: max-age=31536000
@@ -159,4 +159,4 @@ Read Google's [structured data intro](https://developers.google.com/search/docs/
 - Fix the head first: title, description, charset, viewport, lang, doctype.
 - `word_count`, `text_html_ratio` and `dom_size` are heuristics. Use judgment.
 - Security header checks pass when the header exists. They do not rate its strength.
-- Run `seoscore -fail-under 80 URL` in CI to catch regressions.
+- Run `findable -fail-under 80 URL` in CI to catch regressions.

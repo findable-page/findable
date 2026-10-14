@@ -157,3 +157,12 @@ describe("site files list the learn pages", () => {
     expect(res.headers.get("Strict-Transport-Security")).toContain("includeSubDomains");
   });
 });
+
+describe("learn-content commands", () => {
+  test("contains no stale seoscore commands", () => {
+    const src = readFileSync(OUTPUT_PATH, "utf8");
+    expect(src).not.toContain("seoscore-cli/cmd/seoscore");
+    expect(src).not.toContain("seoscore-mcp");
+    expect(src).not.toContain("seoscore ");
+  });
+});

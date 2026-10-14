@@ -101,7 +101,7 @@ Five checks cover shape and dates: `geo_freshness`, `geo_time_element`, `geo_int
 The Site checks run only with the `-site` flag and are unscored. They fetch `/robots.txt` and `/llms.txt` and test whether named AI bots may read your page. They matter because a blocked crawler cannot read even a perfect page. `-site` needs an http or https URL; it refuses a local HTML file.
 
 ```
-seoscore -site https://example.com
+findable -site https://example.com
 ```
 
 | Check id | What it checks |
