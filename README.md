@@ -52,7 +52,7 @@ It prints the four scores and the failing checks, and saves a report file in `-o
 
 ```
 findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
-         [-site] [-crawl] [-sitemap url] [-limit N] [-delay d] [-serve :port] [-mcp] <url or file>
+         [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] <url or file>
 ```
 
 | Flag | Meaning |
@@ -61,8 +61,8 @@ findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
 | `-fail-under N` | Exit 1 and name every page whose overall score is below N. |
 | `-sitemap URL` | Audit the pages a sitemap lists. Sitemap indexes are followed. |
 | `-site` | Also run the 7 site checks (robots.txt, AI crawlers, llms.txt). |
-| `-crawl` | Follow internal links, up to `-limit` pages (default 20), `-delay` apart. |
-| `-k` | Focus keyphrase to check against title, description and headings. |
+| `-crawl` | Follow internal links, up to `-limit` pages (default 20). |
+| `-k` | Focus keyphrase. Only the edge API scores it today; the offline engine ignores it. |
 | `-o`, `-q` | Report directory; `-q` hides the failing-check list. |
 | `-serve :8080` | Local API and web UI. Keep it on localhost. |
 | `-mcp` | MCP server over stdio. |
