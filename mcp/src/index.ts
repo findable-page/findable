@@ -29,7 +29,7 @@ interface PageSummary {
 
 const server = new McpServer({
   name: "findable-mcp",
-  version: "1.0.0",
+  version: "0.3.0",
 });
 
 function textResult(text: string, isError = false) {

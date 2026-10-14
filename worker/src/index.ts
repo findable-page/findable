@@ -181,7 +181,7 @@ const worker = {
     }
 
     if (url.pathname === "/health") {
-      return new Response(JSON.stringify({ status: "ok", name: "findable", version: "1.0.0" }), {
+      return new Response(JSON.stringify({ status: "ok", name: "findable", version: "0.3.0" }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }

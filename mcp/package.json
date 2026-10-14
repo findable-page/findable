@@ -1,6 +1,6 @@
 {
   "name": "findable-mcp",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "description": "findable: is your site findable by Google and by AI answer engines? MCP server for SEO, AEO and GEO audits.",
   "type": "module",
   "bin": {

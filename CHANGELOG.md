@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-15
+
 ### Added
 - Local audit engine in Go: 72 page checks (36 SEO, 17 AEO, 19 GEO) and 7 opt-in site checks.
 - Output formats `-format csv|json|sarif`, CI gate `-fail-under N`, `-sitemap` and `-site`.
