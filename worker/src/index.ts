@@ -55,7 +55,7 @@ async function allowScan(env: Env, key: string): Promise<boolean> {
 
 const PUBLIC_ORIGIN = "https://findable.piply.xyz";
 
-const PAGE_HTML = injectHead(UI_HTML, headSlot(PUBLIC_ORIGIN));
+const PAGE_HTML = injectHead(UI_HTML as unknown as string, headSlot(PUBLIC_ORIGIN));
 
 let uiPolicy: Promise<string> | undefined;
 
@@ -290,7 +290,10 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
   const words = visibleText.split(/\s+/).filter(Boolean);
   const wordCount = words.length;
   const hasDirectAnswer = [...rawHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].some((m) => {
-    const n = (m[1] ?? "").replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+    const n = (m[1] ?? "")
+      .replace(/<[^>]+>/g, " ")
+      .split(/\s+/)
+      .filter(Boolean).length;
     return n >= 30 && n <= 80;
   });
 

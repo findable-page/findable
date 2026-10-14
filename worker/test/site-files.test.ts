@@ -100,7 +100,9 @@ test("site files answer GET only", async () => {
 test("the worker's llms.txt states the check counts the worker really runs, and the UI states none", async () => {
   globalThis.fetch = (async () => new Response("<html></html>")) as unknown as typeof fetch;
   const scan = (await (
-    await worker.fetch(new Request(`${ORIGIN}/api/scan`, { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }))
+    await worker.fetch(
+      new Request(`${ORIGIN}/api/scan`, { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
+    )
   ).json()) as Record<"seo" | "aeo" | "geo", { checks: unknown[] }>;
   const [s, a, g] = [scan.seo, scan.aeo, scan.geo].map((c) => c.checks.length);
   const llms = await (await get("/llms.txt")).text();

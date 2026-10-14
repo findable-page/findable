@@ -100,7 +100,8 @@ export interface SelfRoute {
 
 async function fetchHop(current: string, headers: Record<string, string>, signal: AbortSignal, self?: SelfRoute) {
   const u = new URL(current);
-  if (!self?.hosts.includes(u.hostname.replace(/\.+$/, "").toLowerCase())) return fetch(current, { headers, redirect: "manual", signal });
+  if (!self?.hosts.includes(u.hostname.replace(/\.+$/, "").toLowerCase()))
+    return fetch(current, { headers, redirect: "manual", signal });
   if (u.pathname.startsWith("/api/")) throw new BlockedTargetError(current);
   return self.handle(new Request(current, { method: "GET", headers }));
 }

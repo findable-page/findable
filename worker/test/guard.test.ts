@@ -83,10 +83,17 @@ test("guardedFetch cancels the body of each redirect response", async () => {
   let cancelled = false;
   mockFetch((url) =>
     url === "https://example.com/"
-      ? new Response(new ReadableStream({ cancel: () => void (cancelled = true) }), {
-          status: 302,
-          headers: { location: "/home" },
-        })
+      ? new Response(
+          new ReadableStream({
+            cancel() {
+              cancelled = true;
+            },
+          }),
+          {
+            status: 302,
+            headers: { location: "/home" },
+          },
+        )
       : new Response("home"),
   );
   await guardedFetch("https://example.com/");
@@ -117,5 +124,7 @@ test("a trailing dot on the worker's own host still routes in-process and keeps 
   const self: SelfRoute = { hosts: ["findable.piply.xyz"], handle: async () => new Response("in-process") };
   const page = await guardedFetch("https://findable.piply.xyz./", {}, self);
   expect(page.body).toBe("in-process");
-  await expect(guardedFetch("https://findable.piply.xyz./api/scan", {}, self)).rejects.toBeInstanceOf(BlockedTargetError);
+  await expect(guardedFetch("https://findable.piply.xyz./api/scan", {}, self)).rejects.toBeInstanceOf(
+    BlockedTargetError,
+  );
 });

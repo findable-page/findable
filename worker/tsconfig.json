@@ -7,7 +7,8 @@
       "ES2022"
     ],
     "types": [
-      "@cloudflare/workers-types"
+      "@cloudflare/workers-types",
+      "bun"
     ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -18,6 +19,8 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "test/**/*",
+    "../scripts/build-learn.ts"
   ]
 }

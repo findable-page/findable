@@ -41,7 +41,20 @@ describe("markdown subset", () => {
 
   test("renders headings, lists, fences, links and tables", () => {
     const html = renderMarkdown(
-      ["## Why?", "", "- one", "- two", "", "```sh", "# not a heading", "```", "", "| A | B |", "| - | - |", "| 1 | [x](https://a.test/?q=1&r=2) |"].join("\n"),
+      [
+        "## Why?",
+        "",
+        "- one",
+        "- two",
+        "",
+        "```sh",
+        "# not a heading",
+        "```",
+        "",
+        "| A | B |",
+        "| - | - |",
+        "| 1 | [x](https://a.test/?q=1&r=2) |",
+      ].join("\n"),
     );
     expect(html).toBe(
       [
@@ -81,7 +94,7 @@ describe("routing", () => {
     const slug = learnPosts[0]?.slug ?? "";
     const resp = await get(`/learn/${slug}`);
     expect(resp.status).toBe(200);
-    expect(await resp.text()).toBe(renderLearnPost(slug, ORIGIN));
+    expect(await resp.text()).toBe(renderLearnPost(slug, ORIGIN) ?? "");
   });
 
   test("unknown slug returns 404 html with the same headers", async () => {

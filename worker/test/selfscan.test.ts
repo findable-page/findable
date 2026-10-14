@@ -23,10 +23,18 @@ test.each(scanPaths)("%s scores SEO 90, AEO 85 and GEO 80 or better when scanned
   const scan = (await resp.json()) as Record<keyof typeof FLOORS, Category>;
   for (const [name, floor] of Object.entries(FLOORS) as [keyof typeof FLOORS, number][]) {
     const failing = scan[name].checks.filter((c) => !c.pass).map((c) => c.id);
-    expect({ path, name, score: scan[name].score, failing }).toEqual({ path, name, score: expect.any(Number), failing });
+    expect({ path, name, score: scan[name].score, failing }).toEqual({
+      path,
+      name,
+      score: expect.any(Number),
+      failing,
+    });
     expect(scan[name].score).toBeGreaterThanOrEqual(floor);
   }
   if (path !== "/") return;
-  const passed = new Set([...scan.seo.checks, ...scan.aeo.checks, ...scan.geo.checks].filter((c) => c.pass).map((c) => c.id));
-  for (const id of ["jsonld", "aeo_structured_data", "geo_author_schema", "geo_org_schema"]) expect(passed.has(id)).toBe(true);
+  const passed = new Set(
+    [...scan.seo.checks, ...scan.aeo.checks, ...scan.geo.checks].filter((c) => c.pass).map((c) => c.id),
+  );
+  for (const id of ["jsonld", "aeo_structured_data", "geo_author_schema", "geo_org_schema"])
+    expect(passed.has(id)).toBe(true);
 });

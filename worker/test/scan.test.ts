@@ -8,11 +8,18 @@ afterEach(() => {
 
 test("/api/scan reports the composite score", async () => {
   globalThis.fetch = (async () =>
-    new Response("<html><head><title>A page title of a sensible length</title></head><body><h1>Hi</h1></body></html>")) as unknown as typeof fetch;
+    new Response(
+      "<html><head><title>A page title of a sensible length</title></head><body><h1>Hi</h1></body></html>",
+    )) as unknown as typeof fetch;
   const resp = await worker.fetch(
     new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
   );
-  const scan = (await resp.json()) as { overall: number; seo: { score: number }; aeo: { score: number }; geo: { score: number } };
+  const scan = (await resp.json()) as {
+    overall: number;
+    seo: { score: number };
+    aeo: { score: number };
+    geo: { score: number };
+  };
   expect(scan.overall).toBe(Math.round(scan.seo.score * 0.5 + scan.aeo.score * 0.25 + scan.geo.score * 0.25));
 });
 
@@ -34,7 +41,11 @@ test("/api/scan answers 429 with a JSON error when the rate limiter refuses the 
     },
   };
   const resp = await worker.fetch(
-    new Request("https://w.test/api/scan", { method: "POST", body: "{}", headers: { "CF-Connecting-IP": "203.0.113.9" } }),
+    new Request("https://w.test/api/scan", {
+      method: "POST",
+      body: "{}",
+      headers: { "CF-Connecting-IP": "203.0.113.9" },
+    }),
     env,
   );
   expect(resp.status).toBe(429);
@@ -59,19 +70,17 @@ test("/api/scan keys IPv6 clients on their /64 and IPv4 clients on the full addr
       env,
     );
   }
-  expect(keys).toEqual([
-    "2001:db8:1:2::/64",
-    "2001:db8:1:2::/64",
-    "2001:db8:0:0::/64",
-    "0:0:0:0::/64",
-    "198.51.100.7",
-  ]);
+  expect(keys).toEqual(["2001:db8:1:2::/64", "2001:db8:1:2::/64", "2001:db8:0:0::/64", "0:0:0:0::/64", "198.51.100.7"]);
 });
 
 test("/api/scan falls back to an in-memory limit of 10 a minute when the binding is absent", async () => {
   const scan = () =>
     worker.fetch(
-      new Request("https://w.test/api/scan", { method: "POST", body: "{}", headers: { "CF-Connecting-IP": "203.0.113.50" } }),
+      new Request("https://w.test/api/scan", {
+        method: "POST",
+        body: "{}",
+        headers: { "CF-Connecting-IP": "203.0.113.50" },
+      }),
     );
   for (let i = 0; i < 10; i++) expect((await scan()).status).toBe(400);
   expect((await scan()).status).toBe(429);
@@ -121,7 +130,9 @@ test("/api/scan of its own host scans the real UI in-process instead of fetching
     }),
     allowAll,
   );
-  const scan = (await resp.json()) as { seo: { score: number; checks: { id: string; pass: boolean; label: string }[] } };
+  const scan = (await resp.json()) as {
+    seo: { score: number; checks: { id: string; pass: boolean; label: string }[] };
+  };
   const check = (id: string) => scan.seo.checks.find((c) => c.id === id);
   expect(resp.status).toBe(200);
   expect(check("title_exists")?.label).toContain("findable");
