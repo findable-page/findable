@@ -35,7 +35,7 @@ func (hostRedirect) RoundTrip(req *http.Request) (*http.Response, error) {
 		resp.Header.Set("Location", "http://www.example.com"+req.URL.Path)
 		return resp, nil
 	}
-	page := `<html><body><a href="/b">b</a></body></html>`
+	page := `<html><body><a href="sms:+1">s</a><a href="/b">b</a></body></html>`
 	resp.Body = io.NopCloser(strings.NewReader(page))
 	return resp, nil
 }

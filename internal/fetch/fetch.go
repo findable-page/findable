@@ -164,8 +164,8 @@ func Crawl(client *http.Client, start string, opts CrawlOptions) ([]audit.Page, 
 			continue
 		}
 
-		if len(pages) == 0 && len(s.InternalLinks) > 0 {
-			c.anchorTo(s.InternalLinks[0])
+		if len(pages) == 0 {
+			c.anchorTo(s.InternalLinks)
 		}
 		pages = append(pages, audit.Page{URL: curr, Scan: s})
 		if opts.OnPage != nil {
@@ -180,9 +180,13 @@ func Crawl(client *http.Client, start string, opts CrawlOptions) ([]audit.Page, 
 	return pages, nil
 }
 
-func (c *crawler) anchorTo(link string) {
-	if u, err := url.Parse(link); err == nil {
-		c.start = u
+func (c *crawler) anchorTo(links []string) {
+	for _, link := range links {
+		u, err := url.Parse(link)
+		if err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Hostname() != "" {
+			c.start = u
+			return
+		}
 	}
 }
 
