@@ -3,6 +3,7 @@ import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
 import { fixedWindowLimiter } from "./ratelimit";
+import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
 import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
 
@@ -173,6 +174,10 @@ const worker = {
       return learnResponse(url.pathname, url.origin);
     }
 
+    if (url.pathname === "/og/card.png" && request.method === "GET") {
+      return shareCardResponse(url, request);
+    }
+
     if (url.pathname === "/health") {
       return new Response(JSON.stringify({ status: "ok", name: "findable", version: "0.3.0" }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
@@ -217,10 +222,23 @@ const worker = {
   },
 };
 
+// Bots from many platforms unfurl a viral link at once; one scan per host per hour keeps them under the scan limit.
+async function cachedSharePreview(target: string, env: Env, url: URL): Promise<string> {
+  const cache = (globalThis as { caches?: { default: Cache } }).caches?.default;
+  const key = new Request(`${PUBLIC_ORIGIN}/__share-preview/${withScheme(target).toLowerCase()}`);
+  const hit = await cache?.match(key);
+  if (hit) return hit.text();
+  const html = await sharePreviewHtml(target, env, url);
+  if (html !== PAGE_HTML) {
+    await cache?.put(key, new Response(html, { headers: { "Cache-Control": "public, max-age=3600" } }));
+  }
+  return html;
+}
+
 async function pageResponse(target: string | null, request: Request, env: Env, url: URL): Promise<Response> {
   uiPolicy ??= buildUiPolicy();
   const isPreviewBot = PREVIEW_BOTS.test(request.headers.get("User-Agent") ?? "");
-  const html = target && isPreviewBot ? await sharePreviewHtml(target, env, url) : PAGE_HTML;
+  const html = target && isPreviewBot ? await cachedSharePreview(target, env, url) : PAGE_HTML;
   return new Response(html, {
     headers: {
       ...CORS_HEADERS,
@@ -259,6 +277,36 @@ function scoreQuip(overall: number): string {
   return "Playing hide and seek with Google and AI.";
 }
 
+export function cardScores(params: URLSearchParams): CardScores | null {
+  const host = params.get("h") ?? "";
+  const score = (k: string) => {
+    const n = Number(params.get(k));
+    return Number.isInteger(n) && n >= 0 && n <= 100 ? n : null;
+  };
+  const [overall, seo, aeo, geo] = ["o", "s", "a", "g"].map(score);
+  if (!/^[a-z0-9.-]{1,253}$/i.test(host) || overall == null || seo == null || aeo == null || geo == null) return null;
+  return { host, overall, seo, aeo, geo };
+}
+
+async function shareCardResponse(url: URL, request: Request): Promise<Response> {
+  const scores = cardScores(url.searchParams);
+  if (!scores) return Response.redirect(`${url.origin}/og.png`, 302);
+  const cache = (globalThis as { caches?: { default: Cache } }).caches?.default;
+  const hit = await cache?.match(request);
+  if (hit) return hit;
+  try {
+    const { renderShareCard } = await import("./og-render");
+    const png = await (await renderShareCard(scores)).arrayBuffer();
+    const resp = new Response(png, {
+      headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" },
+    });
+    await cache?.put(request, resp.clone());
+    return resp;
+  } catch {
+    return Response.redirect(`${url.origin}/og.png`, 302);
+  }
+}
+
 async function sharePreviewHtml(target: string, env: Env, requestUrl: URL): Promise<string> {
   try {
     if (!(await allowScan(env, "share-preview"))) return PAGE_HTML;
@@ -273,6 +321,16 @@ async function sharePreviewHtml(target: string, env: Env, requestUrl: URL): Prom
     html = replaceMeta(html, "name", "twitter:title", title);
     html = replaceMeta(html, "property", "og:description", description);
     html = replaceMeta(html, "name", "twitter:description", description);
+    const card = new URLSearchParams({
+      h: host,
+      o: String(scan.overall),
+      s: String(scan.seo.score),
+      a: String(scan.aeo.score),
+      g: String(scan.geo.score),
+    });
+    const image = `${PUBLIC_ORIGIN}/og/card.png?${card}`;
+    html = replaceMeta(html, "property", "og:image", image);
+    html = replaceMeta(html, "name", "twitter:image", image);
     return replaceMeta(html, "property", "og:url", shareUrl);
   } catch {
     return PAGE_HTML;

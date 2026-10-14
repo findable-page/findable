@@ -17,5 +17,8 @@
     "@types/bun": "^1.4.3",
     "typescript": "7.0.2",
     "wrangler": "^4.149.0"
+  },
+  "dependencies": {
+    "workers-og": "^0.0.27"
   }
 }
