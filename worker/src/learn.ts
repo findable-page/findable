@@ -54,7 +54,9 @@ function page(input: PageInput): string {
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
 <meta property="og:url" content="${escapeHtml(url)}">
+<meta property="og:image" content="${escapeHtml(input.origin)}/og.png">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="${escapeHtml(input.origin)}/og.png">
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
 <style>${LEARN_STYLE}</style>
@@ -122,9 +124,12 @@ function indexBody(): string {
     `<p>${escapeHtml(INDEX_DESCRIPTION)} findable is a tool that audits one page for SEO, AEO and GEO. You can read the guides in any order, and each one links to the others.</p>`,
     `<h2 id="start-here">Where should you start?</h2>\n<ol>${steps.join("")}</ol>`,
     `<h2 id="all-guides">All guides</h2>\n${postList(learnPosts)}`,
+    `<h2 id="quick-start">How do you run an audit from the command line?</h2>\n<p>Pass a URL to the seoscore command. The <code>-fail-under</code> flag fails the run when the score drops below a number, which is useful in CI.</p>\n<pre><code>seoscore -fail-under 80 https://example.com</code></pre>`,
     SCORING_NOTE,
     `<h2 id="summary">Summary</h2>\n<ul><li>SEO is how crawlers find and index a page.</li><li>AEO is how easily an answer can be lifted from it.</li><li>GEO is how likely a generative model is to cite it.</li><li>Every check has a stable id, so you can look up a failure and fix it.</li></ul>`,
-    faqSection(INDEX_FAQ),
+    faqSection(INDEX_FAQ)
+      .replace("<dl>", "<details open><summary>Questions and answers</summary><dl>")
+      .replace("</dl>", "</dl></details>"),
   ].join("\n");
 }
 
