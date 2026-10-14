@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/nadimtuhin/findable/internal/audit"
 )
@@ -129,9 +128,6 @@ func ScanAll(client *http.Client, targets []string, opts CrawlOptions) ([]audit.
 		pages = append(pages, audit.Page{URL: target, Scan: s})
 		if opts.OnPage != nil {
 			opts.OnPage(len(pages), len(targets), pages[len(pages)-1])
-		}
-		if i < len(targets)-1 && opts.Delay > 0 && opts.Remote {
-			time.Sleep(opts.Delay)
 		}
 	}
 	return pages, nil

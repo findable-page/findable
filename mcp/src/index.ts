@@ -4,7 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod/v3";
 
-const API_ENDPOINT = process.env.SEOSCORE_API_URL || "https://findable.piply.xyz/api/scan";
+const API_ENDPOINT = process.env.FINDABLE_API_URL || "https://findable.piply.xyz/api/scan";
 
 interface CategoryPayload {
   score?: number | null;
