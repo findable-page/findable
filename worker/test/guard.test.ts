@@ -39,6 +39,12 @@ test("publicTarget accepts public http(s) hosts only", () => {
     ["http://foo.internal./", false],
     ["http://printer.local../", false],
     ["https://example.com./", true],
+    ["http://example.com:8080/", false],
+    ["http://8.8.8.8:8080/", false],
+    ["http://[2606:4700::1111]:8080/", false],
+    ["https://example.com:443/", true],
+    ["http://example.com:443/", true],
+    ["https://example.com:80/", true],
     ["not a url", false],
   ];
   for (const [url, want] of cases) {
@@ -51,6 +57,15 @@ test("guardedFetch re-checks every redirect hop", async () => {
     url.startsWith("https://example.com")
       ? new Response(null, { status: 302, headers: { location: "http://169.254.169.254/" } })
       : new Response("secret"),
+  );
+  await expect(guardedFetch("https://example.com/")).rejects.toBeInstanceOf(BlockedTargetError);
+});
+
+test("guardedFetch refuses a redirect to a non-web port", async () => {
+  mockFetch((url) =>
+    url === "https://example.com/"
+      ? new Response(null, { status: 302, headers: { location: "https://example.com:6379/" } })
+      : new Response("redis"),
   );
   await expect(guardedFetch("https://example.com/")).rejects.toBeInstanceOf(BlockedTargetError);
 });

@@ -42,7 +42,7 @@ func PublicAddr(addr netip.Addr) bool {
 
 func refuseNonPublic(_, address string, _ syscall.RawConn) error {
 	ap, err := netip.ParseAddrPort(address)
-	if err != nil || !PublicAddr(ap.Addr()) {
+	if err != nil || !PublicAddr(ap.Addr()) || (ap.Port() != 80 && ap.Port() != 443) {
 		return fmt.Errorf("%s: %w", address, ErrBlockedAddress)
 	}
 	return nil

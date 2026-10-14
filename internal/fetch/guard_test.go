@@ -67,3 +67,9 @@ func TestGuardedClientRefusesTrailingDotLocalhost(t *testing.T) {
 		t.Fatalf("Scan(%s) via guarded client = %v, want ErrBlockedAddress", target, err)
 	}
 }
+
+func TestGuardedClientRefusesNonWebPorts(t *testing.T) {
+	if _, err := Scan(NewGuardedClient(), "http://8.8.8.8:8080/", "", false); !errors.Is(err, ErrBlockedAddress) {
+		t.Fatalf("Scan of a public IP on port 8080 = %v, want ErrBlockedAddress", err)
+	}
+}
