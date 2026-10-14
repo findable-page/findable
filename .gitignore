@@ -22,3 +22,6 @@ node_modules/
 __pycache__/
 mcp/dist/
 testdata/reports/
+
+# Local agent state
+.claude/
