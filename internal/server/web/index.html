@@ -31,12 +31,11 @@
       --bad-light: #FEF2F2;
       --na: #4B5563;
       --na-light: #F1F5F9;
-      --on-accent: #FFFFFF;
       --fam-seo: #10B981;
       --fam-aeo: #8B5CF6;
       --fam-geo: #3B82F6;
       --border: #E2E8F0;
-      --border-focus: #818CF8;
+      --border-focus: #4F46E5;
       --ring-bg: #E2E8F0;
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -62,7 +61,6 @@
       --bad-light: rgba(239, 68, 68, 0.15);
       --na: #9CA3AF;
       --na-light: rgba(156, 163, 175, 0.15);
-      --on-accent: #0B0F19;
       --border: #242E42;
       --border-focus: #818CF8;
       --ring-bg: #242E42;
@@ -133,6 +131,7 @@
       transition: opacity 0.2s;
     }
     .btn-api-badge:hover { opacity: 0.9; }
+    @media (max-width: 640px) { .btn-api-badge span { display: none; } }
     .theme-toggle {
       background: none;
       border: 1px solid var(--border);
@@ -348,269 +347,16 @@
       color: var(--accent);
     }
 
-    /* Results Workspace */
     .results-wrap { margin-top: 1.5rem; margin-bottom: 5rem; }
-    .site-summary-bar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.25rem 1.75rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .site-url-box { min-width: 0; }
     .site-url-title {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 1.15rem;
+      font-size: 1rem;
       font-weight: 700;
-      word-break: break-all;
+      overflow-wrap: anywhere;
+      margin-top: 0.4rem;
     }
-    .site-meta-line {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: 0.2rem;
-    }
-    .site-actions {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    /* Dashboard Scores Grid */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr 1fr 1fr;
-      gap: 1.25rem;
-      margin-bottom: 1.75rem;
-    }
-    .score-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      box-shadow: var(--shadow-sm);
-      position: relative;
-    }
-    .score-card.hero-score {
-      background: linear-gradient(135deg, var(--surface), var(--accent-light));
-      border-color: var(--accent);
-    }
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 0.75rem;
-    }
-    .card-heading {
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-2);
-    }
-    .weight-tag {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
-    .gauge-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-      margin: 0.5rem 0 1rem;
-    }
-    .ring-box {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      flex-shrink: 0;
-    }
-    .ring-box.large {
-      width: 120px;
-      height: 120px;
-    }
-    .ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-    .ring-bg { fill: none; stroke: var(--ring-bg); stroke-width: 8; }
-    .ring-fill {
-      fill: none;
-      stroke-width: 8;
-      stroke-linecap: round;
-      stroke-dasharray: 314.16;
-      stroke-dashoffset: 314.16;
-      transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    .ring-value {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2.1rem;
-      font-weight: 800;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-variant-numeric: tabular-nums;
-    }
-    .ring-value.large { font-size: 2.6rem; }
-    .gauge-info { flex: 1; }
-    .grade-badge {
-      display: inline-block;
-      padding: 0.25rem 0.65rem;
-      border-radius: 6px;
-      font-weight: 800;
-      font-size: 0.82rem;
-      margin-bottom: 0.4rem;
-    }
-    .grade-a { background: var(--ok-light); color: var(--ok); }
-    .grade-b { background: var(--accent-light); color: var(--accent); }
-    .grade-c { background: var(--warn-light); color: var(--warn); }
-    .grade-f { background: var(--bad-light); color: var(--bad); }
-    .card-footer {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: auto;
-    }
-
-    /* Weight Distribution Bar */
-    .weight-bar-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem 1.5rem;
-      margin-bottom: 2rem;
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
-    .weight-bar-label {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-2);
-    }
-    .weight-bar {
-      flex: 1;
-      height: 10px;
-      background: var(--ring-bg);
-      border-radius: 9999px;
-      overflow: hidden;
-      display: flex;
-      min-width: 200px;
-    }
-    .wb-seo { background: var(--fam-seo); width: 50%; }
-    .wb-aeo { background: var(--fam-aeo); width: 25%; }
-    .wb-geo { background: var(--fam-geo); width: 25%; }
-    .weight-legend {
-      display: flex;
-      gap: 1rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-    .wl-item { display: flex; align-items: center; gap: 0.35rem; }
-    .wl-dot { width: 8px; height: 8px; border-radius: 50%; }
-
-    /* Priority Fixes Section */
-    .priority-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--warn);
-      border-radius: 14px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow-sm);
-    }
-    .priority-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.25rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .priority-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .priority-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .priority-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.9rem 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      transition: border-color 0.2s;
-    }
-    .priority-item:hover { border-color: var(--accent); }
-    .priority-rank {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--warn);
-      width: 24px;
-      text-align: center;
-    }
-    .priority-info { flex: 1; }
-    .priority-label { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.15rem; }
-    .priority-advice { font-size: 0.82rem; color: var(--muted); }
-    .priority-pts {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-weight: 700;
-      color: var(--ok);
-      font-size: 0.9rem;
-    }
-
-    /* Diagnostics Toolbar */
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1.25rem;
-      flex-wrap: wrap;
-    }
-    .tab-group { display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 2px; }
-    .tab-btn {
-      padding: 0.5rem 0.95rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text-2);
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    .tab-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-    }
-    .filter-actions { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
-    .search-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.5rem 0.85rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      outline: none;
-      width: 200px;
-      transition: border-color 0.2s;
-    }
-    .search-box:focus { border-color: var(--accent); }
+    .site-meta-line { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
+    .site-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
     .btn-action {
       padding: 0.5rem 0.95rem;
       background: var(--surface);
@@ -626,6 +372,120 @@
       transition: all 0.2s;
     }
     .btn-action:hover { background: var(--surface-hover); border-color: var(--accent); }
+
+    .score-hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-info { min-width: 0; }
+    .grade-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.35rem; }
+    .failing-summary { font-weight: 700; }
+    .ring-box {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      flex-shrink: 0;
+    }
+    .ring-box.large { width: 120px; height: 120px; }
+    .ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+    .ring-bg { fill: none; stroke: var(--ring-bg); stroke-width: 10; }
+    .ring-fill {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 314.16;
+      stroke-dashoffset: 314.16;
+      transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .ring-value {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 1.45rem;
+      font-weight: 800;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .ring-value.large { font-size: 2.6rem; }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.82rem;
+    }
+    .grade-a { background: var(--ok-light); color: var(--ok); }
+    .grade-b { background: var(--accent-light); color: var(--accent); }
+    .grade-c { background: var(--warn-light); color: var(--warn); }
+    .grade-f { background: var(--bad-light); color: var(--bad); }
+
+    .family-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .family-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .family-top { display: flex; align-items: center; gap: 1rem; }
+    .card-heading { font-size: 1rem; font-weight: 800; }
+    .weight-tag { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+    .card-footer { font-size: 0.85rem; color: var(--text-2); margin-top: 0.15rem; }
+    .worst-list {
+      list-style: none;
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+      display: grid;
+      gap: 0.45rem;
+      font-size: 0.875rem;
+    }
+    .worst-list li { position: relative; padding-left: 1rem; overflow-wrap: anywhere; }
+    .worst-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.5em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--bad);
+    }
+    .worst-list li.none::before { background: var(--ok); }
+
+    .issues-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .issues-title { font-size: 1.2rem; font-weight: 800; }
+    .group-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-2);
+      margin: 1.25rem 0 0.5rem;
+    }
+    .issues-empty { padding: 1.5rem; color: var(--text-2); }
+    .passing-wrap { margin-top: 1.5rem; }
 
     /* Accessible Checks List via <details> */
     .checks-container {
@@ -665,7 +525,6 @@
     .check-content { flex: 1; min-width: 0; }
     .check-label { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.15rem; }
     .check-meta { font-size: 0.8rem; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .cat-tag { font-weight: 700; color: var(--accent); margin-right: 0.5rem; }
     .drawer-arrow {
       color: var(--muted);
       transition: transform 0.2s;
@@ -789,21 +648,43 @@
     }
     table.crawl-table th { color: var(--text-2); font-size: 0.8rem; text-transform: uppercase; }
 
-    @media (max-width: 960px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .score-card.hero-score {
-        grid-column: 1 / -1;
-      }
+    .has-results header { position: static; }
+    .has-results .hero {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      padding: 0.6rem 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    .has-results :is(.hero-badge, .hero-title, .hero-subtitle, .trust-row, .recent-strip, .mode-toggle, .keyphrase-input) { display: none; }
+    .has-results .scan-card { width: 100%; margin: 0; padding: 0; border: 0; box-shadow: none; background: none; }
+    .has-results .field-label { font-size: 0.75rem; margin-bottom: 0.25rem; }
+    .has-results .input-row { flex-direction: row; margin-bottom: 0; }
+    .has-results input.url-input { padding: 0.6rem 0.75rem 0.6rem 2.5rem; font-size: 0.95rem; }
+    .has-results .input-icon { left: 0.8rem; }
+    .has-results button.scan-btn { padding: 0 1.1rem; }
+    .has-results .error-panel { width: 100%; margin: 0.6rem 0 0; }
+
+    @media (max-width: 860px) {
+      .family-grid { grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
     }
 
     @media (max-width: 640px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
       .input-row { flex-direction: column; }
-      .scan-btn { padding: 0.85rem; justify-content: center; }
-      .fix-drawer { padding-left: 1.5rem; }
-      .search-box { width: 100%; }
+      button.scan-btn { padding: 0.85rem; justify-content: center; }
+      .fix-drawer { padding-left: 1rem; padding-right: 1rem; }
+      summary.check-summary { padding: 0.85rem 1rem; gap: 0.75rem; }
+      .score-hero { grid-template-columns: auto 1fr; gap: 0.75rem 1rem; padding: 1rem; margin-bottom: 0.75rem; }
+      .score-hero .site-actions { grid-column: 1 / -1; }
+      .ring-box.large { width: 84px; height: 84px; }
+      .ring-value.large { font-size: 1.8rem; }
+      .ring-box { width: 56px; height: 56px; }
+      .ring-value { font-size: 1.15rem; }
+      .family-card { padding: 0.9rem 1rem; }
+      .worst-list { margin-top: 0.7rem; padding-top: 0.6rem; }
+      .results-wrap { margin-top: 0.75rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -821,7 +702,6 @@
       clip: rect(0 0 0 0);
       white-space: nowrap;
     }
-    .results-wrap { scroll-margin-top: 84px; }
     .results-heading { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; }
     .results-heading:focus { outline: none; }
     .skeleton { margin: 1.5rem 0 5rem; display: grid; gap: 1.25rem; }
@@ -841,7 +721,9 @@
       border-left-width: 4px;
       border-radius: 14px;
       padding: 1.25rem 1.5rem;
-      margin: 1.5rem 0;
+      width: min(100%, 820px);
+      margin: 0 auto 1.5rem;
+      text-align: left;
       display: flex;
       align-items: center;
       gap: 1rem;
@@ -865,9 +747,9 @@
         <span>seoscore<span class="logo-dot">.tools</span></span>
       </a>
       <div class="nav-actions">
-        <button class="btn-api-badge" id="btnOpenApiModal" aria-haspopup="dialog">
+        <button class="btn-api-badge" id="btnOpenApiModal" aria-haspopup="dialog" aria-label="API & MCP Tools">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-          API & MCP Tools
+          <span>API & MCP Tools</span>
         </button>
         <button class="theme-toggle" id="themeToggle" title="Toggle color theme" aria-label="Toggle color theme">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
@@ -915,6 +797,14 @@
         </form>
       </div>
 
+      <div id="errorPanel" class="error-panel hidden" role="alert">
+        <div class="error-panel-text">
+          <div class="error-panel-title">Scan failed</div>
+          <div id="errorText"></div>
+        </div>
+        <button type="button" class="btn-action" id="btnRetry">Retry</button>
+      </div>
+
       <!-- Recent Scans Bar -->
       <div id="recentScansWrap" class="recent-strip hidden">
         <div class="recent-header">
@@ -954,155 +844,96 @@
       <div class="sk-bar"></div>
     </div>
 
-    <div id="errorPanel" class="error-panel hidden" role="alert">
-      <div class="error-panel-text">
-        <div class="error-panel-title">Scan failed</div>
-        <div id="errorText"></div>
-      </div>
-      <button type="button" class="btn-action" id="btnRetry">Retry</button>
-    </div>
-
     <div id="results" class="results-wrap hidden">
-      <div class="site-summary-bar">
-        <div class="site-url-box">
-          <h2 class="results-heading" id="resultsHeading" tabindex="-1">Audit results</h2>
-          <div class="site-url-title" id="resultUrl">https://example.com</div>
+      <section class="score-hero" aria-labelledby="resultsHeading">
+        <div class="ring-box large">
+          <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="ring-fill" id="ringOverall" cx="60" cy="60" r="50" stroke="var(--accent)"/>
+          </svg>
+          <div class="ring-value large" id="valOverall">0</div>
+        </div>
+        <div class="hero-info">
+          <h2 class="results-heading" id="resultsHeading" tabindex="-1">Overall score</h2>
+          <div class="grade-row">
+            <span id="gradeOverall" class="grade-badge"></span>
+            <span id="failingSummary" class="failing-summary"></span>
+          </div>
+          <div class="site-url-title" id="resultUrl"></div>
           <div class="site-meta-line" id="resultDate"></div>
         </div>
         <div class="site-actions">
-          <button class="btn-action" id="btnShareLink" title="Copy shareable link">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            Share
-          </button>
-          <button class="btn-action" id="btnExportCSV" title="Export CSV report">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            CSV
-          </button>
-          <button class="btn-action" id="btnCopyReport" title="Copy summary to clipboard">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            Copy
-          </button>
+          <button type="button" class="btn-action" id="btnCopyReport">Copy</button>
+          <button type="button" class="btn-action" id="btnExportJSON">JSON</button>
+          <button type="button" class="btn-action" id="btnExportCSV">CSV</button>
         </div>
-      </div>
+      </section>
 
-      <!-- Top Dashboard Scores -->
-      <div class="dashboard-grid">
-        <div class="score-card hero-score">
-          <div class="card-top">
-            <span class="card-heading">Overall Health</span>
-            <span class="weight-tag">Formula Balanced</span>
-          </div>
-          <div class="gauge-wrapper">
-            <div class="ring-box large">
-              <svg class="ring-svg" viewBox="0 0 120 120">
-                <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill" id="ringOverall" cx="60" cy="60" r="50" stroke="var(--accent)"/>
-              </svg>
-              <div class="ring-value large" id="valOverall">0</div>
-            </div>
-            <div class="gauge-info">
-              <div id="gradeOverall" class="grade-badge grade-a">A+ Excellent</div>
-              <div style="font-size: 0.85rem; color: var(--text-2);" id="overallSummaryText">All major signals passing.</div>
-            </div>
-          </div>
-          <div class="card-footer" id="overallFailingSummary">0 critical issues flagged</div>
-        </div>
-
-        <div class="score-card">
-          <div class="card-top">
-            <span class="card-heading">Traditional SEO</span>
-            <span class="weight-tag">50% Weight</span>
-          </div>
-          <div class="gauge-wrapper">
+      <div class="family-grid">
+        <section class="family-card" aria-labelledby="famSEOTitle">
+          <div class="family-top">
             <div class="ring-box">
-              <svg class="ring-svg" viewBox="0 0 120 120">
+              <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
                 <circle class="ring-fill" id="ringSEO" cx="60" cy="60" r="50" stroke="var(--fam-seo)"/>
               </svg>
               <div class="ring-value" id="valSEO">0</div>
             </div>
+            <div>
+              <h3 class="card-heading" id="famSEOTitle">Traditional SEO</h3>
+              <div class="weight-tag">50% of overall</div>
+              <div class="card-footer" id="detailSEO"></div>
+            </div>
           </div>
-          <div class="card-footer" id="detailSEO">0 / 0 checks passed</div>
-        </div>
-
-        <div class="score-card">
-          <div class="card-top">
-            <span class="card-heading">Answer Engine (AEO)</span>
-            <span class="weight-tag">25% Weight</span>
-          </div>
-          <div class="gauge-wrapper">
+          <ul class="worst-list" id="worstSEO" aria-label="Top failing SEO checks"></ul>
+        </section>
+        <section class="family-card" aria-labelledby="famAEOTitle">
+          <div class="family-top">
             <div class="ring-box">
-              <svg class="ring-svg" viewBox="0 0 120 120">
+              <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
                 <circle class="ring-fill" id="ringAEO" cx="60" cy="60" r="50" stroke="var(--fam-aeo)"/>
               </svg>
               <div class="ring-value" id="valAEO">0</div>
             </div>
+            <div>
+              <h3 class="card-heading" id="famAEOTitle">Answer Engine (AEO)</h3>
+              <div class="weight-tag">25% of overall</div>
+              <div class="card-footer" id="detailAEO"></div>
+            </div>
           </div>
-          <div class="card-footer" id="detailAEO">0 / 0 checks passed</div>
-        </div>
-
-        <div class="score-card">
-          <div class="card-top">
-            <span class="card-heading">Generative (GEO)</span>
-            <span class="weight-tag">25% Weight</span>
-          </div>
-          <div class="gauge-wrapper">
+          <ul class="worst-list" id="worstAEO" aria-label="Top failing AEO checks"></ul>
+        </section>
+        <section class="family-card" aria-labelledby="famGEOTitle">
+          <div class="family-top">
             <div class="ring-box">
-              <svg class="ring-svg" viewBox="0 0 120 120">
+              <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
                 <circle class="ring-fill" id="ringGEO" cx="60" cy="60" r="50" stroke="var(--fam-geo)"/>
               </svg>
               <div class="ring-value" id="valGEO">0</div>
             </div>
+            <div>
+              <h3 class="card-heading" id="famGEOTitle">Generative (GEO)</h3>
+              <div class="weight-tag">25% of overall</div>
+              <div class="card-footer" id="detailGEO"></div>
+            </div>
           </div>
-          <div class="card-footer" id="detailGEO">0 / 0 checks passed</div>
-        </div>
+          <ul class="worst-list" id="worstGEO" aria-label="Top failing GEO checks"></ul>
+        </section>
       </div>
 
-      <!-- Weight Composition Explanation -->
-      <div class="weight-bar-card">
-        <span class="weight-bar-label">Composite Model:</span>
-        <div class="weight-bar" aria-label="Score weighting formula">
-          <div class="wb-seo" title="SEO: 50%"></div>
-          <div class="wb-aeo" title="AEO: 25%"></div>
-          <div class="wb-geo" title="GEO: 25%"></div>
+      <section class="issues" aria-labelledby="issuesHeading">
+        <div class="issues-head">
+          <h2 class="issues-title" id="issuesHeading">Failing checks</h2>
+          <button type="button" class="btn-action" id="btnTogglePassing" aria-expanded="false" aria-controls="passingWrap">Show passing</button>
         </div>
-        <div class="weight-legend">
-          <div class="wl-item"><span class="wl-dot" style="background:var(--fam-seo)"></span> SEO (50%)</div>
-          <div class="wl-item"><span class="wl-dot" style="background:var(--fam-aeo)"></span> AEO (25%)</div>
-          <div class="wl-item"><span class="wl-dot" style="background:var(--fam-geo)"></span> GEO (25%)</div>
+        <div id="failingList"></div>
+        <div id="passingWrap" class="passing-wrap" hidden>
+          <h2 class="issues-title">Passing and not applicable</h2>
+          <div id="passingList"></div>
         </div>
-      </div>
-
-      <!-- Priority Issues Section -->
-      <div class="priority-panel" id="priorityPanel">
-        <div class="priority-header">
-          <div class="priority-title">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            Fix These First (Highest Impact)
-          </div>
-        </div>
-        <div class="priority-list" id="priorityList"></div>
-      </div>
-
-      <!-- Detailed Diagnostics Toolbar -->
-      <div class="toolbar">
-        <div class="tab-group" role="group" aria-label="Filter checks by family">
-          <button type="button" class="tab-btn active" data-filter="all" aria-pressed="true" aria-controls="checksList">All (<span id="countAll">0</span>)</button>
-          <button type="button" class="tab-btn" data-filter="SEO" aria-pressed="false" aria-controls="checksList">SEO (<span id="countSEO">0</span>)</button>
-          <button type="button" class="tab-btn" data-filter="AEO" aria-pressed="false" aria-controls="checksList">AEO (<span id="countAEO">0</span>)</button>
-          <button type="button" class="tab-btn" data-filter="GEO" aria-pressed="false" aria-controls="checksList">GEO (<span id="countGEO">0</span>)</button>
-          <button type="button" class="tab-btn" data-filter="FAIL" aria-pressed="false" aria-controls="checksList">Failing (<span id="countFail">0</span>)</button>
-        </div>
-
-        <div class="filter-actions">
-          <input type="text" id="searchFilter" class="search-box" placeholder="Filter checks..." aria-label="Filter checks">
-        </div>
-      </div>
-
-      <!-- Checks Accordion List -->
-      <div class="checks-container" id="checksList" role="region" aria-label="Audit Diagnostics"></div>
+      </section>
     </div>
   </main>
 
@@ -1249,7 +1080,7 @@ seoscore-cli https://example.com</div>
 
     let currentScan = null;
     let allChecks = [];
-    let currentFilter = "all";
+    let scannedUrl = "";
 
     const scanForm = document.getElementById("scanForm");
     const scanBtn = document.getElementById("scanBtn");
@@ -1315,13 +1146,12 @@ seoscore-cli https://example.com</div>
       }
     });
 
-    const mainEl = document.querySelector("main");
     const scanStatus = document.getElementById("scanStatus");
     const errorPanel = document.getElementById("errorPanel");
     document.getElementById("btnRetry").addEventListener("click", () => scanForm.requestSubmit());
 
     function setBusy(busy) {
-      mainEl.setAttribute("aria-busy", String(busy));
+      document.getElementById("results").setAttribute("aria-busy", String(busy));
       document.getElementById("scanSkeleton").classList.toggle("hidden", !busy);
       if (busy) {
         document.getElementById("results").classList.add("hidden");
@@ -1333,6 +1163,8 @@ seoscore-cli https://example.com</div>
       document.getElementById("errorText").textContent = message.slice(0, 500);
       scanStatus.textContent = "";
       errorPanel.classList.remove("hidden");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      errorPanel.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
     }
 
     async function apiError(resp) {
@@ -1368,96 +1200,133 @@ seoscore-cli https://example.com</div>
       if (ring) ring.style.strokeDashoffset = offset;
     }
 
+    const FAMILY_NAMES = { SEO: "Traditional SEO", AEO: "Answer Engine (AEO)", GEO: "Generative (GEO)" };
+
+    function grade(overall) {
+      if (overall >= 90) return ["grade-a", "A+ Excellent"];
+      if (overall >= 80) return ["grade-b", "A Good"];
+      if (overall >= 70) return ["grade-c", "B Fair"];
+      if (overall >= 60) return ["grade-c", "C Needs Work"];
+      return ["grade-f", "Critical Issues"];
+    }
+
+    const isFailing = c => c.applicable !== false && !c.pass;
+
     function renderScanResults(data, url) {
+      scannedUrl = url;
+      document.body.classList.add("has-results");
       const resultsEl = document.getElementById("results");
       resultsEl.classList.remove("hidden");
       document.getElementById("resultUrl").textContent = url;
-      document.getElementById("resultDate").textContent = `Audit completed ${new Date().toLocaleString()}`;
+      const keyphrase = keyphraseInput.value.trim();
+      document.getElementById("resultDate").textContent = `Audited ${new Date().toLocaleString()}` + (keyphrase ? ` · keyphrase: ${keyphrase}` : "");
+      btnPage.click();
 
-      const seo = (data.seo && data.seo.score) || 0;
-      const aeo = (data.aeo && data.aeo.score) || 0;
-      const geo = (data.geo && data.geo.score) || 0;
       const overall = overallScore(data);
-
       document.getElementById("valOverall").textContent = overall;
-      document.getElementById("valSEO").textContent = seo;
-      document.getElementById("valAEO").textContent = aeo;
-      document.getElementById("valGEO").textContent = geo;
-
       setRing("ringOverall", overall);
-      setRing("ringSEO", seo);
-      setRing("ringAEO", aeo);
-      setRing("ringGEO", geo);
-
+      const [gradeClass, gradeText] = grade(overall);
       const gradeEl = document.getElementById("gradeOverall");
-      const summaryText = document.getElementById("overallSummaryText");
-      if (overall >= 90) {
-        gradeEl.className = "grade-badge grade-a"; gradeEl.textContent = "A+ Excellent";
-        summaryText.textContent = "Exceptional search & AI answer engine readiness.";
-      } else if (overall >= 80) {
-        gradeEl.className = "grade-badge grade-b"; gradeEl.textContent = "A Good";
-        summaryText.textContent = "Solid technical SEO baseline with minor optimization opportunities.";
-      } else if (overall >= 70) {
-        gradeEl.className = "grade-badge grade-c"; gradeEl.textContent = "B Fair";
-        summaryText.textContent = "Meets standard crawlers but lacks generative engine content depth.";
-      } else if (overall >= 60) {
-        gradeEl.className = "grade-badge grade-c"; gradeEl.textContent = "C Needs Work";
-        summaryText.textContent = "Significant gaps in structured data and answer extractability.";
-      } else {
-        gradeEl.className = "grade-badge grade-f"; gradeEl.textContent = "Critical Issues";
-        summaryText.textContent = "Severe issues impacting discoverability across Google and AI agents.";
-      }
-
-      document.getElementById("detailSEO").textContent = `${data.seo.passed} / ${data.seo.total} checks passed`;
-      document.getElementById("detailAEO").textContent = `${data.aeo.passed} / ${data.aeo.total} checks passed`;
-      document.getElementById("detailGEO").textContent = `${data.geo.passed} / ${data.geo.total} checks passed`;
+      gradeEl.className = "grade-badge " + gradeClass;
+      gradeEl.textContent = gradeText;
 
       allChecks = [...familyChecks(data, "SEO"), ...familyChecks(data, "AEO"), ...familyChecks(data, "GEO")];
+      const applicable = allChecks.filter(c => c.applicable !== false);
+      const failing = allChecks.filter(isFailing);
+      document.getElementById("failingSummary").textContent = `${failing.length} of ${applicable.length} checks failing`;
 
-      const failingChecks = allChecks.filter(c => c.applicable !== false && !c.pass);
-      document.getElementById("countAll").textContent = allChecks.length;
-      document.getElementById("countSEO").textContent = data.seo.checks.length;
-      document.getElementById("countAEO").textContent = data.aeo.checks.length;
-      document.getElementById("countGEO").textContent = data.geo.checks.length;
-      document.getElementById("countFail").textContent = failingChecks.length;
-      document.getElementById("overallFailingSummary").textContent = `${failingChecks.length} issues flagged`;
+      for (const family of ["SEO", "AEO", "GEO"]) {
+        const fam = data[family.toLowerCase()] || {};
+        const score = fam.score || 0;
+        document.getElementById("val" + family).textContent = score;
+        setRing("ring" + family, score);
+        document.getElementById("detail" + family).textContent = `${fam.passed || 0} / ${fam.total || 0} passed`;
+        renderWorst(document.getElementById("worst" + family), failing.filter(c => c.cat === family));
+      }
 
-      renderPriorityFixes(failingChecks);
-      filterAndRenderChecks();
+      document.getElementById("issuesHeading").textContent = `Failing checks (${failing.length})`;
+      renderGroups(document.getElementById("failingList"), failing, "No failing checks. Every applicable check passes.");
+      const passing = allChecks.filter(c => !isFailing(c));
+      renderGroups(document.getElementById("passingList"), passing, "No passing checks yet.");
+      setPassingVisible(false, passing.length);
 
-      scanStatus.textContent = `Scan complete for ${url}: overall ${overall} of 100, ${failingChecks.length} failing checks.`;
+      scanStatus.textContent = `Scan complete for ${url}: overall ${overall} of 100, ${failing.length} failing checks.`;
+      resultsEl.style.scrollMarginTop = document.querySelector(".hero").offsetHeight + 12 + "px";
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       resultsEl.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
       document.getElementById("resultsHeading").focus({ preventScroll: true });
     }
 
-    function renderPriorityFixes(failing) {
-      const panel = document.getElementById("priorityPanel");
-      const list = document.getElementById("priorityList");
-      list.innerHTML = "";
-
+    function renderWorst(list, failing) {
+      list.replaceChildren();
       if (failing.length === 0) {
-        panel.classList.add("hidden");
+        const li = document.createElement("li");
+        li.className = "none";
+        li.textContent = "No failing checks";
+        list.append(li);
         return;
       }
-      panel.classList.remove("hidden");
-
-      const prioritized = [...failing].sort((a, b) => b.worth - a.worth).slice(0, 4);
-
-      prioritized.forEach((c, idx) => {
-        const advice = fixAdvice[c.id] || "Resolve this issue according to search best practices.";
-        const row = document.createElement("div");
-        row.className = "priority-item";
-        row.innerHTML = `
-          <div class="priority-rank">#${idx + 1}</div>
-          <div class="priority-info">
-            <div class="priority-label">${escapeHtml(c.label)}</div>
-            <div class="priority-advice">${escapeHtml(advice)}</div>
-          </div>
-          <div class="priority-pts" title="Share of the overall score this check carries">${formatWorth(c.worth)}</div>
-        `;
-        list.appendChild(row);
+      failing.slice(0, 3).forEach(c => {
+        const li = document.createElement("li");
+        li.textContent = c.label;
+        list.append(li);
       });
+    }
+
+    function renderGroups(container, checks, emptyText) {
+      container.replaceChildren();
+      if (checks.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "checks-container issues-empty";
+        empty.textContent = emptyText;
+        container.append(empty);
+        return;
+      }
+      const families = ["SEO", "AEO", "GEO"]
+        .map(f => checks.filter(c => c.cat === f))
+        .filter(group => group.length > 0)
+        .sort((a, b) => b[0].worth - a[0].worth);
+      for (const group of families) {
+        const title = document.createElement("h3");
+        title.className = "group-title";
+        title.textContent = `${FAMILY_NAMES[group[0].cat]} · ${group.length} · ${formatWorth(group[0].worth)} each`;
+        const list = document.createElement("div");
+        list.className = "checks-container";
+        group.forEach(c => list.append(checkRow(c)));
+        container.append(title, list);
+      }
+    }
+
+    function checkRow(c) {
+      const isNA = c.applicable === false;
+      const details = document.createElement("details");
+      details.className = "check-row";
+      const summary = document.createElement("summary");
+      summary.className = "check-summary";
+      const badge = document.createElement("span");
+      badge.className = "status-badge " + (isNA ? "status-na" : c.pass ? "status-pass" : "status-fail");
+      badge.textContent = isNA ? "N/A" : c.pass ? "PASS" : "FAIL";
+      const content = document.createElement("div");
+      content.className = "check-content";
+      const label = document.createElement("div");
+      label.className = "check-label";
+      label.textContent = c.label;
+      const meta = document.createElement("div");
+      meta.className = "check-meta";
+      meta.textContent = isNA ? c.id : `${c.id} · worth ${formatWorth(c.worth)}`;
+      content.append(label, meta);
+      summary.append(badge, content);
+      summary.insertAdjacentHTML("beforeend", '<svg class="drawer-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
+      const drawer = document.createElement("div");
+      drawer.className = "fix-drawer";
+      const card = document.createElement("div");
+      card.className = "fix-drawer-card";
+      const strong = document.createElement("strong");
+      strong.textContent = "How to fix: ";
+      card.append(strong, fixAdvice[c.id] || "Optimize this signal according to modern search and AI ranking guidelines.");
+      drawer.append(card);
+      details.append(summary, drawer);
+      return details;
     }
 
     function escapeHtml(str) {
@@ -1466,85 +1335,47 @@ seoscore-cli https://example.com</div>
       return div.innerHTML;
     }
 
-    function filterAndRenderChecks() {
-      const query = document.getElementById("searchFilter").value.toLowerCase();
-      const list = document.getElementById("checksList");
-      list.innerHTML = "";
+    const btnTogglePassing = document.getElementById("btnTogglePassing");
+    function setPassingVisible(visible, count) {
+      document.getElementById("passingWrap").hidden = !visible;
+      btnTogglePassing.setAttribute("aria-expanded", String(visible));
+      btnTogglePassing.textContent = `${visible ? "Hide" : "Show"} passing (${count})`;
+    }
+    btnTogglePassing.addEventListener("click", () => {
+      const visible = btnTogglePassing.getAttribute("aria-expanded") !== "true";
+      setPassingVisible(visible, allChecks.filter(c => !isFailing(c)).length);
+    });
 
-      const filtered = allChecks.filter(c => {
-        if (currentFilter === "FAIL" && (c.pass || c.applicable === false)) return false;
-        if (currentFilter !== "all" && currentFilter !== "FAIL" && c.cat !== currentFilter) return false;
-        if (query && !c.label.toLowerCase().includes(query) && !c.id.toLowerCase().includes(query)) return false;
-        return true;
-      });
-
-      if (filtered.length === 0) {
-        list.innerHTML = '<div style="padding: 2.5rem; text-align: center; color: var(--muted);">No checks match your current filter.</div>';
-        return;
-      }
-
-      filtered.forEach(c => {
-        const details = document.createElement("details");
-        details.className = "check-row";
-        const isNA = c.applicable === false;
-        const statusClass = isNA ? "status-na" : c.pass ? "status-pass" : "status-fail";
-        const statusText = isNA ? "N/A" : c.pass ? "PASS" : "FAIL";
-        const advice = fixAdvice[c.id] || "Optimize this signal according to modern search and AI ranking guidelines.";
-
-        details.innerHTML = `
-          <summary class="check-summary">
-            <span class="status-badge ${statusClass}">${statusText}</span>
-            <div class="check-content">
-              <div class="check-label">${escapeHtml(c.label)}</div>
-              <div class="check-meta"><span class="cat-tag">[${c.cat}]</span>${escapeHtml(c.id)}</div>
-            </div>
-            <svg class="drawer-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-          </summary>
-          <div class="fix-drawer">
-            <div class="fix-drawer-card">
-              <strong>💡 Recommendation:</strong> ${escapeHtml(advice)}
-            </div>
-          </div>
-        `;
-        list.appendChild(details);
-      });
+    function reportFileName(ext) {
+      const host = recentHost(scannedUrl) || "page";
+      return `seoscore-report-${host}-${new Date().toISOString().split("T")[0]}.${ext}`;
     }
 
-    // Tabs & Filter handlers
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => {
-          b.classList.toggle("active", b === btn);
-          b.setAttribute("aria-pressed", String(b === btn));
-        });
-        currentFilter = btn.dataset.filter;
-        filterAndRenderChecks();
-      });
+    function download(content, type, name) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([content], { type }));
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    document.getElementById("btnExportJSON").addEventListener("click", () => {
+      if (!currentScan) return;
+      download(JSON.stringify(currentScan, null, 2), "application/json", reportFileName("json"));
+      showToast("JSON report exported");
     });
 
-    document.getElementById("searchFilter").addEventListener("input", filterAndRenderChecks);
-
-    // Share link
-    document.getElementById("btnShareLink").addEventListener("click", () => {
-      const u = urlInput.value.trim();
-      if (!u) return;
-      const shareUrl = `${window.location.origin}/?url=${encodeURIComponent(u)}`;
-      navigator.clipboard.writeText(shareUrl).then(() => showToast("Shareable link copied to clipboard"));
-    });
-
-    // CSV Exporter
     document.getElementById("btnExportCSV").addEventListener("click", () => {
       if (!currentScan) return;
-      const host = new URL(urlInput.value.trim()).hostname;
+      const host = recentHost(scannedUrl) || "";
       const date = new Date().toISOString().split("T")[0];
-      const overall = document.getElementById("valOverall").textContent;
 
       const rows = [
         ["SEO/AEO/GEO Report", host, date],
         ["Generated by", "seoscore-tools", ""],
         [""],
         ["Category", "Score", "Passed", "Total"],
-        ["Overall", overall, "", ""],
+        ["Overall", overallScore(currentScan), "", ""],
         ["SEO", currentScan.seo.score, currentScan.seo.passed, currentScan.seo.total],
         ["AEO", currentScan.aeo.score, currentScan.aeo.passed, currentScan.aeo.total],
         ["GEO", currentScan.geo.score, currentScan.geo.passed, currentScan.geo.total],
@@ -1557,22 +1388,14 @@ seoscore-cli https://example.com</div>
         rows.push([c.id, c.cat, st, '"' + c.label.replace(/"/g, '""') + '"']);
       });
 
-      const csvContent = "\uFEFF" + rows.map(r => r.join(",")).join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `seoscore-report-${host}-${date}.csv`;
-      a.click();
+      download("﻿" + rows.map(r => r.join(",")).join("\n"), "text/csv;charset=utf-8;", reportFileName("csv"));
       showToast("CSV report exported");
     });
 
-    // Copy Summary
     document.getElementById("btnCopyReport").addEventListener("click", () => {
       if (!currentScan) return;
-      const url = urlInput.value.trim();
-      const ov = document.getElementById("valOverall").textContent;
       const s = currentScan.seo.score, a = currentScan.aeo.score, g = currentScan.geo.score;
-      const text = `SEOScore Audit for ${url}:\nOverall: ${ov}/100 | SEO: ${s} | AEO: ${a} | GEO: ${g}\nGenerated via seoscore.tools`;
+      const text = `SEOScore Audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${s} | AEO: ${a} | GEO: ${g}\nGenerated via seoscore.tools`;
       navigator.clipboard.writeText(text).then(() => showToast("Summary copied to clipboard"));
     });
 
