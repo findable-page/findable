@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import worker from "../src/index";
+import worker, { type Check } from "../src/index";
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -220,4 +220,22 @@ test("/api/scan answers 400 for bodies it cannot use", async () => {
     expect([body, resp.status]).toEqual([body, 400]);
     expect(((await resp.json()) as { error: string }).error).toBeTruthy();
   }
+});
+
+test("/api/scan finds JSON-LD types in top-level arrays, @type arrays and nested nodes", async () => {
+  const ld = JSON.stringify([
+    { "@type": ["FAQPage", "WebPage"] },
+    { "@type": "Article", author: { "@type": "Person", name: "A" }, publisher: { "@type": "Organization" } },
+  ]);
+  globalThis.fetch = (async () =>
+    new Response(
+      `<html><head><title>t</title><script type="application/ld+json">${ld}</script></head><body></body></html>`,
+    )) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
+    allowAll,
+  );
+  const scan = (await resp.json()) as { aeo: { checks: Check[] }; geo: { checks: Check[] } };
+  const pass = (id: string) => [...scan.aeo.checks, ...scan.geo.checks].find((c) => c.id === id)?.pass;
+  expect([pass("aeo_faq"), pass("geo_author_schema"), pass("geo_org_schema")]).toEqual([true, true, true]);
 });

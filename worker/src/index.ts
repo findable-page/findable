@@ -363,10 +363,15 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     try {
       const parsed = JSON.parse(firstGroup(jm));
       const scanObj = (value: unknown): void => {
+        if (Array.isArray(value)) {
+          value.forEach(scanObj);
+          return;
+        }
         if (!value || typeof value !== "object") return;
         const o = value as Record<string, unknown>;
-        if (o["@type"]) {
-          const t = String(o["@type"]);
+        const types = Array.isArray(o["@type"]) ? o["@type"] : o["@type"] ? [o["@type"]] : [];
+        for (const raw of types) {
+          const t = String(raw);
           schemaTypes.push(t);
           if (t.toLowerCase() === "faqpage") hasFAQ = true;
           if (t.toLowerCase() === "person") hasPerson = true;
@@ -376,8 +381,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
           if (Array.isArray(o.sameAs)) sameAsLinks.push(...o.sameAs.map(String));
           else sameAsLinks.push(String(o.sameAs));
         }
-        const graph = o["@graph"];
-        if (Array.isArray(graph)) graph.forEach(scanObj);
+        for (const child of Object.values(o)) if (child && typeof child === "object") scanObj(child);
       };
       scanObj(parsed);
     } catch {}
