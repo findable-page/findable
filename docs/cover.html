@@ -1,25 +1,28 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>findable cover</title>
 <style>
-html,body{margin:0;width:1280px;height:640px;overflow:hidden}
-body{background:#faf8ff;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#0f1115;position:relative}
-.glow{position:absolute;right:-120px;top:-160px;width:680px;height:680px;border-radius:50%;background:radial-gradient(circle,#ffb02044,#6d5efc22 55%,transparent 70%)}
-.wrap{position:absolute;left:84px;top:78px;width:1112px}
-svg.logo{width:337px;height:80px}
-h1{font-size:58px;line-height:1.1;letter-spacing:-1.5px;margin:40px 0 18px;max-width:1000px}
-h1 em{font-style:normal;color:#6d5efc}
-p{font-size:24px;color:#4a4f5c;margin:0;max-width:1000px}
-.pills{position:absolute;left:84px;bottom:64px;display:flex;gap:14px}
-.pill{font-size:22px;font-weight:600;padding:10px 22px;border-radius:999px;background:#fff;border:2px solid #e3dffb}
-.pill b{color:#6d5efc}.pill.a b{color:#c27f00}
-.url{position:absolute;right:84px;bottom:70px;font-size:24px;color:#4a4f5c}
+html,body{margin:0;width:100vw;height:100vh;overflow:hidden}
+body{background:linear-gradient(180deg,#fff4e6 0%,#fffaf3 60%,#fff 100%);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0F1222;position:relative}
+.glow{position:absolute;right:-140px;top:-180px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle,#FFB02040,#4F2BFF1f 55%,transparent 70%)}
+.wrap{position:absolute;left:80px;right:80px;top:64px}
+svg.logo{width:270px;height:64px}
+.badge{display:inline-block;margin-top:34px;font-size:22px;font-weight:700;color:#7A4300;background:#FFE9B8;padding:8px 20px;border-radius:999px}
+h1{font-size:62px;line-height:1.08;letter-spacing:-1.5px;margin:22px 0 0;font-weight:800}
+h1 .hl{color:#4F2BFF}
+.foot{position:absolute;left:80px;right:80px;bottom:56px;display:flex;align-items:center;justify-content:space-between}
+.pills{display:flex;gap:14px}
+.pill{font-size:22px;font-weight:700;padding:10px 22px;border-radius:999px;background:#fff;border:2px solid #E6E8F0}
+.seo{color:#0E7C4A}.aeo{color:#4F2BFF}.geo{color:#D1480D}
+.url{font-size:28px;font-weight:700;color:#fff;background:linear-gradient(90deg,#4F2BFF,#7a3fe0);padding:12px 26px;border-radius:14px}
 </style></head><body>
 <div class="glow"></div>
 <div class="wrap">
-<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 64" role="img" aria-label="findable"><circle cx="26" cy="26" r="17" fill="none" stroke="#6d5efc" stroke-width="8"/><path d="M39 39L56 56" stroke="#6d5efc" stroke-width="9" stroke-linecap="round"/><path d="M26 15C27 22 30 25 37 26C30 27 27 30 26 37C25 30 22 27 15 26C22 25 25 22 26 15Z" fill="#ffb020"/><text x="76" y="46" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="#0f1115">findable</text></svg>
-<h1>Is your site findable by Google <em>and</em> by ChatGPT and Perplexity?</h1>
-<p>Offline SEO + AEO + GEO auditor for the AI search era (CLI, MCP, edge API)</p>
+<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 64" role="img" aria-label="findable"><circle cx="26" cy="26" r="17" fill="none" stroke="#4F2BFF" stroke-width="8"/><path d="M39 39L56 56" stroke="#4F2BFF" stroke-width="9" stroke-linecap="round"/><path d="M26 15C27 22 30 25 37 26C30 27 27 30 26 37C25 30 22 27 15 26C22 25 25 22 26 15Z" fill="#FFB020"/><text x="76" y="46" font-family="system-ui, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="#0F1222">findable</text></svg>
+<div><span class="badge">Free · No signup · 72 checks</span></div>
+<h1>Is your site findable by Google and by <span class="hl">ChatGPT, Perplexity and Claude</span>?</h1>
 </div>
-<div class="pills"><span class="pill"><b>SEO</b> 50%</span><span class="pill"><b>AEO</b> 25%</span><span class="pill a"><b>GEO</b> 25%</span></div>
+<div class="foot">
+<div class="pills"><span class="pill"><b class="seo">SEO</b></span><span class="pill"><b class="aeo">AEO</b></span><span class="pill"><b class="geo">GEO</b></span></div>
 <div class="url">findable.page</div>
+</div>
 </body></html>
