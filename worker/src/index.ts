@@ -1,3 +1,4 @@
+import { BlockedTargetError, guardedFetch } from "./guard";
 import { type SiteCategory, siteChecks } from "./site";
 import { UI_HTML } from "./ui";
 
@@ -85,7 +86,7 @@ export default {
       } catch (err) {
         const message = err instanceof Error && err.message ? err.message : "audit failed";
         return new Response(JSON.stringify({ error: message }), {
-          status: 500,
+          status: err instanceof BlockedTargetError ? 400 : 500,
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
       }
@@ -96,16 +97,11 @@ export default {
 };
 
 async function auditUrl(targetUrl: string, keyphrase?: string): Promise<ScanResponse> {
-  const resp = await fetch(targetUrl, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
-      Accept: "text/html,application/xhtml+xml",
-    },
-    redirect: "follow",
+  const page = await guardedFetch(targetUrl, {
+    "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
+    Accept: "text/html,application/xhtml+xml",
   });
-
-  const rawHtml = await resp.text();
-  return analyzeHtml(targetUrl, rawHtml, resp.headers, keyphrase);
+  return analyzeHtml(targetUrl, page.body, page.headers, keyphrase);
 }
 
 function firstGroup(match: RegExpMatchArray | null): string {

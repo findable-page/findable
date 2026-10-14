@@ -1,3 +1,4 @@
+import { guardedFetch } from "./guard";
 import type { Check } from "./index";
 
 const AI_CRAWLERS = ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"];
@@ -96,9 +97,9 @@ export function siteCategory(pagePath: string, robots: string | null, llms: stri
 
 async function optionalText(target: string): Promise<string | null> {
   try {
-    const resp = await fetch(target, { redirect: "follow" });
-    if (resp.status !== 200) return null;
-    return (await resp.text()).slice(0, MAX_SITE_FILE_BYTES);
+    const page = await guardedFetch(target);
+    if (page.status !== 200) return null;
+    return page.body.slice(0, MAX_SITE_FILE_BYTES);
   } catch {
     return null;
   }
