@@ -1,1 +1,0 @@
-This folder contains the built output assets for the worker "seoscore-api" generated at 2026-10-14T18:23:45.300Z.

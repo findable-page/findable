@@ -15,6 +15,7 @@ findable-site-report-*.csv
 # Cloudflare Wrangler cache
 worker/.wrangler/
 worker/node_modules/
+worker/dist/
 .wrangler/
 node_modules/
 
