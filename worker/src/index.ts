@@ -1,7 +1,9 @@
 import UI_HTML from "../../internal/server/web/index.html";
+import { pageSpeed } from "./cwv";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
+import { aeoParityChecks, geoParityChecks, paragraphWordCounts, seoParityChecks } from "./page-checks";
 import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
 import type { CardScores } from "./share-card";
@@ -46,6 +48,7 @@ const CORS_HEADERS = {
 export interface Env {
   SCAN_LIMITER?: RateLimit;
   WATCH_DB?: D1Database;
+  PSI_KEY?: string;
 }
 
 const MAX_ANALYZED_HTML_CHARS = 1024 * 1024;
@@ -219,6 +222,10 @@ const worker = {
       }
     }
 
+    if (url.pathname === "/api/cwv" && request.method === "POST") {
+      return cwvResponse(request, env);
+    }
+
     if (url.pathname === "/api/watch" && request.method === "POST") {
       return watchResponse(request, url, env);
     }
@@ -367,6 +374,30 @@ function badRequest(error: string): Response {
   });
 }
 
+async function cwvResponse(request: Request, env: Env): Promise<Response> {
+  const json = (status: number, body: object) =>
+    new Response(JSON.stringify(body), { status, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+  if (!env.PSI_KEY) return json(503, { error: "page speed is not set up" });
+  const body = await readScanBody(request);
+  if (typeof body === "string") return json(400, { error: body });
+  const target = withScheme(body.url);
+  if (!/^https?:\/\//i.test(target)) return json(400, { error: "url must be http or https" });
+  const cacheKey = new Request(`https://findable.page/__cwv/v1/${encodeURIComponent(target)}`);
+  const cache = (globalThis as { caches?: { default?: Cache } }).caches?.default;
+  const hit = await cache?.match(cacheKey);
+  if (hit) return json(200, await hit.json());
+  const ip = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
+  if (!(await allowScan(env, `cwv:${ip}`))) return json(429, { error: "too many speed tests, try again in a minute" });
+  try {
+    const cwv = await pageSpeed(target, env.PSI_KEY);
+    await cache?.put(cacheKey, new Response(JSON.stringify(cwv), { headers: { "Cache-Control": "max-age=86400" } }));
+    return json(200, cwv);
+  } catch (err) {
+    console.error("cwv: pagespeed failed", err);
+    return json(502, { error: "page speed test failed, try again later" });
+  }
+}
+
 function watchJson(status: number, body: object): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
@@ -473,13 +504,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     .trim();
   const words = visibleText.split(/\s+/).filter(Boolean);
   const wordCount = words.length;
-  const hasDirectAnswer = [...rawHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].some((m) => {
-    const n = (m[1] ?? "")
-      .replace(/<[^>]+>/g, " ")
-      .split(/\s+/)
-      .filter(Boolean).length;
-    return n >= 30 && n <= 80;
-  });
+  const hasDirectAnswer = paragraphWordCounts(rawHtml).some((n) => n >= 30 && n <= 80);
 
   // Open Graph & Twitter
   const ogTitle = rawHtml.match(/<meta[^>]+property=["']og:title["']/i);
@@ -515,17 +540,19 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
   let hasFAQ = false;
   let hasPerson = false;
   let hasOrg = false;
+  let hasSpeakable = false;
 
   for (const jm of jsonLdMatches) {
     try {
       const parsed = JSON.parse(firstGroup(jm));
-      const scanObj = (value: unknown, pageLevel: boolean): void => {
+      const scanObj = (value: unknown, pageLevel: boolean, topLevel: boolean): void => {
         if (Array.isArray(value)) {
-          for (const v of value) scanObj(v, pageLevel);
+          for (const v of value) scanObj(v, pageLevel, topLevel);
           return;
         }
         if (!value || typeof value !== "object") return;
         const o = value as Record<string, unknown>;
+        if (topLevel && "speakable" in o) hasSpeakable = true;
         const types = Array.isArray(o["@type"]) ? o["@type"] : o["@type"] ? [o["@type"]] : [];
         for (const raw of types) {
           const t = String(raw);
@@ -539,10 +566,11 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
           else sameAsLinks.push(String(o.sameAs));
         }
         for (const [key, child] of Object.entries(o)) {
-          if (child && typeof child === "object") scanObj(child, pageLevel && (key === "@graph" || key === "author"));
+          if (child && typeof child === "object")
+            scanObj(child, pageLevel && (key === "@graph" || key === "author"), topLevel && key === "@graph");
         }
       };
-      scanObj(parsed, true);
+      scanObj(parsed, true, true);
     } catch {}
   }
 
@@ -621,6 +649,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
       pass: Boolean(headers.get("content-security-policy")),
     },
     { id: "jsonld", label: `${jsonLdMatches.length} JSON-LD schema block(s) found`, pass: jsonLdMatches.length > 0 },
+    ...seoParityChecks(rawHtml, visibleText),
   ];
 
   if (keyphrase) {
@@ -679,6 +708,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
       pass: !parsedUrl.pathname.includes("_") && parsedUrl.pathname === parsedUrl.pathname.toLowerCase(),
     },
     { id: "aeo_ai_robots", label: "No AI-blocking directives detected", pass: !robotsMeta.includes("noindex") },
+    ...aeoParityChecks(rawHtml, visibleText, wordCount, hasSpeakable),
   ];
 
   // --- GEO Checks ---
@@ -729,6 +759,16 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     },
     { id: "geo_time_element", label: "<time> machine-readable tags present", pass: hasTime },
     { id: "geo_content_length", label: `${wordCount} words content depth (300+ recommended)`, pass: wordCount >= 300 },
+    ...geoParityChecks({
+      html: rawHtml,
+      title,
+      firstHeading: rawHtml
+        .match(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/i)?.[1]
+        ?.replace(/<[^>]+>/g, "")
+        .trim(),
+      robotsMeta,
+      schemaTypeCount: schemaTypes.length,
+    }),
   ];
 
   const calcCat = (checks: Check[]): CategoryResult => {

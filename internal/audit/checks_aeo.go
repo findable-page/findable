@@ -18,6 +18,16 @@ func evalAEO(s *PageSignals) []Check {
 func aeoStructuredData(l *checkList, s *PageSignals) {
 	l.add("aeo_structured_data", "Structured data found for AI extraction", len(s.JSONLDs) > 0)
 	l.add("aeo_faq", "FAQ schema or Q&A section detected", hasSchemaType(s.SchemaTypes, "FAQPage"))
+	l.add("aeo_speakable", "Speakable markup found for voice assistants", hasSpeakable(s.JSONLDs))
+}
+
+func hasSpeakable(nodes []map[string]any) bool {
+	for _, node := range nodes {
+		if _, ok := node["speakable"]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func aeoAnswerShape(l *checkList, s *PageSignals) {

@@ -18,7 +18,7 @@ const TAGLINE = "findable: is your site findable by Google and by AI answer engi
 
 const SUMMARY =
   "Open-source auditor that scores a page for traditional SEO, Answer Engine Optimization (AEO) and Generative Engine Optimization (GEO). " +
-  "The web API runs 54 page checks (26 SEO, 14 AEO, 14 GEO); the Go CLI runs 72 (36 SEO, 17 AEO, 19 GEO). Both add 7 separate site checks (robots.txt, AI crawler access, llms.txt).";
+  "The web API and the Go CLI both run 73 page checks (36 SEO, 18 AEO, 19 GEO), plus 7 separate site checks (robots.txt, AI crawler access, llms.txt).";
 
 const HOW_TO_USE = [
   "- CLI: `go install github.com/nadimtuhin/findable/cmd/findable@latest`, then `findable https://example.com`.",

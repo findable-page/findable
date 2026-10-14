@@ -1,6 +1,6 @@
 ---
 title: "Every findable AEO Check ID and How to Fix It"
-description: "All 17 AEO checks in findable explained, from aeo_faq to aeo_summary. See what each id tests, how loose the test is and how to fix it. AEO is 25% of the score."
+description: "All 18 AEO checks in findable explained, from aeo_faq to aeo_summary. See what each id tests, how loose the test is and how to fix it. AEO is 25% of the score."
 slug: aeo-checks
 date: 2026-10-14
 updated: 2026-10-14

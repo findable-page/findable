@@ -330,9 +330,9 @@
 
   <main class="container">
     <section class="hero">
-      <div class="hero-badge">50+ checks · 0 signups · 100% free</div>
+      <div class="hero-badge">70+ checks · 0 signups · 100% free</div>
       <h1 class="hero-title">Is your site findable by Google and by <span class="hl">ChatGPT, Perplexity and Claude</span>?</h1>
-      <p class="hero-subtitle">Paste a URL. findable scores the page for SEO, AEO and GEO with 50+ checks, then shows the fixes worth the most points. New to the terms? Read the <a href="/learn">plain-words guide</a>.</p>
+      <p class="hero-subtitle">Paste a URL. findable scores the page for SEO, AEO and GEO with 70+ checks, then shows the fixes worth the most points. New to the terms? Read the <a href="/learn">plain-words guide</a>.</p>
 
       <div class="scan-card">
         <div class="mode-toggle">
@@ -368,7 +368,7 @@
         <div id="recentList" class="recent-items"></div>
       </div>
 
-      <p class="trust-row"><span>50+ page checks</span><span>SEO, AEO and GEO</span><span>Free API and MCP</span></p>
+      <p class="trust-row"><span>70+ page checks</span><span>SEO, AEO and GEO</span><span>Free API and MCP</span></p>
     </section>
 
     <div id="crawlSection" class="crawl-box hidden" role="region" aria-label="Crawl progress" aria-live="polite">
@@ -428,6 +428,12 @@
           </div>
           <span id="shareStatus" class="share-status" role="status" aria-live="polite"></span>
         </div>
+      </section>
+
+      <section class="next-actions" id="cwvSection" aria-labelledby="cwvHeading" hidden>
+        <h2 id="cwvHeading">Page speed (mobile)</h2>
+        <p id="cwvLine" role="status" aria-live="polite"></p>
+        <ul id="cwvList" role="list"></ul>
       </section>
 
       <section class="next-actions" id="watchSection" aria-labelledby="watchHeading" hidden>
@@ -490,7 +496,7 @@
       <p class="byline">By <span>Nadim Tuhin</span> · Published <time datetime="2026-10-14">14 October 2026</time> · Updated <time datetime="2026-10-14">14 October 2026</time></p>
 
       <h2 id="about">What is findable?</h2>
-      <p>findable is a free scanner that scores one web page on traditional SEO, answer engine optimization (AEO) and generative engine optimization (GEO). It runs 50+ page checks, gives you one overall score from 0 to 100, and ranks the fixes by how many points each one recovers.</p>
+      <p>findable is a free scanner that scores one web page on traditional SEO, answer engine optimization (AEO) and generative engine optimization (GEO). It runs 70+ page checks, gives you one overall score from 0 to 100, and ranks the fixes by how many points each one recovers.</p>
       <dl class="terms">
         <dt>SEO</dt><dd>Search engine optimization. Make the page easy for a search crawler to fetch, read and rank.</dd>
         <dt>AEO</dt><dd>Answer engine optimization. Shape the page so an answer box or chat tool can lift a short, correct answer.</dd>
@@ -909,10 +915,29 @@ findable https://example.com</code></pre>
       });
     }
 
+    async function loadCwv(url) {
+      $("cwvSection").hidden = false;
+      $("cwvLine").textContent = "Testing page speed with Google PageSpeed Insights (takes about 20 seconds)…";
+      $("cwvList").replaceChildren();
+      try {
+        const resp = await fetch("/api/cwv", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+        const data = await resp.json();
+        if (url !== scannedUrl) return;
+        if (resp.status === 503) return void ($("cwvSection").hidden = true);
+        if (!resp.ok) return void ($("cwvLine").textContent = data.error || "Page speed test failed");
+        $("cwvLine").textContent = `Performance ${data.score}/100 · ${data.passed} of ${data.total} vitals good`;
+        $("cwvList").replaceChildren(...data.checks.map(c => el("li", "", `${c.pass ? "✓" : "✗"} ${c.label}`)));
+      } catch {
+        $("cwvLine").textContent = "Page speed test failed";
+      }
+    }
+
     function renderScanResults(data, url) {
       scannedUrl = url;
       document.body.classList.add("has-results");
-      $("watchSection").hidden = !document.querySelector('meta[name="findable-watch"]');
+      const onWorker = !!document.querySelector('meta[name="findable-watch"]');
+      $("watchSection").hidden = !onWorker;
+      if (onWorker) loadCwv(url);
       const resultsEl = $("results");
       resultsEl.classList.remove("hidden");
       $("resultUrl").textContent = url;

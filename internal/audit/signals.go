@@ -110,8 +110,8 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 	seenIDs := make(map[string]int)
 	var walk func(*html.Node)
 	walk = func(n *html.Node) {
-		sig.DOMSize++
 		if n.Type == html.ElementNode {
+			sig.DOMSize++
 			countDuplicateIDs(&sig, n, seenIDs)
 			if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
 				collect(&sig, n)

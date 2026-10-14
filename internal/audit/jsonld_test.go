@@ -69,3 +69,22 @@ func TestKeyphraseIsTrimmedAndBlankIsSkipped(t *testing.T) {
 		t.Errorf("whitespace-only keyphrase should skip keyphrase checks")
 	}
 }
+
+func TestJSONLDSpeakableDetection(t *testing.T) {
+	cases := map[string]struct {
+		ld   string
+		want bool
+	}{
+		"top-level":    {`{"@type":"WebPage","speakable":{"@type":"SpeakableSpecification","cssSelector":["h1"]}}`, true},
+		"inside graph": {`{"@graph":[{"@type":"WebPage","speakable":{"cssSelector":["h1"]}}]}`, true},
+		"absent":       {`{"@type":"WebPage"}`, false},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			got := findCheck(analyzeLD(t, tc.ld, "").AEO.Checks, "aeo_speakable")
+			if got == nil || got.Pass != tc.want {
+				t.Errorf("aeo_speakable = %v, want pass=%v for %s", got, tc.want, tc.ld)
+			}
+		})
+	}
+}
