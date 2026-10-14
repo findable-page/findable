@@ -52,3 +52,10 @@ func TestJSONLDNestedSameAsNotCounted(t *testing.T) {
 		t.Errorf("expected only top-level sameAs counted, got %q", kg.Label)
 	}
 }
+
+func TestKeyphraseLabelKeepsQuotesVerbatim(t *testing.T) {
+	title := findCheck(analyzeLD(t, `{}`, `say "hi"`).SEO.Checks, "keyphrase_in_title")
+	if want := `Focus keyphrase "say "hi"" in title tag`; title.Label != want {
+		t.Errorf("label = %q, want %q", title.Label, want)
+	}
+}

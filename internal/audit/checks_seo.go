@@ -149,10 +149,10 @@ func seoKeyphrase(l *checkList, s *PageSignals) {
 	if s.Keyphrase == "" {
 		return
 	}
-	l.add("keyphrase_in_title", fmt.Sprintf("Focus keyphrase %q in title tag", s.Keyphrase), lowerContainsAny(s.Title, kp))
-	l.add("keyphrase_in_desc", fmt.Sprintf("Focus keyphrase %q in meta description", s.Keyphrase), lowerContainsAny(s.MetaDesc, kp))
-	l.add("keyphrase_in_h1", fmt.Sprintf("Focus keyphrase %q in H1 heading", s.Keyphrase), h1Contains(s.Headings, kp))
-	l.add("keyphrase_in_content", fmt.Sprintf("Focus keyphrase %q appears in body copy", s.Keyphrase), lowerContainsAny(s.TextContent, kp))
+	l.add("keyphrase_in_title", `Focus keyphrase "`+s.Keyphrase+`" in title tag`, lowerContainsAny(s.Title, kp))
+	l.add("keyphrase_in_desc", `Focus keyphrase "`+s.Keyphrase+`" in meta description`, lowerContainsAny(s.MetaDesc, kp))
+	l.add("keyphrase_in_h1", `Focus keyphrase "`+s.Keyphrase+`" in H1 heading`, h1Contains(s.Headings, kp))
+	l.add("keyphrase_in_content", `Focus keyphrase "`+s.Keyphrase+`" appears in body copy`, lowerContainsAny(s.TextContent, kp))
 }
 
 func h1Contains(headings []Heading, keyphrase string) bool {
