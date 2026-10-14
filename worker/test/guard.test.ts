@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { BlockedTargetError, guardedFetch, MAX_PAGE_BYTES, publicTarget } from "../src/guard";
+import { BlockedTargetError, guardedFetch, MAX_PAGE_BYTES, publicTarget, type SelfRoute } from "../src/guard";
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -110,4 +110,12 @@ test("guardedFetch refuses bodies over the cap", async () => {
 
 test("publicTarget cannot see DNS: a public name that resolves to loopback passes", () => {
   expect(publicTarget("http://127.0.0.1.nip.io/")).toBe(true);
+});
+
+test("a trailing dot on the worker's own host still routes in-process and keeps /api/ blocked", async () => {
+  mockFetch(() => new Response("reached the network"));
+  const self: SelfRoute = { hosts: ["findable.piply.xyz"], handle: async () => new Response("in-process") };
+  const page = await guardedFetch("https://findable.piply.xyz./", {}, self);
+  expect(page.body).toBe("in-process");
+  await expect(guardedFetch("https://findable.piply.xyz./api/scan", {}, self)).rejects.toBeInstanceOf(BlockedTargetError);
 });
