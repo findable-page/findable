@@ -168,3 +168,15 @@ test("there is no fake scan-count endpoint", async () => {
   const resp = await worker.fetch(new Request("https://w.test/api/scan-count"));
   expect(resp.status).not.toBe(200);
 });
+
+test("/api/scan answers JSON, not an unhandled throw, when the client IP header is malformed", async () => {
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", {
+      method: "POST",
+      body: "{}",
+      headers: { "CF-Connecting-IP": "1:2:3:4:5:6:7:8:9::1" },
+    }),
+  );
+  expect(resp.headers.get("Content-Type")).toBe("application/json");
+  expect(typeof ((await resp.json()) as { error: string }).error).toBe("string");
+});

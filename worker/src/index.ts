@@ -184,14 +184,14 @@ const worker = {
     }
 
     if (url.pathname === "/api/scan" && request.method === "POST") {
-      const key = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
-      if (!(await allowScan(env, key))) {
-        return new Response(JSON.stringify({ error: "too many scans, try again in a minute" }), {
-          status: 429,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        });
-      }
       try {
+        const key = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
+        if (!(await allowScan(env, key))) {
+          return new Response(JSON.stringify({ error: "too many scans, try again in a minute" }), {
+            status: 429,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
         const body = (await request.json()) as { url?: string; keyphrase?: string; site?: boolean };
         if (!body.url) {
           return new Response(JSON.stringify({ error: "missing url" }), {
