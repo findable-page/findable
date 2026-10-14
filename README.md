@@ -35,7 +35,6 @@ That is 72 page checks in the Go engine. The edge API runs a smaller port with 5
 
 ```bash
 go install github.com/nadimtuhin/findable/cmd/findable@latest   # Go 1.26+
-npx findable-mcp                                                # MCP server for agents
 ```
 
 Homebrew: planned for first release; use go install.
@@ -83,7 +82,7 @@ Add to Claude Desktop, Cursor or Windsurf:
 { "mcpServers": { "findable": { "command": "findable", "args": ["-mcp"] } } }
 ```
 
-No Go toolchain? Use `{ "command": "npx", "args": ["-y", "findable-mcp"] }` instead.
+No Go toolchain? Build the MCP server from source: `(cd mcp && bun install && bun run build)`, then use `{ "command": "node", "args": ["/path/to/findable/mcp/dist/index.js"] }`.
 
 Tools: `audit_page` (URL or file), `audit_html_content` (raw HTML, no network), `crawl_site`, `generate_csv_report`. Prompt: `seo_audit_prompt`.
 
@@ -122,7 +121,7 @@ git clone https://github.com/nadimtuhin/findable && cd findable
 make lint test
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). `testdata/` holds sample pages and a scoring benchmark script.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). `testdata/` holds sample pages.
 
 ## License
 

@@ -9,11 +9,11 @@ faq:
   - q: "Does findable need an API key?"
     a: "No. The CLI runs locally and audits any URL or local HTML file. You only need Go to install it."
   - q: "What is the binary called?"
-    a: "The product is findable, but the command line binary is still named seoscore. Use seoscore in every command."
+    a: "The binary is named findable. Use findable in every command."
   - q: "How do I fail a build on a low score?"
     a: "Pass -fail-under N. The CLI exits with code 1 when the score is below N, which stops your CI job."
   - q: "Can I run it on a local file?"
-    a: "Yes. Run seoscore ./page.html to audit a file on disk with no server."
+    a: "Yes. Run findable ./page.html to audit a file on disk with no server."
 ---
 
 # Get Findable in 15 Minutes: A Step by Step Checklist
@@ -22,19 +22,19 @@ You can go from nothing to a working audit, an editor integration and a CI gate 
 
 ## How do you install findable?
 
-You install it with one Go command. It puts a binary called `seoscore` on your path. The product is called findable, but the command line tool keeps the older name. You need a recent Go toolchain, and this takes about one minute.
+You install it with one Go command. It puts a binary called `findable` on your path. You need a recent Go toolchain, and this takes about one minute.
 
 ```bash
-go install github.com/nadimtuhin/seoscore-cli/cmd/seoscore@latest
+go install github.com/nadimtuhin/findable/cmd/findable@latest
 ```
 
 ## How do you run your first audit?
 
-Point `seoscore` at a URL and pass your target phrase with `-k`. It fetches the page, runs every check and prints a score. You can also audit an HTML file on disk before you deploy it. Expect this to take about one minute.
+Point `findable` at a URL and pass your target phrase with `-k`. It fetches the page, runs every check and prints a score. You can also audit an HTML file on disk before you deploy it. Expect this to take about one minute.
 
 ```bash
-seoscore https://example.com -k "your keyphrase"
-seoscore ./page.html
+findable -k "your keyphrase" https://example.com
+findable ./page.html
 ```
 
 ## How do you check robots.txt and llms.txt?
@@ -42,7 +42,7 @@ seoscore ./page.html
 Add the `-site` flag. It also fetches `/robots.txt` and `/llms.txt` and reports whether GPTBot, ClaudeBot, PerplexityBot and Google-Extended are allowed. These site results are unscored, so they never change your grade. The flag needs a real URL and refuses a local file.
 
 ```bash
-seoscore https://example.com -k "your keyphrase" -site
+findable -k "your keyphrase" -site https://example.com
 ```
 
 ## How do you read the output?
@@ -52,7 +52,7 @@ The score is SEO 50%, AEO 25% and GEO 25%. Each line is a check with a stable id
 For a machine readable report, choose a format. You can write `csv`, `json` or `sarif`, send files to a folder with `-o`, and quiet the console with `-q`. These are handy when you want to diff two runs, or feed the findings into another tool.
 
 ```bash
-seoscore https://example.com -format json -o ./reports -q
+findable -format json -o ./reports -q https://example.com
 ```
 
 ## How do you fix the top failures?
@@ -60,22 +60,22 @@ seoscore https://example.com -format json -o ./reports -q
 Take the first three failing ids and fix them. Quick wins are usually `title_length` (30 to 60 characters), `desc_length` (120 to 160), `h1_exists` (exactly one h1) and `canonical`. Then re-run the same command and watch the score rise. Repeat until the top fails are gone.
 
 ```bash
-seoscore https://example.com -k "your keyphrase" -site
+findable -k "your keyphrase" -site https://example.com
 ```
 
 To audit more than one page, crawl. Use `-crawl` with `-limit`, or feed a sitemap with `-sitemap`.
 
 ```bash
-seoscore https://example.com -crawl -limit 25
-seoscore https://example.com -sitemap https://example.com/sitemap.xml
+findable -crawl -limit 25 https://example.com
+findable -sitemap https://example.com/sitemap.xml https://example.com
 ```
 
 ## How do you set up MCP?
 
-Run findable as an MCP server so your editor agent can audit pages for you. Add this to your MCP config. You can also launch it with `npx -y seoscore-mcp` if you prefer not to install Go. The tools are `audit_page`, `audit_html_content`, `crawl_site` and `generate_csv_report`.
+Run findable as an MCP server so your editor agent can audit pages for you. Add this to your MCP config. To run it without Go, build the server from source: `cd mcp && bun install && bun run build`, then point `"command": "node"` with `"args": ["/path/to/findable/mcp/dist/index.js"]` at it. The tools are `audit_page`, `audit_html_content`, `crawl_site` and `generate_csv_report`.
 
 ```json
-{"mcpServers":{"seoscore":{"command":"seoscore","args":["-mcp"]}}}
+{"mcpServers":{"findable":{"command":"findable","args":["-mcp"]}}}
 ```
 
 The server also offers a prompt called `seo_audit_prompt`. It speaks over stdio, so there is no port to open and nothing is exposed to your network. Ask your agent to audit a page, and it calls these tools for you.
@@ -85,7 +85,7 @@ The server also offers a prompt called `seo_audit_prompt`. It speaks over stdio,
 Open [findable.piply.xyz](https://findable.piply.xyz) and paste a URL to get a scored report in your browser, with no install at all. If you want it local, serve it yourself. The same binary hosts the web UI and the API on a port you choose.
 
 ```bash
-seoscore -serve 127.0.0.1:8080
+findable -serve 127.0.0.1:8080
 ```
 
 ## How do you call the API with curl?
@@ -116,12 +116,12 @@ jobs:
           args: -site
 ```
 
-You can get the same gate locally with `seoscore https://example.com -fail-under 80`. It exits 1 below 80. Start with a threshold near your current score, then raise it as you fix more checks. The Site checks are unscored, so `-site` in `args` adds rows to the report but never changes whether the gate passes.
+You can get the same gate locally with `findable -fail-under 80 https://example.com`. It exits 1 below 80. Start with a threshold near your current score, then raise it as you fix more checks. The Site checks are unscored, so `-site` in `args` adds rows to the report but never changes whether the gate passes.
 
 ## Key takeaways
 
-- Install with one `go install` line. The binary is `seoscore`.
-- Run `seoscore <url> -k "phrase" -site` and read the failing check ids first.
+- Install with one `go install` line. The binary is `findable`.
+- Run `findable -k "phrase" -site <url>` and read the failing check ids first.
 - Fix the top three failures, then re-run to confirm.
 - Use `-mcp` for editors, `-serve 127.0.0.1:8080` for a local UI, and POST `/api/scan` for scripts.
 - Gate CI with `-fail-under N` or the `nadimtuhin/findable@v0.2.0` action.

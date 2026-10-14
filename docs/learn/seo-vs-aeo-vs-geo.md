@@ -11,7 +11,7 @@ faq:
   - q: "How does findable weigh SEO, AEO and GEO?"
     a: "The score is SEO 50%, AEO 25% and GEO 25%. SEO carries the most weight because every other layer depends on a page being crawlable and readable."
   - q: "Can I check all three with one command?"
-    a: "Yes. Run seoscore with a URL and it audits all three families in one pass. Add -site to also check robots.txt and llms.txt."
+    a: "Yes. Run findable with a URL and it audits all three families in one pass. Add -site to also check robots.txt and llms.txt."
 ---
 
 # SEO vs AEO vs GEO: The Difference in Plain Words
@@ -55,8 +55,8 @@ Notice the overlap. A `jsonld` block helps SEO, and `aeo_structured_data` reads 
 findable runs every check on a page and groups the results into the three families. You install it, point it at a URL and read the failures. Each check has a stable id, so you can search for it, track it and fix it.
 
 ```bash
-go install github.com/nadimtuhin/seoscore-cli/cmd/seoscore@latest
-seoscore https://example.com -k "your keyphrase"
+go install github.com/nadimtuhin/findable/cmd/findable@latest
+findable -k "your keyphrase" https://example.com
 ```
 
 Here are a few ids you will meet first. For SEO, `title_length` wants 30 to 60 characters and `desc_length` wants 120 to 160. For AEO, `aeo_direct_answers` looks for a paragraph of 30 to 80 words. For GEO, `geo_citations` wants at least one external link and `geo_passage_citability` wants a paragraph of 40 to 120 words.
@@ -72,5 +72,5 @@ After the base is clean, answer-ready structure is cheap to add. Then GEO signal
 - SEO targets crawlers, AEO targets answer boxes, GEO targets generative models.
 - They stack. Fix SEO first, then add answer structure, then citation signals.
 - findable scores SEO 50%, AEO 25% and GEO 25%, and every check has a stable id.
-- Run `seoscore <url>` to see your failures, ranked, in one pass.
+- Run `findable <url>` to see your failures, ranked, in one pass.
 - A short summary section helps you too: `aeo_summary` looks for the words "key takeaway", "summary" or "conclusion".
