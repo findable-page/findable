@@ -9,6 +9,12 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/seoscore-cli/internal/fetch"
+	"github.com/nadimtuhin/seoscore-cli/internal/mcpserver"
+	"github.com/nadimtuhin/seoscore-cli/internal/report"
+	"github.com/nadimtuhin/seoscore-cli/internal/server"
 )
 
 const (
@@ -16,7 +22,6 @@ const (
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
-	dateLayout    = "2006-01-02"
 	exitUsage     = 2
 )
 
@@ -54,7 +59,7 @@ func main() {
 
 	switch {
 	case opts.mcp:
-		runMCP(os.Stdin, os.Stdout, client)
+		mcpserver.Run(os.Stdin, os.Stdout, client)
 	case opts.serve != "":
 		serveHTTP(opts.serve, client, opts.remote)
 	default:
@@ -68,7 +73,7 @@ func main() {
 
 func serveHTTP(addr string, client *http.Client, remote bool) {
 	fmt.Printf("seoscore API server listening on %s (remote=%v)\n", addr, remote)
-	if err := newServer(addr, client, remote).ListenAndServe(); err != nil {
+	if err := server.NewServer(addr, client, remote).ListenAndServe(); err != nil {
 		fail("server error: %v", err)
 	}
 }
@@ -79,21 +84,21 @@ func runAudit(client *http.Client, target string, opts options) {
 		fail("create %s: %v", opts.outDir, err)
 	}
 	if opts.crawl {
-		if !isHTTPURL(target) {
+		if !fetch.IsHTTPURL(target) {
 			fail("-crawl requires an http(s) URL, not a local file")
 		}
 		runCrawl(client, target, hostName, opts)
 		return
 	}
 
-	s, err := scanTarget(client, target, opts.keyphrase, opts.remote)
+	s, err := fetch.Scan(client, target, opts.keyphrase, opts.remote)
 	if err != nil {
 		fail("%v", err)
 	}
 	path := reportPath(opts.outDir, "seoscore-report", hostName)
-	writeReport(path, csv(hostName, s))
+	writeReport(path, report.CSV(hostName, s))
 
-	fmt.Printf("overall %d  SEO %s  AEO %s  GEO %s\n", overall(s), score(s.SEO), score(s.AEO), score(s.GEO))
+	fmt.Printf("overall %d  SEO %s  AEO %s  GEO %s\n", audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO))
 	if !opts.quiet {
 		printFailures("", s)
 	}
@@ -101,7 +106,7 @@ func runAudit(client *http.Client, target string, opts options) {
 }
 
 func reportHostName(target string) string {
-	if !isHTTPURL(target) {
+	if !fetch.IsHTTPURL(target) {
 		return filepath.Base(target)
 	}
 	u, err := url.Parse(target)
@@ -112,12 +117,12 @@ func reportHostName(target string) string {
 }
 
 func runCrawl(client *http.Client, start, hostName string, opts options) {
-	pages, err := crawl(client, start, crawlOptions{
-		keyphrase: opts.keyphrase,
-		limit:     opts.limit,
-		delay:     opts.delay,
-		remote:    opts.remote,
-		onPage: func(done, limit int, p crawledPage) {
+	pages, err := fetch.Crawl(client, start, fetch.CrawlOptions{
+		Keyphrase: opts.keyphrase,
+		Limit:     opts.limit,
+		Delay:     opts.delay,
+		Remote:    opts.remote,
+		OnPage: func(done, limit int, p audit.Page) {
 			printCrawlProgress(done, limit, p, opts.quiet)
 		},
 	})
@@ -125,31 +130,31 @@ func runCrawl(client *http.Client, start, hostName string, opts options) {
 		fail("%v", err)
 	}
 	path := reportPath(opts.outDir, "seoscore-site-report", hostName)
-	writeReport(path, crawlCSV(hostName, pages))
+	writeReport(path, report.CrawlCSV(hostName, pages))
 	fmt.Printf("saved %s (%d pages)\n", path, len(pages))
 }
 
-func printCrawlProgress(done, limit int, p crawledPage, quiet bool) {
-	s := p.scan
+func printCrawlProgress(done, limit int, p audit.Page, quiet bool) {
+	s := p.Scan
 	fmt.Printf("[%d/%d] %s  overall %d  SEO %s  AEO %s  GEO %s  failed %d\n",
-		done, limit, p.url, overall(s), score(s.SEO), score(s.AEO), score(s.GEO), failedCount(s))
+		done, limit, p.URL, audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO), audit.FailedCount(s))
 	if !quiet {
 		printFailures("  ", s)
 	}
 }
 
-func printFailures(indent string, s scan) {
-	for _, c := range s.scored() {
-		for _, k := range c.cat.Checks {
-			if status(k) == statusFail {
-				fmt.Printf("%sFAIL %s %s: %s\n", indent, c.name, k.ID, k.Label)
+func printFailures(indent string, s audit.Scan) {
+	for _, c := range s.Scored() {
+		for _, k := range c.Cat.Checks {
+			if audit.Status(k) == audit.StatusFail {
+				fmt.Printf("%sFAIL %s %s: %s\n", indent, c.Name, k.ID, k.Label)
 			}
 		}
 	}
 }
 
 func reportPath(outDir, prefix, hostName string) string {
-	return filepath.Join(outDir, fmt.Sprintf("%s-%s-%s.csv", prefix, hostName, time.Now().Format(dateLayout)))
+	return filepath.Join(outDir, fmt.Sprintf("%s-%s-%s.csv", prefix, hostName, time.Now().Format(report.DateLayout)))
 }
 
 func writeReport(path, content string) {

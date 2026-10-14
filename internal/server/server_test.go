@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -7,10 +7,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/nadimtuhin/seoscore-cli/internal/audit"
 )
 
 func newTestMux() *http.ServeMux {
-	return newMux(&http.Client{}, false)
+	return NewMux(&http.Client{}, false)
 }
 
 func newRequest(method, target, body string) *http.Request {
@@ -97,7 +99,7 @@ func TestServerScanMissingOrEmptyURL(t *testing.T) {
 
 func TestServerScanLocalFile(t *testing.T) {
 	mux := newTestMux()
-	reqBody := `{"url":"testdata/site/01-thin-poor.html"}`
+	reqBody := `{"url":"../../testdata/site/01-thin-poor.html"}`
 	req := newRequest(http.MethodPost, "/api/scan", reqBody)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
@@ -105,7 +107,7 @@ func TestServerScanLocalFile(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200 OK, got %d: %s", rec.Code, rec.Body.String())
 	}
-	var res scan
+	var res audit.Scan
 	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}

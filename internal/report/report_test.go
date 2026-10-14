@@ -1,10 +1,12 @@
-package main
+package report
 
 import (
 	"encoding/json"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/nadimtuhin/seoscore-cli/internal/audit"
 )
 
 const recorded = `{
@@ -17,9 +19,9 @@ const recorded = `{
   "cwv": {"checks": []}
 }`
 
-func decode(t *testing.T) scan {
+func decode(t *testing.T) audit.Scan {
 	t.Helper()
-	var s scan
+	var s audit.Scan
 	if err := json.Unmarshal([]byte(recorded), &s); err != nil {
 		t.Fatal(err)
 	}
@@ -28,13 +30,13 @@ func decode(t *testing.T) scan {
 
 func TestOverallWeightsSEOHalfAndRounds(t *testing.T) {
 	// 0.5*92 + 0.25*90 + 0.25*84 = 89.5, which rounds up to 90
-	if got := overall(decode(t)); got != 90 {
+	if got := audit.Overall(decode(t)); got != 90 {
 		t.Fatalf("overall = %d, want 90", got)
 	}
 }
 
 func TestMissingScoreCountsAsZero(t *testing.T) {
-	if got := overall(scan{}); got != 0 {
+	if got := audit.Overall(audit.Scan{}); got != 0 {
 		t.Fatalf("overall of empty scan = %d, want 0", got)
 	}
 }
@@ -42,20 +44,20 @@ func TestMissingScoreCountsAsZero(t *testing.T) {
 func TestStatusDistinguishesPassFailAndNotApplicable(t *testing.T) {
 	checks := decode(t).SEO.Checks
 	for i, want := range []string{"PASS", "FAIL", "N/A"} {
-		if got := status(checks[i]); got != want {
+		if got := audit.Status(checks[i]); got != want {
 			t.Errorf("%s: status = %s, want %s", checks[i].ID, got, want)
 		}
 	}
 }
 
 func TestFailedCountIgnoresPassAndNA(t *testing.T) {
-	if got := failedCount(decode(t)); got != 2 {
+	if got := audit.FailedCount(decode(t)); got != 2 {
 		t.Fatalf("failedCount = %d, want 2", got)
 	}
 }
 
 func TestCSVHasBOMCategoriesAndQuotedLabels(t *testing.T) {
-	lines := strings.Split(csv("example.com", decode(t)), "\n")
+	lines := strings.Split(CSV("example.com", decode(t)), "\n")
 	if !strings.HasPrefix(lines[0], "\xef\xbb\xbfSEO/AEO/GEO Report,example.com,") {
 		t.Errorf("header row = %q", lines[0])
 	}
@@ -80,11 +82,11 @@ func TestCSVHasBOMCategoriesAndQuotedLabels(t *testing.T) {
 
 func TestCrawlCSVGeneratesCorrectFormat(t *testing.T) {
 	s := decode(t)
-	pages := []crawledPage{
-		{url: "https://example.com", scan: s},
-		{url: "https://example.com/about", scan: s},
+	pages := []audit.Page{
+		{URL: "https://example.com", Scan: s},
+		{URL: "https://example.com/about", Scan: s},
 	}
-	lines := strings.Split(crawlCSV("example.com", pages), "\n")
+	lines := strings.Split(CrawlCSV("example.com", pages), "\n")
 	if !strings.HasPrefix(lines[0], "\xef\xbb\xbfSite Crawl Report,example.com,") {
 		t.Errorf("header row = %q", lines[0])
 	}
@@ -108,15 +110,15 @@ func TestCrawlCSVGeneratesCorrectFormat(t *testing.T) {
 }
 
 func TestMatchesWebsiteCsvExportExact(t *testing.T) {
-	raw, err := os.ReadFile("testdata/reports/raw/04-geo-research.json")
+	raw, err := os.ReadFile("../../testdata/reports/raw/04-geo-research.json")
 	if err != nil {
 		t.Skip("fixture not available")
 	}
-	var s scan
+	var s audit.Scan
 	if err := json.Unmarshal(raw, &s); err != nil {
 		t.Fatal(err)
 	}
-	goCsv := csv("declined-parcel-saver-employment.trycloudflare.com", s)
+	goCsv := CSV("declined-parcel-saver-employment.trycloudflare.com", s)
 	webCsv, err := os.ReadFile("/tmp/web_report.csv")
 	if err != nil {
 		t.Skip("web csv not generated")

@@ -1,4 +1,4 @@
-package main
+package mcpserver
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ func TestMCPInitialize(t *testing.T) {
 	in := bytes.NewBufferString(initReq)
 	out := &bytes.Buffer{}
 
-	runMCP(in, out, &httpDefaultClient)
+	Run(in, out, &httpDefaultClient)
 
 	var res map[string]interface{}
 	if err := json.Unmarshal(out.Bytes(), &res); err != nil {
@@ -41,7 +41,7 @@ func TestMCPToolsList(t *testing.T) {
 	in := bytes.NewBufferString(req)
 	out := &bytes.Buffer{}
 
-	runMCP(in, out, &httpDefaultClient)
+	Run(in, out, &httpDefaultClient)
 
 	var res map[string]interface{}
 	if err := json.Unmarshal(out.Bytes(), &res); err != nil {
@@ -87,7 +87,7 @@ func TestMCPToolCallAuditHTMLContent(t *testing.T) {
 	in := bytes.NewBuffer(append(raw, '\n'))
 	out := &bytes.Buffer{}
 
-	runMCP(in, out, &httpDefaultClient)
+	Run(in, out, &httpDefaultClient)
 
 	var res map[string]interface{}
 	if err := json.Unmarshal(out.Bytes(), &res); err != nil {

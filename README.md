@@ -16,7 +16,7 @@ Audits live URLs or local HTML files completely offline in Go, exports identical
 ## Install
 
 ```bash
-go install github.com/nadimtuhin/seoscore-cli@latest
+go install github.com/nadimtuhin/seoscore-cli/cmd/seoscore@latest
 ```
 
 ## CLI Usage
@@ -25,29 +25,29 @@ go install github.com/nadimtuhin/seoscore-cli@latest
 
 Audit a live URL:
 ```bash
-seoscore-cli https://example.com
+seoscore https://example.com
 ```
 
 Audit a local HTML file directly without any web server:
 ```bash
-seoscore-cli ./path/to/page.html
+seoscore ./path/to/page.html
 ```
 
 With focus keyphrase:
 ```bash
-seoscore-cli -k "cloud performance" https://example.com
+seoscore -k "cloud performance" https://example.com
 ```
 
 ### 2. Multi-Page Site Crawl
 
 ```bash
-seoscore-cli -crawl -limit 20 https://example.com
+seoscore -crawl -limit 20 https://example.com
 ```
 
 ### 3. Run Local REST API & Web UI
 
 ```bash
-seoscore-cli -serve :8080
+seoscore -serve :8080
 ```
 Open `http://localhost:8080` in your browser for the full web dashboard.
 
@@ -65,7 +65,7 @@ Add to your `claude_desktop_config.json` or Cursor `settings.json`:
 {
   "mcpServers": {
     "seoscore": {
-      "command": "seoscore-cli",
+      "command": "seoscore",
       "args": ["-mcp"]
     }
   }

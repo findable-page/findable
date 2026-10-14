@@ -33,6 +33,11 @@ linters:
       # one shared constant would couple them.
       ignore-string-values:
         - "^(name|description|text|type)$"
+  exclusions:
+    rules:
+      # internal packages with self-describing names; the repo keeps doc comments out on purpose.
+      - linters: [revive]
+        text: "^(exported|package-comments):"
 
 formatters:
   enable:

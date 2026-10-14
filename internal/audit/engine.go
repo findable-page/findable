@@ -1,4 +1,4 @@
-package main
+package audit
 
 import (
 	"math"
@@ -6,19 +6,19 @@ import (
 	"strings"
 )
 
-func AuditPage(targetURL, rawHTML string, headers http.Header, statusCode int) scan {
+func Analyze(targetURL, rawHTML string, headers http.Header, statusCode int) Scan {
 	sig := extractSignals(targetURL, rawHTML, headers, statusCode)
 
-	return scan{
+	return Scan{
 		SEO:           buildCategory(evalSEO(&sig)),
 		AEO:           buildCategory(evalAEO(&sig)),
 		GEO:           buildCategory(evalGEO(&sig)),
-		CWV:           category{Checks: []check{}},
+		CWV:           Category{Checks: []Check{}},
 		InternalLinks: sig.InternalLinks,
 	}
 }
 
-func buildCategory(checks []check) category {
+func buildCategory(checks []Check) Category {
 	passed := 0
 	total := 0
 	for _, c := range checks {
@@ -34,7 +34,7 @@ func buildCategory(checks []check) category {
 	if total > 0 {
 		scoreVal = math.Round((float64(passed) / float64(total)) * 100)
 	}
-	return category{
+	return Category{
 		Score:  &scoreVal,
 		Passed: passed,
 		Total:  total,
@@ -42,13 +42,13 @@ func buildCategory(checks []check) category {
 	}
 }
 
-type checkList []check
+type checkList []Check
 
 func (l *checkList) add(id, label string, pass bool) {
-	*l = append(*l, check{ID: id, Label: label, Pass: pass})
+	*l = append(*l, Check{ID: id, Label: label, Pass: pass})
 }
 
-func runChecks(s *PageSignals, groups ...func(*checkList, *PageSignals)) []check {
+func runChecks(s *PageSignals, groups ...func(*checkList, *PageSignals)) []Check {
 	var checks checkList
 	for _, group := range groups {
 		group(&checks, s)

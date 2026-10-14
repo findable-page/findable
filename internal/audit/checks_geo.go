@@ -1,11 +1,11 @@
-package main
+package audit
 
 import (
 	"fmt"
 	"strings"
 )
 
-func evalGEO(s *PageSignals) []check {
+func evalGEO(s *PageSignals) []Check {
 	return runChecks(s,
 		geoData,
 		geoCitations,

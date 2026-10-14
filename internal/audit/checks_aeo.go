@@ -1,11 +1,11 @@
-package main
+package audit
 
 import (
 	"fmt"
 	"strings"
 )
 
-func evalAEO(s *PageSignals) []check {
+func evalAEO(s *PageSignals) []Check {
 	return runChecks(s,
 		aeoStructuredData,
 		aeoAnswerShape,

@@ -1,10 +1,14 @@
-package main
+package mcpserver
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/nadimtuhin/seoscore-cli/internal/audit"
+	"github.com/nadimtuhin/seoscore-cli/internal/fetch"
+	"github.com/nadimtuhin/seoscore-cli/internal/report"
 )
 
 type schemaProps map[string]map[string]any
@@ -103,14 +107,14 @@ func toolResult(v any) (text string, isError bool) {
 	return string(b), false
 }
 
-func scanSummary(targetURL string, res scan) map[string]any {
+func scanSummary(targetURL string, res audit.Scan) map[string]any {
 	return map[string]any{
 		"url":          targetURL,
-		"overallScore": overall(res),
-		"seoScore":     val(res.SEO),
-		"aeoScore":     val(res.AEO),
-		"geoScore":     val(res.GEO),
-		"failedChecks": failedCount(res),
+		"overallScore": audit.Overall(res),
+		"seoScore":     audit.ScoreValue(res.SEO),
+		"aeoScore":     audit.ScoreValue(res.AEO),
+		"geoScore":     audit.ScoreValue(res.GEO),
+		"failedChecks": audit.FailedCount(res),
 		"scan":         res,
 	}
 }
@@ -121,7 +125,7 @@ func toolAuditPage(a toolArgs, client *http.Client) (text string, isError bool) 
 		return errMissedURL, true
 	}
 	remote, _ := a["remote"].(bool)
-	res, err := scanTarget(client, targetURL, a.str(argKeyphrase), remote)
+	res, err := fetch.Scan(client, targetURL, a.str(argKeyphrase), remote)
 	if err != nil {
 		return fmt.Sprintf("Error auditing %s: %v", targetURL, err), true
 	}
@@ -137,7 +141,7 @@ func toolAuditHTML(a toolArgs) (text string, isError bool) {
 	if targetURL == "" {
 		targetURL = defaultVirtualURL
 	}
-	res := AuditPage(targetURL, rawHTML, make(http.Header), http.StatusOK)
+	res := audit.Analyze(targetURL, rawHTML, make(http.Header), http.StatusOK)
 	return toolResult(scanSummary(targetURL, res))
 }
 
@@ -164,21 +168,21 @@ func toolCrawlSite(a toolArgs, client *http.Client) (text string, isError bool) 
 		return errMissedURL, true
 	}
 	keyphrase := a.str(argKeyphrase)
-	first, err := scanTarget(client, targetURL, keyphrase, false)
+	first, err := fetch.Scan(client, targetURL, keyphrase, false)
 	if err != nil {
 		return fmt.Sprintf("Error crawling start URL %s: %v", targetURL, err), true
 	}
-	pages := followLinks(client, crawledPage{url: targetURL, scan: first}, keyphrase, crawlLimit(a))
+	pages := followLinks(client, audit.Page{URL: targetURL, Scan: first}, keyphrase, crawlLimit(a))
 
 	var list []pageSummary
 	for _, p := range pages {
 		list = append(list, pageSummary{
-			URL:     p.url,
-			Overall: overall(p.scan),
-			SEO:     score(p.scan.SEO),
-			AEO:     score(p.scan.AEO),
-			GEO:     score(p.scan.GEO),
-			Failed:  failedCount(p.scan),
+			URL:     p.URL,
+			Overall: audit.Overall(p.Scan),
+			SEO:     audit.ScoreText(p.Scan.SEO),
+			AEO:     audit.ScoreText(p.Scan.AEO),
+			GEO:     audit.ScoreText(p.Scan.GEO),
+			Failed:  audit.FailedCount(p.Scan),
 		})
 	}
 	return toolResult(map[string]any{
@@ -188,10 +192,10 @@ func toolCrawlSite(a toolArgs, client *http.Client) (text string, isError bool) 
 	})
 }
 
-func followLinks(client *http.Client, first crawledPage, keyphrase string, limit int) []crawledPage {
-	pages := []crawledPage{first}
-	visited := map[string]bool{first.url: true}
-	queue := append([]string{}, first.scan.InternalLinks...)
+func followLinks(client *http.Client, first audit.Page, keyphrase string, limit int) []audit.Page {
+	pages := []audit.Page{first}
+	visited := map[string]bool{first.URL: true}
+	queue := append([]string{}, first.Scan.InternalLinks...)
 
 	for len(queue) > 0 && len(pages) < limit {
 		curr := queue[0]
@@ -201,11 +205,11 @@ func followLinks(client *http.Client, first crawledPage, keyphrase string, limit
 		}
 		visited[curr] = true
 
-		s, err := scanTarget(client, curr, keyphrase, false)
+		s, err := fetch.Scan(client, curr, keyphrase, false)
 		if err != nil {
 			continue
 		}
-		pages = append(pages, crawledPage{url: curr, scan: s})
+		pages = append(pages, audit.Page{URL: curr, Scan: s})
 		for _, l := range s.InternalLinks {
 			if !visited[l] {
 				queue = append(queue, l)
@@ -220,9 +224,9 @@ func toolCSVReport(a toolArgs, client *http.Client) (text string, isError bool) 
 	if !ok {
 		return errMissedURL, true
 	}
-	res, err := scanTarget(client, targetURL, a.str(argKeyphrase), false)
+	res, err := fetch.Scan(client, targetURL, a.str(argKeyphrase), false)
 	if err != nil {
 		return fmt.Sprintf("Error generating CSV for %s: %v", targetURL, err), true
 	}
-	return csv(targetURL, res), false
+	return report.CSV(targetURL, res), false
 }

@@ -1,11 +1,11 @@
-package main
+package audit
 
 import (
 	"fmt"
 	"strings"
 )
 
-func evalSEO(s *PageSignals) []check {
+func evalSEO(s *PageSignals) []Check {
 	return runChecks(s,
 		seoTitle,
 		seoDescription,

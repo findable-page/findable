@@ -1,4 +1,4 @@
-package main
+package mcpserver
 
 import (
 	"bufio"
@@ -48,7 +48,7 @@ type mcpSession struct {
 	client *http.Client
 }
 
-func runMCP(in io.Reader, out io.Writer, client *http.Client) {
+func Run(in io.Reader, out io.Writer, client *http.Client) {
 	scanner := bufio.NewScanner(in)
 	scanner.Buffer(make([]byte, 0, initialLineBytes), maxMCPLineBytes)
 	session := mcpSession{enc: json.NewEncoder(out), client: client}

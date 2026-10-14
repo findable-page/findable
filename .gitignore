@@ -6,6 +6,7 @@
 *.dylib
 seoscore-cli
 seoscore-bin
+/seoscore
 
 # Test CSVs
 seoscore-report-*.csv

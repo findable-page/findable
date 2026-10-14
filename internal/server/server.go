@@ -1,10 +1,12 @@
-package main
+package server
 
 import (
 	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/nadimtuhin/seoscore-cli/internal/fetch"
 )
 
 const (
@@ -20,7 +22,7 @@ type scanRequest struct {
 	Keyphrase string `json:"keyphrase"`
 }
 
-func newMux(client *http.Client, remote bool) *http.ServeMux {
+func NewMux(client *http.Client, remote bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handleRoot)
 	mux.HandleFunc("/api/scan", scanHandler(client, remote))
@@ -29,8 +31,8 @@ func newMux(client *http.Client, remote bool) *http.ServeMux {
 	return mux
 }
 
-func newServer(addr string, client *http.Client, remote bool) *http.Server {
-	return &http.Server{Addr: addr, Handler: newMux(client, remote), ReadHeaderTimeout: readHeaderTimeout}
+func NewServer(addr string, client *http.Client, remote bool) *http.Server {
+	return &http.Server{Addr: addr, Handler: NewMux(client, remote), ReadHeaderTimeout: readHeaderTimeout}
 }
 
 func allowAnyOrigin(w http.ResponseWriter) {
@@ -75,7 +77,7 @@ func scanHandler(client *http.Client, remote bool) http.HandlerFunc {
 			http.Error(w, "bad request: missing url", http.StatusBadRequest)
 			return
 		}
-		res, err := scanTarget(client, req.URL, req.Keyphrase, remote)
+		res, err := fetch.Scan(client, req.URL, req.Keyphrase, remote)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
