@@ -496,7 +496,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     {
       id: "aeo_question_headings",
       label: "Question-style headings found (What/How/Why/?)",
-      pass: h2Matches.some((m) => /\b(what|how|why|\?)\b/i.test(m[1] ?? "")),
+      pass: h2Matches.some((m) => /\b(what|how|why)\b|\?/i.test(m[1] ?? "")),
     },
     { id: "aeo_definition_lists", label: "Definition lists (<dl>) present for terminology", pass: hasDl },
     { id: "aeo_numbered_steps", label: "Numbered steps (<ol>) present for instructions", pass: hasOl },

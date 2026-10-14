@@ -239,3 +239,16 @@ test("/api/scan finds JSON-LD types in top-level arrays, @type arrays and nested
   const pass = (id: string) => [...scan.aeo.checks, ...scan.geo.checks].find((c) => c.id === id)?.pass;
   expect([pass("aeo_faq"), pass("geo_author_schema"), pass("geo_org_schema")]).toEqual([true, true, true]);
 });
+
+test("/api/scan counts a heading that ends in a question mark as a question heading", async () => {
+  globalThis.fetch = (async () =>
+    new Response(
+      "<html><head><title>t</title></head><body><h2>Is it free?</h2></body></html>",
+    )) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
+    allowAll,
+  );
+  const scan = (await resp.json()) as { aeo: { checks: Check[] } };
+  expect(scan.aeo.checks.find((c) => c.id === "aeo_question_headings")?.pass).toBe(true);
+});
