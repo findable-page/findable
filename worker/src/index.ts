@@ -1,5 +1,6 @@
 import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
+import { LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
 
@@ -77,6 +78,34 @@ async function buildUiPolicy(): Promise<string> {
   ].join("; ");
 }
 
+let learnPolicy: Promise<string> | undefined;
+
+async function buildLearnPolicy(): Promise<string> {
+  return [
+    "default-src 'none'",
+    `style-src ${await sha256Source(LEARN_STYLE)}`,
+    "base-uri 'none'",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
+async function learnResponse(pathname: string, origin: string): Promise<Response> {
+  const slug = pathname.slice("/learn".length).replace(/^\/|\/$/g, "");
+  const html = slug ? renderLearnPost(slug, origin) : renderLearnIndex(origin);
+  learnPolicy ??= buildLearnPolicy();
+  return new Response(html ?? renderLearnNotFound(origin), {
+    status: html ? 200 : 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Security-Policy": await learnPolicy,
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Strict-Transport-Security": "max-age=31536000",
+    },
+  });
+}
+
 const OWN_HOSTS = ["findable.piply.xyz", "seoscore.piply.xyz"];
 
 const worker = {
@@ -97,6 +126,10 @@ const worker = {
           "X-Content-Type-Options": "nosniff",
         },
       });
+    }
+
+    if (request.method === "GET" && (url.pathname === "/learn" || url.pathname.startsWith("/learn/"))) {
+      return learnResponse(url.pathname, url.origin);
     }
 
     if (url.pathname === "/health") {

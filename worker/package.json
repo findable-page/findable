@@ -8,6 +8,7 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "biome check --error-on-warnings",
+    "build:learn": "bun ../scripts/build-learn.ts",
     "test": "bun test"
   },
   "devDependencies": {

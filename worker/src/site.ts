@@ -3,7 +3,7 @@ import type { Check } from "./index";
 
 const AI_CRAWLERS = ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"];
 const PAGE_CRAWLER = "*";
-const MAX_SITE_FILE_BYTES = 512 * 1024;
+export const MAX_SITE_FILE_BYTES = 512 * 1024;
 const MAX_ROBOTS_WILDCARDS = 10;
 
 interface RobotsRule {

@@ -1,5 +1,5 @@
 export const MAX_PAGE_BYTES = 5 * 1024 * 1024;
-const FETCH_TIMEOUT_MS = 10_000;
+export const FETCH_TIMEOUT_MS = 10_000;
 const MAX_REDIRECTS = 5;
 const BLOCKED_SUFFIXES = [".localhost", ".local", ".internal", ".home.arpa"];
 const BLOCKED_V4: [number, number][] = [
