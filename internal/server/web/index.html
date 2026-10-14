@@ -285,23 +285,6 @@
       margin-bottom: 1.5rem;
     }
     .trust-dot { opacity: 0.4; }
-    .counter-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 0.4rem 1.1rem;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      margin-bottom: 2rem;
-    }
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--ok);
-      border-radius: 50%;
-    }
 
     /* Recent Scans Strip */
     .recent-strip {
@@ -554,14 +537,6 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-    }
-    .priority-gain {
-      background: var(--warn-light);
-      color: var(--warn);
-      padding: 0.25rem 0.65rem;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 700;
     }
     .priority-list {
       display: flex;
@@ -959,10 +934,6 @@
         <span>Free API & MCP Tools</span>
       </div>
 
-      <div class="counter-badge" id="counterBox">
-        <div class="pulse-dot"></div>
-        <span><strong id="counterVal">2,847</strong> audits executed</span>
-      </div>
     </section>
 
     <!-- Crawl Progress UI -->
@@ -1111,7 +1082,6 @@
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             Fix These First (Highest Impact)
           </div>
-          <span class="priority-gain" id="priorityGainBadge">Potential gain: +0 pts</span>
         </div>
         <div class="priority-list" id="priorityList"></div>
       </div>
@@ -1200,11 +1170,6 @@ seoscore-cli https://example.com</div>
     apiModal.addEventListener("click", (e) => { if (e.target === apiModal) apiModal.close(); });
     apiModal.addEventListener("close", () => btnOpenApi.focus());
 
-    // Live counter
-    fetch("/api/scan-count").then(r => r.json()).then(d => {
-      if (d && d.count) document.getElementById("counterVal").textContent = Number(d.count).toLocaleString();
-    }).catch(() => {});
-
     // Recent Scans Storage
     function recentHost(url) {
       try {
@@ -1291,25 +1256,25 @@ seoscore-cli https://example.com</div>
     const urlInput = document.getElementById("urlInput");
     const keyphraseInput = document.getElementById("keyphraseInput");
 
-    const fixAdviceMap = {
-      title_exists: { advice: "Add a distinct <title> tag inside <head> describing the specific page purpose.", pts: 8 },
-      title_length: { advice: "Keep your title tag between 30 and 60 characters so search engines do not truncate it.", pts: 5 },
-      desc_exists: { advice: "Add a <meta name='description'> tag with an enticing summary.", pts: 6 },
-      desc_length: { advice: "Aim for 120 to 160 characters in your meta description for optimal search snippet display.", pts: 4 },
-      h1_exists: { advice: "Ensure exactly one H1 tag is present on the page defining the primary topic.", pts: 6 },
-      heading_hierarchy: { advice: "Structure headings hierarchically (H1 -> H2 -> H3) without skipping levels.", pts: 4 },
-      word_count: { advice: "Expand thin content to at least 300 words to establish topical depth.", pts: 5 },
-      canonical: { advice: "Add a canonical link tag (<link rel='canonical' href='...'>) to prevent duplicate content.", pts: 5 },
-      img_alt: { advice: "Include descriptive alt attributes on all <img> tags for accessibility and image search.", pts: 4 },
-      img_dimensions: { advice: "Define explicit width and height attributes on images to prevent Layout Shift (CLS).", pts: 3 },
-      aeo_faq: { advice: "Add FAQPage Schema.org structured data with concise question-and-answer pairs.", pts: 7 },
-      aeo_direct_answers: { advice: "Place concise 30-80 word direct answer paragraphs directly beneath question headings.", pts: 6 },
-      aeo_definition_lists: { advice: "Use <dl>, <dt>, and <dd> elements to define terms and concepts for AI extraction.", pts: 4 },
-      aeo_numbered_steps: { advice: "Use <ol> numbered lists for step-by-step instructions and recipes.", pts: 4 },
-      geo_statistics_density: { advice: "Include quantitative data points, benchmarks, percentages (%), and metrics.", pts: 6 },
-      geo_expert_quotes: { advice: "Use <blockquote> tags with attributed sources to demonstrate expertise and authority.", pts: 5 },
-      geo_citations: { advice: "Cite reputable external source links to back up empirical claims.", pts: 5 },
-      geo_knowledge_graph: { advice: "Add sameAs links to Wikidata, LinkedIn, or Wikipedia in your Organization schema.", pts: 5 }
+    const fixAdvice = {
+      title_exists: "Add a distinct <title> tag inside <head> describing the specific page purpose.",
+      title_length: "Keep your title tag between 30 and 60 characters so search engines do not truncate it.",
+      desc_exists: "Add a <meta name='description'> tag with an enticing summary.",
+      desc_length: "Aim for 120 to 160 characters in your meta description for optimal search snippet display.",
+      h1_exists: "Ensure exactly one H1 tag is present on the page defining the primary topic.",
+      heading_hierarchy: "Structure headings hierarchically (H1 -> H2 -> H3) without skipping levels.",
+      word_count: "Expand thin content to at least 300 words to establish topical depth.",
+      canonical: "Add a canonical link tag (<link rel='canonical' href='...'>) to prevent duplicate content.",
+      img_alt: "Include descriptive alt attributes on all <img> tags for accessibility and image search.",
+      img_dimensions: "Define explicit width and height attributes on images to prevent Layout Shift (CLS).",
+      aeo_faq: "Add FAQPage Schema.org structured data with concise question-and-answer pairs.",
+      aeo_direct_answers: "Place concise 30-80 word direct answer paragraphs directly beneath question headings.",
+      aeo_definition_lists: "Use <dl>, <dt>, and <dd> elements to define terms and concepts for AI extraction.",
+      aeo_numbered_steps: "Use <ol> numbered lists for step-by-step instructions and recipes.",
+      geo_statistics_density: "Include quantitative data points, benchmarks, percentages (%), and metrics.",
+      geo_expert_quotes: "Use <blockquote> tags with attributed sources to demonstrate expertise and authority.",
+      geo_citations: "Cite reputable external source links to back up empirical claims.",
+      geo_knowledge_graph: "Add sameAs links to Wikidata, LinkedIn, or Wikipedia in your Organization schema."
     };
 
     scanForm.addEventListener("submit", async (e) => {
@@ -1340,7 +1305,7 @@ seoscore-cli https://example.com</div>
         currentScan = await resp.json();
         setBusy(false);
         renderScanResults(currentScan, targetUrl);
-        saveRecentScan(targetUrl, Math.round((currentScan.seo.score||0)*0.5 + (currentScan.aeo.score||0)*0.25 + (currentScan.geo.score||0)*0.25));
+        saveRecentScan(targetUrl, overallScore(currentScan));
       } catch (err) {
         setBusy(false);
         showError(err.message);
@@ -1379,6 +1344,23 @@ seoscore-cli https://example.com</div>
       return text.trim() || "The scan API answered with status " + resp.status;
     }
 
+    const FAMILY_WEIGHTS = { SEO: 50, AEO: 25, GEO: 25 };
+
+    function overallScore(data) {
+      if (typeof data.overall === "number") return data.overall;
+      return Math.round((data.seo.score || 0) * 0.5 + (data.aeo.score || 0) * 0.25 + (data.geo.score || 0) * 0.25);
+    }
+
+    function familyChecks(data, family) {
+      const fam = data[family.toLowerCase()] || {};
+      const worth = fam.total ? FAMILY_WEIGHTS[family] / fam.total : 0;
+      return (fam.checks || []).map(c => ({ ...c, cat: family, worth }));
+    }
+
+    function formatWorth(worth) {
+      return worth.toFixed(1) + " pts";
+    }
+
     function setRing(id, score) {
       const circumference = 314.16;
       const offset = circumference * (1 - Math.min(100, Math.max(0, score)) / 100);
@@ -1395,7 +1377,7 @@ seoscore-cli https://example.com</div>
       const seo = (data.seo && data.seo.score) || 0;
       const aeo = (data.aeo && data.aeo.score) || 0;
       const geo = (data.geo && data.geo.score) || 0;
-      const overall = Math.round(seo * 0.5 + aeo * 0.25 + geo * 0.25);
+      const overall = overallScore(data);
 
       document.getElementById("valOverall").textContent = overall;
       document.getElementById("valSEO").textContent = seo;
@@ -1430,11 +1412,7 @@ seoscore-cli https://example.com</div>
       document.getElementById("detailAEO").textContent = `${data.aeo.passed} / ${data.aeo.total} checks passed`;
       document.getElementById("detailGEO").textContent = `${data.geo.passed} / ${data.geo.total} checks passed`;
 
-      allChecks = [
-        ...(data.seo.checks || []).map(c => ({ ...c, cat: "SEO" })),
-        ...(data.aeo.checks || []).map(c => ({ ...c, cat: "AEO" })),
-        ...(data.geo.checks || []).map(c => ({ ...c, cat: "GEO" })),
-      ];
+      allChecks = [...familyChecks(data, "SEO"), ...familyChecks(data, "AEO"), ...familyChecks(data, "GEO")];
 
       const failingChecks = allChecks.filter(c => c.applicable !== false && !c.pass);
       document.getElementById("countAll").textContent = allChecks.length;
@@ -1444,10 +1422,7 @@ seoscore-cli https://example.com</div>
       document.getElementById("countFail").textContent = failingChecks.length;
       document.getElementById("overallFailingSummary").textContent = `${failingChecks.length} issues flagged`;
 
-      // Render Priority Fixes
       renderPriorityFixes(failingChecks);
-
-      // Render Check List
       filterAndRenderChecks();
 
       scanStatus.textContent = `Scan complete for ${url}: overall ${overall} of 100, ${failingChecks.length} failing checks.`;
@@ -1467,31 +1442,22 @@ seoscore-cli https://example.com</div>
       }
       panel.classList.remove("hidden");
 
-      // Sort by assigned weight/impact
-      const prioritized = [...failing].sort((a, b) => {
-        const ptsA = (fixAdviceMap[a.id] && fixAdviceMap[a.id].pts) || 2;
-        const ptsB = (fixAdviceMap[b.id] && fixAdviceMap[b.id].pts) || 2;
-        return ptsB - ptsA;
-      }).slice(0, 4);
+      const prioritized = [...failing].sort((a, b) => b.worth - a.worth).slice(0, 4);
 
-      let totalGain = 0;
       prioritized.forEach((c, idx) => {
-        const item = fixAdviceMap[c.id] || { advice: "Resolve this issue according to search best practices.", pts: 3 };
-        totalGain += item.pts;
+        const advice = fixAdvice[c.id] || "Resolve this issue according to search best practices.";
         const row = document.createElement("div");
         row.className = "priority-item";
         row.innerHTML = `
           <div class="priority-rank">#${idx + 1}</div>
           <div class="priority-info">
             <div class="priority-label">${escapeHtml(c.label)}</div>
-            <div class="priority-advice">${escapeHtml(item.advice)}</div>
+            <div class="priority-advice">${escapeHtml(advice)}</div>
           </div>
-          <div class="priority-pts">+${item.pts} pts</div>
+          <div class="priority-pts" title="Share of the overall score this check carries">${formatWorth(c.worth)}</div>
         `;
         list.appendChild(row);
       });
-
-      document.getElementById("priorityGainBadge").textContent = `Potential gain: +${totalGain} pts`;
     }
 
     function escapeHtml(str) {
@@ -1523,7 +1489,7 @@ seoscore-cli https://example.com</div>
         const isNA = c.applicable === false;
         const statusClass = isNA ? "status-na" : c.pass ? "status-pass" : "status-fail";
         const statusText = isNA ? "N/A" : c.pass ? "PASS" : "FAIL";
-        const advice = (fixAdviceMap[c.id] && fixAdviceMap[c.id].advice) || "Optimize this signal according to modern search and AI ranking guidelines.";
+        const advice = fixAdvice[c.id] || "Optimize this signal according to modern search and AI ranking guidelines.";
 
         details.innerHTML = `
           <summary class="check-summary">
@@ -1672,7 +1638,7 @@ seoscore-cli https://example.com</div>
         <tbody>`;
       pages.forEach(p => {
         const seo = p.scan.seo.score, aeo = p.scan.aeo.score, geo = p.scan.geo.score;
-        const ov = Math.round(seo * 0.5 + aeo * 0.25 + geo * 0.25);
+        const ov = overallScore(p.scan);
         html += `<tr>
           <td style="font-family: monospace;">${escapeHtml(p.url)}</td>
           <td>${seo}</td><td>${aeo}</td><td>${geo}</td>
