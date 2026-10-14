@@ -11,7 +11,7 @@ faq:
   - q: "Is llms.txt required?"
     a: "No. It is a proposal, not a standard that every engine reads. It is cheap to add, and findable reports it as the llms-txt site check."
   - q: "How do I see which bots my robots.txt blocks?"
-    a: "Run seoscore with -site. It reports robots-gptbot, robots-claudebot, robots-perplexitybot and robots-google-extended as separate results."
+    a: "Run findable with -site. It reports robots-gptbot, robots-claudebot, robots-perplexitybot and robots-google-extended as separate results."
 ---
 
 # Why AI Answer Engines Skip Your Site and How to Fix It
@@ -74,7 +74,7 @@ Write a paragraph of 30 to 80 words for `aeo_direct_answers`, and a question hea
 Run one command against your home page with `-site`. You get the page checks plus the robots.txt and llms.txt results in one report. Each bot gets its own row, so you can see that GPTBot is allowed while ClaudeBot is blocked.
 
 ```bash
-seoscore https://example.com -site
+findable -site https://example.com
 ```
 
 Fix the robots.txt rules first, since a blocked bot ignores everything else. Then server-render your text, add JSON-LD, and rewrite your top sections as question plus answer.
@@ -85,4 +85,4 @@ Fix the robots.txt rules first, since a blocked bot ignores everything else. The
 - Check robots.txt first. Allow GPTBot, ClaudeBot, PerplexityBot and Google-Extended if you want to be found.
 - Add `/llms.txt`, put your text in server-rendered HTML, and add JSON-LD.
 - Lead each section with a direct answer.
-- Run `seoscore <url> -site` to see every one of these as a check id.
+- Run `findable -site <url>` to see every one of these as a check id.
