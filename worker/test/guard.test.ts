@@ -102,3 +102,7 @@ test("guardedFetch refuses bodies over the cap", async () => {
   mockFetch(() => new Response("a".repeat(MAX_PAGE_BYTES + 1)));
   await expect(guardedFetch("https://example.com/")).rejects.toThrow("larger than");
 });
+
+test("publicTarget cannot see DNS: a public name that resolves to loopback passes", () => {
+  expect(publicTarget("http://127.0.0.1.nip.io/")).toBe(true);
+});
