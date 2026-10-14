@@ -1,0 +1,69 @@
+name: seoscore audit
+description: Audit a URL for SEO, AEO and GEO, upload the failing checks as SARIF and fail below a score.
+branding:
+  icon: search
+  color: blue
+inputs:
+  url:
+    description: Page URL to audit. Leave empty when `args` passes -sitemap.
+    required: false
+    default: ""
+  fail-under:
+    description: Fail the step when any page's overall score is below this number (0 never fails).
+    required: false
+    default: "0"
+  args:
+    description: Extra CLI flags, for example "-site" or "-crawl -limit 10".
+    required: false
+    default: ""
+  upload-sarif:
+    description: Upload the SARIF report to GitHub code scanning.
+    required: false
+    default: "true"
+outputs:
+  sarif-file:
+    description: Path of the SARIF report.
+    value: ${{ steps.audit.outputs.sarif-file }}
+  exit-code:
+    description: Exit code of the CLI.
+    value: ${{ steps.audit.outputs.exit-code }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+        cache-dependency-path: ${{ github.action_path }}/go.sum
+    - name: Build seoscore
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: go build -o "$RUNNER_TEMP/seoscore" ./cmd/seoscore
+    - name: Audit
+      id: audit
+      shell: bash
+      env:
+        AUDIT_URL: ${{ inputs.url }}
+        FAIL_UNDER: ${{ inputs.fail-under }}
+        EXTRA_ARGS: ${{ inputs.args }}
+      run: |
+        out="$RUNNER_TEMP/seoscore-report"
+        mkdir -p "$out"
+        set +e
+        "$RUNNER_TEMP/seoscore" -q -format sarif -fail-under "$FAIL_UNDER" -o "$out" $EXTRA_ARGS ${AUDIT_URL:+"$AUDIT_URL"}
+        code=$?
+        set -e
+        sarif="$(find "$out" -name '*.sarif' -print -quit)"
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "sarif-file=$sarif" >> "$GITHUB_OUTPUT"
+    - name: Upload SARIF
+      if: always() && inputs.upload-sarif == 'true' && steps.audit.outputs.sarif-file != ''
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.audit.outputs.sarif-file }}
+        category: seoscore
+    - name: Apply score gate
+      if: always()
+      shell: bash
+      env:
+        CODE: ${{ steps.audit.outputs.exit-code }}
+      run: exit "${CODE:-1}"

@@ -79,6 +79,21 @@ the MCP `audit_page` tool (`site`) and the worker accept the same switch.
 
 `-fail-under 70` exits 1 and names each page whose overall score is below 70 (any crawled page counts).
 
+### GitHub Action
+
+```yaml
+permissions:
+  security-events: write
+steps:
+  - uses: nadimtuhin/findable@main
+    with:
+      url: https://example.com
+      fail-under: 70
+      args: -site
+```
+
+The action builds the CLI, uploads failing checks to code scanning as SARIF, then fails the job below `fail-under`.
+
 ### 3. Run Local REST API & Web UI
 
 ```bash
