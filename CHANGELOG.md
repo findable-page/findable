@@ -25,7 +25,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Redesigned the web UI for the AI era; the worker bundle budget is now 50 KiB gzip.
 
 ### Removed
-- The remote scan mode.
+- The seoscore.tools remote mode; findable runs standalone.
 
 ### Security
 - Scan fetches block private and reserved addresses (including 6to4, Teredo and NAT64), allow only ports 80 and 443, re-check up to 5 redirects, and cap pages at 5 MB.
