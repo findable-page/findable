@@ -2,7 +2,7 @@ import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
-import { llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
+import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
 
 export interface Check {
   id: string;
@@ -51,6 +51,10 @@ async function allowScan(env: Env, key: string): Promise<boolean> {
   return (await env.SCAN_LIMITER.limit({ key })).success;
 }
 
+const PUBLIC_ORIGIN = "https://findable.piply.xyz";
+
+const PAGE_HTML = injectHead(UI_HTML, headSlot(PUBLIC_ORIGIN));
+
 let uiPolicy: Promise<string> | undefined;
 
 async function sha256Source(text: string): Promise<string> {
@@ -59,7 +63,7 @@ async function sha256Source(text: string): Promise<string> {
 }
 
 async function hashesOf(tag: string): Promise<string> {
-  const blocks = [...UI_HTML.matchAll(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "g"))];
+  const blocks = [...PAGE_HTML.matchAll(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "g"))];
   return (await Promise.all(blocks.map((m) => sha256Source(m[1] ?? "")))).join(" ");
 }
 
@@ -123,7 +127,7 @@ const worker = {
 
     if (url.pathname === "/") {
       uiPolicy ??= buildUiPolicy();
-      return new Response(UI_HTML, {
+      return new Response(PAGE_HTML, {
         headers: {
           ...CORS_HEADERS,
           "Content-Type": "text/html; charset=utf-8",

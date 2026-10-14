@@ -107,6 +107,14 @@ export function headSlot(origin: string, faq: FaqItem[] = []): string {
       author: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.url },
     },
     { "@context": context, "@type": "Person", name: AUTHOR.name, url: AUTHOR.url, sameAs: [AUTHOR.url] },
+    {
+      "@context": context,
+      "@type": "Organization",
+      name: "findable",
+      url: origin,
+      sameAs: [REPO],
+      founder: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.url },
+    },
   ];
   if (faq.length > 0) {
     blocks.push({

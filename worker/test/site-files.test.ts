@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import worker from "../src/index";
 import { robotsAllows } from "../src/site";
+import { HEAD_SLOT_MARKER, headSlot, injectHead } from "../src/site-files";
 
 const ORIGIN = "https://w.test";
 const get = (path: string) => worker.fetch(new Request(`${ORIGIN}${path}`));
@@ -49,6 +50,42 @@ test("the HTML page carries HSTS and a referrer policy next to the existing hard
   expect(resp.headers.get("X-Content-Type-Options")).toBe("nosniff");
   expect(resp.headers.get("X-Frame-Options")).toBe("DENY");
   expect(resp.headers.get("Content-Security-Policy")).toContain("frame-ancestors 'none'");
+});
+
+function jsonLdBlocks(html: string): Record<string, unknown>[] {
+  const scripts = html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g);
+  return [...scripts].map((m) => JSON.parse(m[1] ?? "") as Record<string, unknown>);
+}
+
+test("headSlot emits the top-level types and sameAs links the scanner looks for", () => {
+  const blocks = jsonLdBlocks(headSlot(ORIGIN));
+  const types = blocks.map((b) => b["@type"]);
+  expect(types).toEqual(["SoftwareApplication", "Person", "Organization"]);
+  const app = blocks[0] as Record<string, unknown>;
+  expect(app.applicationCategory).toBe("DeveloperApplication");
+  expect(app.url).toBe(ORIGIN);
+  expect(app.offers).toMatchObject({ price: "0" });
+  expect(app.sameAs).toEqual(["https://github.com/nadimtuhin/findable"]);
+  for (const b of blocks.slice(1)) expect((b.sameAs as string[]).length).toBeGreaterThan(0);
+  expect(blocks[1]).toMatchObject({ name: "Nadim Tuhin", sameAs: ["https://github.com/nadimtuhin"] });
+});
+
+test("headSlot adds FAQPage only when FAQ items are passed and escapes angle brackets", () => {
+  expect(headSlot(ORIGIN)).not.toContain("FAQPage");
+  const slot = headSlot(ORIGIN, [{ question: "What is it?", answer: "A </script> tester" }]);
+  const faq = jsonLdBlocks(slot).find((b) => b["@type"] === "FAQPage");
+  expect(faq).toMatchObject({
+    mainEntity: [{ name: "What is it?", acceptedAnswer: { text: "A </script> tester" } }],
+  });
+  expect(slot.match(/<\/script>/g)?.length).toBe(4);
+});
+
+test("injectHead replaces the marker and leaves a page without it untouched", () => {
+  const slot = headSlot(ORIGIN);
+  const page = `<head><title>t</title>${HEAD_SLOT_MARKER}</head>`;
+  expect(injectHead(page, slot)).toBe(`<head><title>t</title>${slot}</head>`);
+  const bare = "<head><title>t</title></head>";
+  expect(injectHead(bare, slot)).toBe(bare);
 });
 
 test("site files answer GET only", async () => {
