@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -102,5 +103,39 @@ func TestMCPToolCallAuditHTMLContent(t *testing.T) {
 	text := first["text"].(string)
 	if !strings.Contains(text, "overall") && !strings.Contains(text, "seo") {
 		t.Errorf("expected audit result text, got: %s", text)
+	}
+}
+
+func auditPageText(t *testing.T, client *http.Client, args map[string]any) string {
+	t.Helper()
+	raw, _ := json.Marshal(map[string]any{
+		"jsonrpc": jsonRPCVersion, "id": 9, "method": "tools/call",
+		"params": map[string]any{"name": "audit_page", "arguments": args},
+	})
+	out := &bytes.Buffer{}
+	Run(bytes.NewBuffer(append(raw, '\n')), out, client)
+	var res struct {
+		Result struct {
+			Content []struct {
+				Text string `json:"text"`
+			} `json:"content"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &res); err != nil || len(res.Result.Content) == 0 {
+		t.Fatalf("bad tool response: %v %s", err, out.String())
+	}
+	return res.Result.Content[0].Text
+}
+
+func TestMCPAuditPageAddsSiteChecksOnlyWhenAsked(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("<html><head><title>x</title></head></html>"))
+	}))
+	t.Cleanup(srv.Close)
+	if text := auditPageText(t, srv.Client(), map[string]any{argURL: srv.URL}); strings.Contains(text, `"llms-txt"`) {
+		t.Error("audit_page without site must not run site checks")
+	}
+	if text := auditPageText(t, srv.Client(), map[string]any{argURL: srv.URL, "site": true}); !strings.Contains(text, `"llms-txt"`) {
+		t.Errorf("audit_page with site must include site checks: %s", text[:min(200, len(text))])
 	}
 }

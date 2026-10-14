@@ -113,7 +113,7 @@ func getBody(client *http.Client, target string) ([]byte, error) {
 func ScanAll(client *http.Client, targets []string, opts CrawlOptions) ([]audit.Page, error) {
 	var pages []audit.Page
 	for i, target := range targets {
-		s, err := Scan(client, target, opts.Keyphrase, opts.Remote)
+		s, err := scanPage(client, target, opts)
 		if err != nil {
 			if len(pages) == 0 && i == len(targets)-1 {
 				return nil, err

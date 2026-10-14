@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-crawl] [-sitemap url] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
+	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -30,6 +30,7 @@ type options struct {
 	keyphrase string
 	crawl     bool
 	sitemap   string
+	site      bool
 	limit     int
 	delay     time.Duration
 	remote    bool
@@ -45,6 +46,7 @@ func parseFlags() options {
 	flag.BoolVar(&o.quiet, "q", false, "do not list failing checks")
 	flag.StringVar(&o.keyphrase, "k", "", "target keyphrase for audit")
 	flag.BoolVar(&o.crawl, "crawl", false, "crawl internal links up to limit pages")
+	flag.BoolVar(&o.site, "site", false, "also check robots.txt (search and AI crawlers) and /llms.txt")
 	flag.StringVar(&o.sitemap, "sitemap", "", "audit the pages listed in this sitemap.xml, up to limit pages")
 	flag.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl or -sitemap is enabled")
 	flag.DurationVar(&o.delay, "delay", 3*time.Second, "delay between crawl requests")
@@ -103,6 +105,9 @@ func runAudit(client *http.Client, target string, opts options) {
 	if err := os.MkdirAll(opts.outDir, reportDirMode); err != nil { //nolint:gosec // reports are shareable output, not secrets
 		fail("create %s: %v", opts.outDir, err)
 	}
+	if opts.site && !fetch.IsHTTPURL(target) {
+		fail("-site requires an http(s) URL, not a local file")
+	}
 	if opts.crawl {
 		if !fetch.IsHTTPURL(target) {
 			fail("-crawl requires an http(s) URL, not a local file")
@@ -114,6 +119,9 @@ func runAudit(client *http.Client, target string, opts options) {
 	s, err := fetch.Scan(client, target, opts.keyphrase, opts.remote)
 	if err != nil {
 		fail("%v", err)
+	}
+	if opts.site {
+		s.Site = fetch.SiteChecks(client, target)
 	}
 	path := reportPath(opts.outDir, "seoscore-report", hostName, opts.format)
 	writeReport(path, report.PageReport(opts.format, hostName, audit.Page{URL: target, Scan: s}))
@@ -170,6 +178,7 @@ func crawlOptions(opts options) fetch.CrawlOptions {
 		Limit:     opts.limit,
 		Delay:     opts.delay,
 		Remote:    opts.remote,
+		Site:      opts.site,
 		OnPage: func(done, limit int, p audit.Page) {
 			printCrawlProgress(done, limit, p, opts.quiet)
 		},
@@ -203,7 +212,7 @@ func printCrawlProgress(done, limit int, p audit.Page, quiet bool) {
 }
 
 func printFailures(indent string, s audit.Scan) {
-	for _, c := range s.Scored() {
+	for _, c := range s.Reported() {
 		for _, k := range c.Cat.Checks {
 			if audit.Status(k) == audit.StatusFail {
 				fmt.Printf("%sFAIL %s %s: %s\n", indent, c.Name, k.ID, k.Label)

@@ -63,6 +63,13 @@ Or audit the pages a sitemap lists (sitemap indexes are followed, `-limit` still
 seoscore -sitemap https://example.com/sitemap.xml -limit 50
 ```
 
+### Site checks
+
+`-site` also fetches `/robots.txt` and `/llms.txt` from the page's origin and reports a separate, unscored
+"Site" section: robots.txt present, the page not blocked for `*`, GPTBot, ClaudeBot, PerplexityBot and
+Google-Extended, and llms.txt present. The page score formula is unchanged. The API (`"site": true`),
+the MCP `audit_page` tool (`site`) and the worker accept the same switch.
+
 ### Output formats
 
 `-format csv` (default), `-format json` (the same object `/api/scan` returns) or `-format sarif`

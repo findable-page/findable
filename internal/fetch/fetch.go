@@ -130,6 +130,7 @@ type CrawlOptions struct {
 	Limit     int
 	Delay     time.Duration
 	Remote    bool
+	Site      bool
 	OnPage    func(done, limit int, page audit.Page)
 }
 
@@ -151,7 +152,7 @@ func Crawl(client *http.Client, start string, opts CrawlOptions) ([]audit.Page, 
 		curr := c.queue[0]
 		c.queue = c.queue[1:]
 
-		s, err := Scan(client, curr, opts.Keyphrase, opts.Remote)
+		s, err := scanPage(client, curr, opts)
 		if err != nil {
 			if len(pages) == 0 {
 				return nil, err

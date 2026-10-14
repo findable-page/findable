@@ -23,6 +23,7 @@ type scanRequest struct {
 	URL       string `json:"url"`
 	Keyphrase string `json:"keyphrase"`
 	Format    string `json:"format"`
+	Site      bool   `json:"site"`
 }
 
 var formatContentTypes = map[report.Format]string{
@@ -98,6 +99,9 @@ func scanHandler(client *http.Client, remote bool) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
+		}
+		if req.Site && fetch.IsHTTPURL(req.URL) {
+			res.Site = fetch.SiteChecks(client, req.URL)
 		}
 		if format == report.FormatJSON {
 			w.Header().Set("Content-Type", jsonContentType)

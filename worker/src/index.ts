@@ -1,3 +1,4 @@
+import { type SiteCategory, siteChecks } from "./site";
 import { UI_HTML } from "./ui";
 
 export interface Check {
@@ -24,6 +25,7 @@ export interface ScanResponse {
   cwv: { score: null; checks: Check[]; passed: number; total: number };
   internalLinks: string[];
   scannedAt: string;
+  site?: SiteCategory;
 }
 
 const CORS_HEADERS = {
@@ -65,7 +67,7 @@ export default {
 
     if (url.pathname === "/api/scan" && request.method === "POST") {
       try {
-        const body = (await request.json()) as { url?: string; keyphrase?: string };
+        const body = (await request.json()) as { url?: string; keyphrase?: string; site?: boolean };
         if (!body.url) {
           return new Response(JSON.stringify({ error: "missing url" }), {
             status: 400,
@@ -75,6 +77,7 @@ export default {
 
         const targetUrl = body.url.trim();
         const scanRes = await auditUrl(targetUrl, body.keyphrase?.trim());
+        if (body.site === true) scanRes.site = await siteChecks(targetUrl);
 
         return new Response(JSON.stringify(scanRes), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },

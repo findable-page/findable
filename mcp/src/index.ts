@@ -42,11 +42,11 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-function postScan(url: string, keyphrase: string | undefined): Promise<Response> {
+function postScan(url: string, keyphrase: string | undefined, site?: boolean): Promise<Response> {
   return fetch(API_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url, keyphrase }),
+    body: JSON.stringify(site ? { url, keyphrase, site } : { url, keyphrase }),
   });
 }
 
@@ -75,10 +75,14 @@ server.tool(
       .string()
       .optional()
       .describe("Optional focus keyphrase to evaluate in title, meta description, and headings."),
+    site: z
+      .boolean()
+      .optional()
+      .describe("If true, also checks robots.txt (search and AI crawlers) and /llms.txt."),
   },
-  async ({ url, keyphrase }) => {
+  async ({ url, keyphrase, site }) => {
     try {
-      const resp = await postScan(url, keyphrase);
+      const resp = await postScan(url, keyphrase, site);
       if (!resp.ok) {
         return textResult(`Audit API answered HTTP ${resp.status}: ${await resp.text()}`, true);
       }

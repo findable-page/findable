@@ -131,3 +131,39 @@ func TestSARIFReportsEachFailingCheckOnce(t *testing.T) {
 		t.Errorf("location uri = %q", uri)
 	}
 }
+
+func withSite(t *testing.T) audit.Scan {
+	t.Helper()
+	s := decode(t)
+	s.Site = &audit.Category{Passed: 1, Total: 2, Checks: []audit.Check{
+		{ID: "robots-txt", Label: "robots.txt is present", Pass: true},
+		{ID: "llms-txt", Label: "/llms.txt is present", Pass: false},
+	}}
+	return s
+}
+
+func TestCSVAddsSiteRowsOnlyWhenSiteChecksRan(t *testing.T) {
+	lines := strings.Split(CSV("example.com", withSite(t)), "\n")
+	for _, want := range []string{"Site,,1,2", `robots-txt,Site,PASS,"robots.txt is present"`, `llms-txt,Site,FAIL,"/llms.txt is present"`} {
+		if !contains(lines, want) {
+			t.Errorf("csv is missing row %q", want)
+		}
+	}
+	if strings.Contains(CSV("example.com", decode(t)), "Site") {
+		t.Error("csv without site checks must not mention Site")
+	}
+}
+
+func TestSARIFIncludesFailingSiteChecks(t *testing.T) {
+	var log sarifLog
+	if err := json.Unmarshal([]byte(PageReport(FormatSARIF, "example.com", audit.Page{URL: rootPage, Scan: withSite(t)})), &log); err != nil {
+		t.Fatal(err)
+	}
+	ids := make([]string, 0, len(log.Runs[0].Results))
+	for _, r := range log.Runs[0].Results {
+		ids = append(ids, r.RuleID)
+	}
+	if !strings.Contains(strings.Join(ids, " "), "site/llms-txt") {
+		t.Errorf("sarif rule ids = %v, want site/llms-txt", ids)
+	}
+}

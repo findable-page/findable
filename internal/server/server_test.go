@@ -145,3 +145,36 @@ func TestServerScanRejectsUnknownFormat(t *testing.T) {
 		t.Errorf("status = %d, want 400", rec.Code)
 	}
 }
+
+func TestServerScanAddsSiteChecksOnlyWhenAsked(t *testing.T) {
+	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/robots.txt" {
+			_, _ = w.Write([]byte("User-agent: *\nDisallow:\n"))
+			return
+		}
+		_, _ = w.Write([]byte("<html><head><title>x</title></head><body></body></html>"))
+	}))
+	t.Cleanup(site.Close)
+	mux := NewMux(site.Client(), false)
+	for _, tc := range []struct {
+		body     string
+		wantSite bool
+	}{
+		{`{"url":"` + site.URL + `/"}`, false},
+		{`{"url":"` + site.URL + `/","site":true}`, true},
+	} {
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", tc.body))
+		var res struct {
+			Site *struct {
+				Total int `json:"total"`
+			} `json:"site"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+			t.Fatalf("%s: %v %s", tc.body, err, rec.Body.String())
+		}
+		if (res.Site != nil) != tc.wantSite {
+			t.Errorf("%s: site present = %v, want %v", tc.body, res.Site != nil, tc.wantSite)
+		}
+	}
+}

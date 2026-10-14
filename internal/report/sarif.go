@@ -64,7 +64,7 @@ func SARIF(pages []audit.Page) string {
 	run.Tool.Driver = sarifDriver{Name: toolName, InformationURI: toolInfoURI, Rules: []sarifRule{}}
 	seen := map[string]bool{}
 	for _, p := range pages {
-		for _, c := range p.Scan.Scored() {
+		for _, c := range p.Scan.Reported() {
 			for _, k := range c.Cat.Checks {
 				if audit.Status(k) != audit.StatusFail {
 					continue

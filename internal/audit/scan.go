@@ -20,11 +20,12 @@ type Category struct {
 }
 
 type Scan struct {
-	SEO           Category `json:"seo"`
-	AEO           Category `json:"aeo"`
-	GEO           Category `json:"geo"`
-	CWV           Category `json:"cwv"`
-	InternalLinks []string `json:"internalLinks"`
+	SEO           Category  `json:"seo"`
+	AEO           Category  `json:"aeo"`
+	GEO           Category  `json:"geo"`
+	CWV           Category  `json:"cwv"`
+	InternalLinks []string  `json:"internalLinks"`
+	Site          *Category `json:"site,omitempty"`
 }
 
 type Page struct {
@@ -39,6 +40,13 @@ type NamedCategory struct {
 
 func (s Scan) Scored() []NamedCategory {
 	return []NamedCategory{{"SEO", s.SEO}, {"AEO", s.AEO}, {"GEO", s.GEO}}
+}
+
+func (s Scan) Reported() []NamedCategory {
+	if s.Site == nil {
+		return s.Scored()
+	}
+	return append(s.Scored(), NamedCategory{"Site", *s.Site})
 }
 
 const (

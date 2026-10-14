@@ -40,14 +40,25 @@ func CSV(host string, s audit.Scan) string {
 	if s.CWV.Score != nil {
 		row("CWV", audit.ScoreText(s.CWV), strconv.Itoa(s.CWV.Passed), strconv.Itoa(s.CWV.Total))
 	}
+	if s.Site != nil {
+		row("Site", "", strconv.Itoa(s.Site.Passed), strconv.Itoa(s.Site.Total))
+	}
 	row("")
 	row("Check ID", "Category", "Status", "Description")
-	for _, c := range append(s.Scored(), audit.NamedCategory{Name: "CWV", Cat: s.CWV}) {
+	for _, c := range append(s.Scored(), siteAndCWV(s)...) {
 		for _, k := range c.Cat.Checks {
 			row(k.ID, c.Name, audit.Status(k), quote(k.Label))
 		}
 	}
 	return b.String()
+}
+
+func siteAndCWV(s audit.Scan) []audit.NamedCategory {
+	cwv := audit.NamedCategory{Name: "CWV", Cat: s.CWV}
+	if s.Site == nil {
+		return []audit.NamedCategory{cwv}
+	}
+	return []audit.NamedCategory{cwv, {Name: "Site", Cat: *s.Site}}
 }
 
 func CrawlCSV(host string, pages []audit.Page) string {
@@ -67,7 +78,7 @@ func CrawlCSV(host string, pages []audit.Page) string {
 	row("All Failed Checks", "", "", "", "", "")
 	row("URL", "Check ID", "Category", "Description")
 	for _, p := range pages {
-		for _, c := range p.Scan.Scored() {
+		for _, c := range p.Scan.Reported() {
 			for _, k := range c.Cat.Checks {
 				if audit.Status(k) == audit.StatusFail {
 					row(quote(p.URL), k.ID, c.Name, quote(k.Label))

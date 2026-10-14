@@ -37,6 +37,7 @@ func toolDefinitions() []map[string]any {
 				argURL:       prop(typeString, "The URL (http:// or https://) or local file path to audit."),
 				argKeyphrase: prop(typeString, "Optional focus keyword to evaluate in title, description, and headings."),
 				"remote":     prop("boolean", "If true, queries remote seoscore.tools instead of the local offline engine."),
+				"site":       prop("boolean", "If true, also checks robots.txt (search and AI crawlers) and /llms.txt for a live URL."),
 			}, argURL),
 		tool("audit_html_content",
 			"Audits raw HTML string directly in-memory for SEO, AEO, and GEO signals without needing a network request.",
@@ -128,6 +129,9 @@ func toolAuditPage(a toolArgs, client *http.Client) (text string, isError bool) 
 	res, err := fetch.Scan(client, targetURL, a.str(argKeyphrase), remote)
 	if err != nil {
 		return fmt.Sprintf("Error auditing %s: %v", targetURL, err), true
+	}
+	if site, _ := a["site"].(bool); site && fetch.IsHTTPURL(targetURL) {
+		res.Site = fetch.SiteChecks(client, targetURL)
 	}
 	return toolResult(scanSummary(targetURL, res))
 }
