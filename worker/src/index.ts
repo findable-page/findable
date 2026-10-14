@@ -79,8 +79,9 @@ export default {
         return new Response(JSON.stringify(scanRes), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
-      } catch (err: any) {
-        return new Response(JSON.stringify({ error: err.message || "audit failed" }), {
+      } catch (err) {
+        const message = err instanceof Error && err.message ? err.message : "audit failed";
+        return new Response(JSON.stringify({ error: message }), {
           status: 500,
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
@@ -100,40 +101,42 @@ async function auditUrl(targetUrl: string, keyphrase?: string): Promise<ScanResp
     redirect: "follow",
   });
 
-  const statusCode = resp.status;
   const rawHtml = await resp.text();
-  const headers = resp.headers;
-
-  return analyzeHtml(targetUrl, rawHtml, headers, statusCode, keyphrase);
+  return analyzeHtml(targetUrl, rawHtml, resp.headers, keyphrase);
 }
 
-function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statusCode: number, keyphrase?: string): ScanResponse {
+function firstGroup(match: RegExpMatchArray | null): string {
+  return match?.[1]?.trim() ?? "";
+}
+
+function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyphrase?: string): ScanResponse {
   const lowerHtml = rawHtml.toLowerCase();
   const parsedUrl = new URL(targetUrl);
 
   // Meta signals
   const titleMatch = rawHtml.match(/<title[^>]*>([^<]*)<\/title>/i);
-  const title = titleMatch ? titleMatch[1].trim() : "";
+  const title = firstGroup(titleMatch);
 
-  const descMatch = rawHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ||
-                    rawHtml.match(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
-  const metaDesc = descMatch ? descMatch[1].trim() : "";
+  const descMatch =
+    rawHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ||
+    rawHtml.match(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
+  const metaDesc = firstGroup(descMatch);
 
-  const canonicalMatch = rawHtml.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i) ||
-                         rawHtml.match(/<link[^>]+href=["']([^"']*)["'][^>]+rel=["']canonical["']/i);
-  const canonical = canonicalMatch ? canonicalMatch[1].trim() : "";
+  const canonicalMatch =
+    rawHtml.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i) ||
+    rawHtml.match(/<link[^>]+href=["']([^"']*)["'][^>]+rel=["']canonical["']/i);
+  const canonical = firstGroup(canonicalMatch);
 
   const viewportMatch = rawHtml.match(/<meta[^>]+name=["']viewport["']/i);
   const charsetMatch = rawHtml.match(/<meta[^>]+charset=["']?utf-8/i) || lowerHtml.includes("charset=utf-8");
   const langMatch = rawHtml.match(/<html[^>]+lang=["']([^"']+)["']/i);
   const doctypeMatch = rawHtml.startsWith("<!DOCTYPE html") || rawHtml.startsWith("<!doctype html");
   const robotsMatch = rawHtml.match(/<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)["']/i);
-  const robotsMeta = robotsMatch ? robotsMatch[1].toLowerCase() : "";
+  const robotsMeta = (robotsMatch?.[1] ?? "").toLowerCase();
 
   // Headings
   const h1Matches = [...rawHtml.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)];
   const h2Matches = [...rawHtml.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)];
-  const h3Matches = [...rawHtml.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>/gi)];
 
   // Text content & word count
   const visibleText = rawHtml
@@ -158,8 +161,9 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statu
   const internalLinks: string[] = [];
   const externalLinks: string[] = [];
   for (const m of linkMatches) {
-    const href = m[1].trim();
-    if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:")) continue;
+    const href = firstGroup(m);
+    if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:"))
+      continue;
     try {
       const resolved = new URL(href, targetUrl);
       if (resolved.hostname === parsedUrl.hostname) {
@@ -171,18 +175,21 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statu
   }
 
   // Schema JSON-LD
-  const jsonLdMatches = [...rawHtml.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
-  let schemaTypes: string[] = [];
-  let sameAsLinks: string[] = [];
+  const jsonLdMatches = [
+    ...rawHtml.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi),
+  ];
+  const schemaTypes: string[] = [];
+  const sameAsLinks: string[] = [];
   let hasFAQ = false;
   let hasPerson = false;
   let hasOrg = false;
 
   for (const jm of jsonLdMatches) {
     try {
-      const parsed = JSON.parse(jm[1].trim());
-      const scanObj = (o: any) => {
-        if (!o || typeof o !== "object") return;
+      const parsed = JSON.parse(firstGroup(jm));
+      const scanObj = (value: unknown): void => {
+        if (!value || typeof value !== "object") return;
+        const o = value as Record<string, unknown>;
         if (o["@type"]) {
           const t = String(o["@type"]);
           schemaTypes.push(t);
@@ -190,11 +197,12 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statu
           if (t.toLowerCase() === "person") hasPerson = true;
           if (["organization", "bakery", "localbusiness"].includes(t.toLowerCase())) hasOrg = true;
         }
-        if (o["sameAs"]) {
-          if (Array.isArray(o["sameAs"])) sameAsLinks.push(...o["sameAs"].map(String));
-          else sameAsLinks.push(String(o["sameAs"]));
+        if (o.sameAs) {
+          if (Array.isArray(o.sameAs)) sameAsLinks.push(...o.sameAs.map(String));
+          else sameAsLinks.push(String(o.sameAs));
         }
-        if (o["@graph"] && Array.isArray(o["@graph"])) o["@graph"].forEach(scanObj);
+        const graph = o["@graph"];
+        if (Array.isArray(graph)) graph.forEach(scanObj);
       };
       scanObj(parsed);
     } catch {}
@@ -209,25 +217,44 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statu
   const hasDetails = lowerHtml.includes("<details") && lowerHtml.includes("<summary");
   const hasBlockquote = lowerHtml.includes("<blockquote");
   const hasTime = lowerHtml.includes("<time");
-  const hasSkipLink = lowerHtml.includes("skip to");
 
   // Statistics & pronouns
-  const statsMatches = visibleText.match(/(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)/g) || [];
+  const statsMatches =
+    visibleText.match(
+      /(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)/g,
+    ) || [];
   const lowerText = visibleText.toLowerCase();
   const youCount = (lowerText.match(/\b(you|your|we)\b/g) || []).length;
 
   // --- SEO Checks ---
   const seoChecks: Check[] = [
     { id: "title_exists", label: title ? `Title tag found: "${title}"` : "No title tag found", pass: Boolean(title) },
-    { id: "title_length", label: `Title length: ${title.length} characters (aim for 30-60)`, pass: title.length >= 30 && title.length <= 60 },
-    { id: "desc_exists", label: metaDesc ? `Meta description found (${metaDesc.length} chars)` : "Missing meta description", pass: Boolean(metaDesc) },
-    { id: "desc_length", label: `Description length: ${metaDesc.length} chars (aim for 120-160)`, pass: metaDesc.length >= 120 && metaDesc.length <= 160 },
+    {
+      id: "title_length",
+      label: `Title length: ${title.length} characters (aim for 30-60)`,
+      pass: title.length >= 30 && title.length <= 60,
+    },
+    {
+      id: "desc_exists",
+      label: metaDesc ? `Meta description found (${metaDesc.length} chars)` : "Missing meta description",
+      pass: Boolean(metaDesc),
+    },
+    {
+      id: "desc_length",
+      label: `Description length: ${metaDesc.length} chars (aim for 120-160)`,
+      pass: metaDesc.length >= 120 && metaDesc.length <= 160,
+    },
     { id: "viewport", label: "Viewport meta tag found (mobile-friendly)", pass: Boolean(viewportMatch) },
     { id: "charset", label: "UTF-8 charset declared", pass: Boolean(charsetMatch) },
     { id: "lang_attr", label: "Language attribute set on HTML tag", pass: Boolean(langMatch) },
     { id: "html_doctype", label: "<!DOCTYPE html> declared", pass: Boolean(doctypeMatch) },
     { id: "robots_meta", label: "No robots meta tag blocking crawling", pass: !robotsMeta.includes("noindex") },
-    { id: "h1_exists", label: h1Matches.length === 1 ? "Single H1 tag found" : `${h1Matches.length} H1 tags found (exactly 1 recommended)`, pass: h1Matches.length === 1 },
+    {
+      id: "h1_exists",
+      label:
+        h1Matches.length === 1 ? "Single H1 tag found" : `${h1Matches.length} H1 tags found (exactly 1 recommended)`,
+      pass: h1Matches.length === 1,
+    },
     { id: "h2_exists", label: `${h2Matches.length} H2 tags found`, pass: h2Matches.length > 0 },
     { id: "word_count", label: `${wordCount} words in body (300+ recommended)`, pass: wordCount >= 300 },
     { id: "internal_links", label: `${internalLinks.length} internal links found`, pass: internalLinks.length >= 2 },
@@ -239,10 +266,22 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statu
     { id: "og_url", label: "Open Graph URL found", pass: Boolean(ogUrl) },
     { id: "twitter_card", label: "Twitter card declared", pass: Boolean(twitterCard) },
     { id: "https", label: "HTTPS enabled", pass: parsedUrl.protocol === "https:" },
-    { id: "hsts", label: "Strict-Transport-Security header enforced", pass: Boolean(headers.get("strict-transport-security")) },
-    { id: "x_content_type", label: "X-Content-Type-Options: nosniff header present", pass: (headers.get("x-content-type-options") || "").includes("nosniff") },
+    {
+      id: "hsts",
+      label: "Strict-Transport-Security header enforced",
+      pass: Boolean(headers.get("strict-transport-security")),
+    },
+    {
+      id: "x_content_type",
+      label: "X-Content-Type-Options: nosniff header present",
+      pass: (headers.get("x-content-type-options") || "").includes("nosniff"),
+    },
     { id: "x_frame_options", label: "X-Frame-Options header present", pass: Boolean(headers.get("x-frame-options")) },
-    { id: "csp", label: "Content-Security-Policy header declared", pass: Boolean(headers.get("content-security-policy")) },
+    {
+      id: "csp",
+      label: "Content-Security-Policy header declared",
+      pass: Boolean(headers.get("content-security-policy")),
+    },
     { id: "jsonld", label: `${jsonLdMatches.length} JSON-LD schema block(s) found`, pass: jsonLdMatches.length > 0 },
   ];
 
@@ -261,7 +300,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statu
     seoChecks.push({
       id: "keyphrase_in_h1",
       label: `Focus keyphrase "${keyphrase}" in H1 heading`,
-      pass: h1Matches.some(m => m[1].toLowerCase().includes(kp)),
+      pass: h1Matches.some((m) => (m[1] ?? "").toLowerCase().includes(kp)),
     });
     seoChecks.push({
       id: "keyphrase_in_content",
@@ -275,39 +314,87 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, statu
     { id: "aeo_structured_data", label: "Structured data found for AI extraction", pass: jsonLdMatches.length > 0 },
     { id: "aeo_faq", label: "FAQ schema or Q&A section detected", pass: hasFAQ },
     { id: "aeo_direct_answers", label: "Concise answer paragraphs found under headings", pass: wordCount >= 100 },
-    { id: "aeo_question_headings", label: "Question-style headings found (What/How/Why/?)", pass: h2Matches.some(m => /\b(what|how|why|\?)\b/i.test(m[1])) },
+    {
+      id: "aeo_question_headings",
+      label: "Question-style headings found (What/How/Why/?)",
+      pass: h2Matches.some((m) => /\b(what|how|why|\?)\b/i.test(m[1] ?? "")),
+    },
     { id: "aeo_definition_lists", label: "Definition lists (<dl>) present for terminology", pass: hasDl },
     { id: "aeo_numbered_steps", label: "Numbered steps (<ol>) present for instructions", pass: hasOl },
     { id: "aeo_tables", label: "Data tables present for comparison", pass: hasTable },
     { id: "aeo_lists", label: "Lists (<ul>/<ol>) present for scannability", pass: hasUl || hasOl },
     { id: "aeo_code_blocks", label: "Code blocks (<code>/<pre>) present for technical clarity", pass: hasCode },
     { id: "aeo_collapsible", label: "<details>/<summary> elements present", pass: hasDetails },
-    { id: "aeo_conversational", label: "Conversational tone with user pronouns ('you', 'your', 'we')", pass: youCount >= 3 },
-    { id: "aeo_summary", label: "Summary or Key Takeaways section present", pass: /key takeaway|summary|conclusion/i.test(lowerText) },
-    { id: "aeo_clean_url", label: "Clean lowercase URL structure", pass: !parsedUrl.pathname.includes("_") && parsedUrl.pathname === parsedUrl.pathname.toLowerCase() },
+    {
+      id: "aeo_conversational",
+      label: "Conversational tone with user pronouns ('you', 'your', 'we')",
+      pass: youCount >= 3,
+    },
+    {
+      id: "aeo_summary",
+      label: "Summary or Key Takeaways section present",
+      pass: /key takeaway|summary|conclusion/i.test(lowerText),
+    },
+    {
+      id: "aeo_clean_url",
+      label: "Clean lowercase URL structure",
+      pass: !parsedUrl.pathname.includes("_") && parsedUrl.pathname === parsedUrl.pathname.toLowerCase(),
+    },
     { id: "aeo_ai_robots", label: "No AI-blocking directives detected", pass: !robotsMeta.includes("noindex") },
   ];
 
   // --- GEO Checks ---
   const geoChecks: Check[] = [
-    { id: "geo_statistics_density", label: `${statsMatches.length} quantitative data points / metrics found`, pass: statsMatches.length >= 3 },
+    {
+      id: "geo_statistics_density",
+      label: `${statsMatches.length} quantitative data points / metrics found`,
+      pass: statsMatches.length >= 3,
+    },
     { id: "geo_data_viz", label: "Structured data tables or charts found", pass: hasTable },
-    { id: "geo_comparison", label: "Comparative sections or tables detected", pass: hasTable || /\bvs\b/i.test(lowerText) },
+    {
+      id: "geo_comparison",
+      label: "Comparative sections or tables detected",
+      pass: hasTable || /\bvs\b/i.test(lowerText),
+    },
     { id: "geo_expert_quotes", label: "Expert quotes or blockquotes found", pass: hasBlockquote },
-    { id: "geo_citations", label: `${externalLinks.length} external source citations found`, pass: externalLinks.length > 0 },
-    { id: "geo_definitions", label: "Clear concept definitions found ('X is a...')", pass: /\bis (a|the|defined as)\b/i.test(lowerText) },
+    {
+      id: "geo_citations",
+      label: `${externalLinks.length} external source citations found`,
+      pass: externalLinks.length > 0,
+    },
+    {
+      id: "geo_definitions",
+      label: "Clear concept definitions found ('X is a...')",
+      pass: /\bis (a|the|defined as)\b/i.test(lowerText),
+    },
     { id: "geo_author_schema", label: "Author schema markup found", pass: hasPerson },
-    { id: "geo_author_credentials", label: "Visible author byline with credentials or dates", pass: /\bby\s+[a-z]/i.test(lowerText) || hasPerson },
+    {
+      id: "geo_author_credentials",
+      label: "Visible author byline with credentials or dates",
+      pass: /\bby\s+[a-z]/i.test(lowerText) || hasPerson,
+    },
     { id: "geo_org_schema", label: "Organization or Business schema markup declared", pass: hasOrg },
-    { id: "geo_knowledge_graph", label: `${sameAsLinks.length} authoritative sameAs links in schema`, pass: sameAsLinks.length > 0 },
-    { id: "geo_trust", label: "Trust signals (About and Contact links) present", pass: internalLinks.some(l => /about/i.test(l)) && internalLinks.some(l => /contact/i.test(l)) },
-    { id: "geo_freshness", label: "Content freshness signals (dates/time elements) present", pass: hasTime || /\b202[4-9]\b/.test(lowerText) },
+    {
+      id: "geo_knowledge_graph",
+      label: `${sameAsLinks.length} authoritative sameAs links in schema`,
+      pass: sameAsLinks.length > 0,
+    },
+    {
+      id: "geo_trust",
+      label: "Trust signals (About and Contact links) present",
+      pass: internalLinks.some((l) => /about/i.test(l)) && internalLinks.some((l) => /contact/i.test(l)),
+    },
+    {
+      id: "geo_freshness",
+      label: "Content freshness signals (dates/time elements) present",
+      pass: hasTime || /\b202[4-9]\b/.test(lowerText),
+    },
     { id: "geo_time_element", label: "<time> machine-readable tags present", pass: hasTime },
     { id: "geo_content_length", label: `${wordCount} words content depth (300+ recommended)`, pass: wordCount >= 300 },
   ];
 
   const calcCat = (checks: Check[]): CategoryResult => {
-    const passed = checks.filter(c => c.pass).length;
+    const passed = checks.filter((c) => c.pass).length;
     const total = checks.length;
     const score = total > 0 ? Math.round((passed / total) * 100) : 0;
     return { score, passed, total, checks };

@@ -2,53 +2,95 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 const API_ENDPOINT = process.env.SEOSCORE_API_URL || "https://seoscore-api.nadimtuhin.workers.dev/api/scan";
+
+interface CategoryPayload {
+  score?: number | null;
+  checks?: { pass: boolean }[];
+}
+
+interface ScanPayload {
+  seo?: CategoryPayload;
+  aeo?: CategoryPayload;
+  geo?: CategoryPayload;
+  internalLinks?: string[];
+}
+
+interface PageSummary {
+  url: string;
+  overall: number;
+  seo: number;
+  aeo: number;
+  geo: number;
+  failedChecks: number;
+}
 
 const server = new McpServer({
   name: "seoscore-mcp",
   version: "1.0.0",
 });
 
-const serverAny = server as any;
+function textResult(text: string, isError = false) {
+  return isError
+    ? { content: [{ type: "text" as const, text }], isError }
+    : { content: [{ type: "text" as const, text }] };
+}
 
-serverAny.tool(
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function postScan(url: string, keyphrase: string | undefined): Promise<Response> {
+  return fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, keyphrase }),
+  });
+}
+
+function failedCount(page: ScanPayload): number {
+  return [
+    ...(page.seo?.checks || []).filter((c) => !c.pass),
+    ...(page.aeo?.checks || []).filter((c) => !c.pass),
+    ...(page.geo?.checks || []).filter((c) => !c.pass),
+  ].length;
+}
+
+function summarize(url: string, page: ScanPayload): PageSummary {
+  const seo = page.seo?.score ?? 0;
+  const aeo = page.aeo?.score ?? 0;
+  const geo = page.geo?.score ?? 0;
+  const overall = Math.round(seo * 0.5 + aeo * 0.25 + geo * 0.25);
+  return { url, overall, seo, aeo, geo, failedChecks: failedCount(page) };
+}
+
+server.tool(
   "audit_page",
   "Evaluates 80+ factors across Traditional SEO (50%), Answer Engine Optimization (25%), and Generative Engine Optimization (25%). Returns 0-100 scores and prioritized diagnostic checks.",
   {
     url: z.string().describe("The full web URL (e.g. https://example.com) to audit."),
-    keyphrase: z.string().optional().describe("Optional focus keyphrase to evaluate in title, meta description, and headings."),
+    keyphrase: z
+      .string()
+      .optional()
+      .describe("Optional focus keyphrase to evaluate in title, meta description, and headings."),
   },
-  async ({ url, keyphrase }: { url: string; keyphrase?: string }) => {
+  async ({ url, keyphrase }) => {
     try {
-      const resp = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, keyphrase }),
-      });
-
+      const resp = await postScan(url, keyphrase);
       if (!resp.ok) {
-        return {
-          content: [{ type: "text", text: `Audit API answered HTTP ${resp.status}: ${await resp.text()}` }],
-          isError: true,
-        };
+        return textResult(`Audit API answered HTTP ${resp.status}: ${await resp.text()}`, true);
       }
-
-      const data = await resp.json();
-      return {
-        content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-      };
-    } catch (err: any) {
-      return {
-        content: [{ type: "text", text: `Failed to audit ${url}: ${err.message}` }],
-        isError: true,
-      };
+      const data: unknown = await resp.json();
+      return textResult(JSON.stringify(data, null, 2));
+    } catch (err) {
+      return textResult(`Failed to audit ${url}: ${errorMessage(err)}`, true);
     }
-  }
+  },
 );
 
-serverAny.tool(
+server.tool(
   "crawl_site",
   "Crawls a website up to a specified page limit and audits each discovered internal page for SEO, AEO, and GEO scores.",
   {
@@ -56,79 +98,51 @@ serverAny.tool(
     limit: z.number().optional().default(5).describe("Maximum number of internal pages to crawl (1-25)."),
     keyphrase: z.string().optional().describe("Optional focus keyphrase."),
   },
-  async ({ url, limit, keyphrase }: { url: string; limit?: number; keyphrase?: string }) => {
+  async ({ url, limit, keyphrase }) => {
     try {
       const startHost = new URL(url).hostname;
       const queue: string[] = [url];
       const visited = new Set<string>();
-      const results: any[] = [];
+      const results: PageSummary[] = [];
       const maxPages = limit || 5;
 
-      while (queue.length > 0 && results.length < maxPages) {
-        const current = queue.shift()!;
+      while (results.length < maxPages) {
+        const current = queue.shift();
+        if (current === undefined) break;
         if (visited.has(current)) continue;
         visited.add(current);
 
-        const resp = await fetch(API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: current, keyphrase }),
-        });
-
+        const resp = await postScan(current, keyphrase);
         if (!resp.ok) continue;
-        const pageData = (await resp.json()) as any;
-        const seo = pageData.seo?.score ?? 0;
-        const aeo = pageData.aeo?.score ?? 0;
-        const geo = pageData.geo?.score ?? 0;
-        const overall = Math.round(seo * 0.5 + aeo * 0.25 + geo * 0.25);
-
-        results.push({
-          url: current,
-          overall,
-          seo,
-          aeo,
-          geo,
-          failedChecks: [
-            ...(pageData.seo?.checks || []).filter((c: any) => !c.pass),
-            ...(pageData.aeo?.checks || []).filter((c: any) => !c.pass),
-            ...(pageData.geo?.checks || []).filter((c: any) => !c.pass),
-          ].length,
-        });
+        const pageData = (await resp.json()) as ScanPayload;
+        results.push(summarize(current, pageData));
 
         for (const link of pageData.internalLinks || []) {
-          try {
-            const parsed = new URL(link);
-            if (parsed.hostname === startHost && !visited.has(link) && queue.length < maxPages * 2) {
-              queue.push(link);
-            }
-          } catch {}
+          if (
+            URL.canParse(link) &&
+            new URL(link).hostname === startHost &&
+            !visited.has(link) &&
+            queue.length < maxPages * 2
+          ) {
+            queue.push(link);
+          }
         }
       }
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({ rootUrl: url, totalScanned: results.length, pages: results }, null, 2),
-          },
-        ],
-      };
-    } catch (err: any) {
-      return {
-        content: [{ type: "text", text: `Crawl failed: ${err.message}` }],
-        isError: true,
-      };
+      return textResult(JSON.stringify({ rootUrl: url, totalScanned: results.length, pages: results }, null, 2));
+    } catch (err) {
+      return textResult(`Crawl failed: ${errorMessage(err)}`, true);
     }
-  }
+  },
 );
 
-serverAny.prompt(
+server.prompt(
   "seo_audit_prompt",
   "Generates an expert executive audit recommendation report prioritizing highest-impact fixes for Google, Perplexity, and ChatGPT.",
   {
     url: z.string().describe("Website URL to audit and plan fixes for"),
   },
-  async ({ url }: { url: string }) => ({
+  async ({ url }) => ({
     messages: [
       {
         role: "user",
@@ -142,7 +156,7 @@ serverAny.prompt(
         },
       },
     ],
-  })
+  }),
 );
 
 async function main() {
