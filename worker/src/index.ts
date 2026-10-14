@@ -2,6 +2,7 @@ import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
+import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
 import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
@@ -225,7 +226,7 @@ const worker = {
 // Bots from many platforms unfurl a viral link at once; one scan per host per hour keeps them under the scan limit.
 async function cachedSharePreview(target: string, env: Env, url: URL): Promise<string> {
   const cache = (globalThis as { caches?: { default: Cache } }).caches?.default;
-  const key = new Request(`${PUBLIC_ORIGIN}/__share-preview/${withScheme(target).toLowerCase()}`);
+  const key = new Request(`${PUBLIC_ORIGIN}/__share-preview/v2/${withScheme(target).toLowerCase()}`);
   const hit = await cache?.match(key);
   if (hit) return hit.text();
   const html = await sharePreviewHtml(target, env, url);
@@ -270,13 +271,6 @@ function replaceMeta(html: string, attr: string, key: string, value: string): st
   );
 }
 
-function scoreQuip(overall: number): string {
-  if (overall >= 90) return "Google and ChatGPT can't miss it.";
-  if (overall >= 70) return "Almost famous with the robots.";
-  if (overall >= 50) return "Half-visible to Google and AI.";
-  return "Playing hide and seek with Google and AI.";
-}
-
 export function cardScores(params: URLSearchParams): CardScores | null {
   const host = params.get("h") ?? "";
   const score = (k: string) => {
@@ -313,8 +307,8 @@ async function sharePreviewHtml(target: string, env: Env, requestUrl: URL): Prom
     const self: SelfRoute = { hosts: [requestUrl.hostname, ...OWN_HOSTS], handle: (r) => worker.fetch(r, env) };
     const scan = await auditUrl(withScheme(target), self);
     const host = new URL(scan.url).hostname;
-    const title = `${host} scored ${scan.overall}/100. ${scoreQuip(scan.overall)}`;
-    const description = `SEO ${scan.seo.score} · AEO ${scan.aeo.score} · GEO ${scan.geo.score}. Can your site beat it? Free check, no signup.`;
+    const title = `${host} scored ${scan.overall}/100. ${scoreQuip(scan.overall, host)}`;
+    const description = shareDescription({ seo: scan.seo.score, aeo: scan.aeo.score, geo: scan.geo.score }, host);
     const shareUrl = prettyShareUrl(target);
     let html = PAGE_HTML.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
     html = replaceMeta(html, "property", "og:title", title);

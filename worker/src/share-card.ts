@@ -1,4 +1,5 @@
 import { escapeHtml } from "./learn";
+import { cardTheme, scoreQuip } from "./quips";
 
 export interface CardScores {
   host: string;
@@ -32,8 +33,10 @@ export function shareCardHtml(s: CardScores): string {
   const host = escapeHtml(s.host.length > 32 ? `${s.host.slice(0, 31)}…` : s.host);
   const ring = ringColor(s.overall);
   const bars = PILLARS.map((p) => bar(p.label, p.color, s[p.key])).join("");
-  return `<div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:56px 72px;background:linear-gradient(180deg,#fff4e6,#fffaf3 60%,#ffffff);font-family:Inter;color:#0F1222">
-<div style="display:flex;font-size:34px;font-weight:800;color:#4F2BFF">findable</div>
+  const theme = cardTheme(s.host);
+  const quip = escapeHtml(scoreQuip(s.overall, s.host));
+  return `<div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:56px 72px;background:${theme.background};font-family:Inter;color:#0F1222">
+<div style="display:flex;font-size:34px;font-weight:800;color:${theme.accent}">findable</div>
 <div style="display:flex;font-size:54px;font-weight:800;margin-top:18px">${host}</div>
 <div style="display:flex;flex:1;align-items:center">
 <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:300px;height:300px;border-radius:150px;border:26px solid ${ring};background:#ffffff">
@@ -41,6 +44,6 @@ export function shareCardHtml(s: CardScores): string {
 <div style="display:flex;font-size:28px;color:#5B6078">/100</div></div>
 <div style="display:flex;flex-direction:column;margin-left:72px">${bars}</div></div>
 <div style="display:flex;align-items:center;font-size:28px;font-weight:700">
-<div style="display:flex;flex-grow:1;color:#5B6078">Can your site beat it?</div>
-<div style="display:flex;color:#ffffff;background:#4F2BFF;padding:10px 24px;border-radius:14px">findable.page</div></div></div>`;
+<div style="display:flex;flex-grow:1;color:#3A3F55">${quip}</div>
+<div style="display:flex;color:#ffffff;background:${theme.accent};padding:10px 24px;border-radius:14px">findable.page</div></div></div>`;
 }

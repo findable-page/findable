@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import worker, { type Env, prettyShareUrl } from "../src/index";
+import { QUIPS, shareDescription } from "../src/quips";
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -30,7 +31,7 @@ test("a link-preview bot fetching /?url= gets the page's scores in the share tag
   expect(meta(html, "name", "twitter:title")).toBe(title);
   expect(html).toContain(`<title>${title}</title>`);
   expect(meta(html, "property", "og:description")).toBe(
-    `SEO ${scan.seo.score} · AEO ${scan.aeo.score} · GEO ${scan.geo.score}. Can your site beat it? Free check, no signup.`,
+    shareDescription({ seo: scan.seo.score, aeo: scan.aeo.score, geo: scan.geo.score }, "example.com"),
   );
   expect(meta(html, "property", "og:url")).toBe("https://findable.page/example.com");
 });
@@ -60,9 +61,9 @@ test("a bot asking about a blocked target still gets the generic page", async ()
 test("the preview title jokes about a low score", async () => {
   globalThis.fetch = (async () => new Response("<html></html>")) as unknown as typeof fetch;
   const html = await (await worker.fetch(new Request("https://w.test/?url=example.com", { headers: BOT }), ENV)).text();
-  expect(meta(html, "property", "og:title")).toMatch(
-    /^example\.com scored \d+\/100\. Playing hide and seek with Google and AI\.$/,
-  );
+  const [, score, quip] = meta(html, "property", "og:title")?.match(/^example\.com scored (\d+)\/100\. (.+)$/) ?? [];
+  expect(Number(score)).toBeLessThan(50);
+  expect([...QUIPS[3], ...QUIPS[4]]).toContain(quip ?? "");
 });
 
 test("share tags escape the scanned host", async () => {
