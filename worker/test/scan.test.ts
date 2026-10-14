@@ -68,6 +68,15 @@ test("/api/scan keys IPv6 clients on their /64 and IPv4 clients on the full addr
   ]);
 });
 
+test("/api/scan falls back to an in-memory limit of 10 a minute when the binding is absent", async () => {
+  const scan = () =>
+    worker.fetch(
+      new Request("https://w.test/api/scan", { method: "POST", body: "{}", headers: { "CF-Connecting-IP": "203.0.113.50" } }),
+    );
+  for (let i = 0; i < 10; i++) expect((await scan()).status).toBe(400);
+  expect((await scan()).status).toBe(429);
+});
+
 test("/api/scan proceeds when the rate limiter allows the client", async () => {
   const env = { SCAN_LIMITER: { limit: async () => ({ success: true }) } };
   const resp = await worker.fetch(new Request("https://w.test/api/scan", { method: "POST", body: "{}" }), env);

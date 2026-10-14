@@ -1,5 +1,6 @@
 import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch } from "./guard";
+import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
 
 export interface Check {
@@ -41,6 +42,13 @@ export interface Env {
 }
 
 const MAX_ANALYZED_HTML_CHARS = 1024 * 1024;
+
+const fallbackAllowScan = fixedWindowLimiter(10, 60_000);
+
+async function allowScan(env: Env, key: string): Promise<boolean> {
+  if (!env.SCAN_LIMITER) return fallbackAllowScan(key);
+  return (await env.SCAN_LIMITER.limit({ key })).success;
+}
 
 let uiPolicy: Promise<string> | undefined;
 
@@ -108,7 +116,7 @@ export default {
 
     if (url.pathname === "/api/scan" && request.method === "POST") {
       const key = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
-      if (env.SCAN_LIMITER && !(await env.SCAN_LIMITER.limit({ key })).success) {
+      if (!(await allowScan(env, key))) {
         return new Response(JSON.stringify({ error: "too many scans, try again in a minute" }), {
           status: 429,
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
