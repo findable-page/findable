@@ -1,4 +1,6 @@
+import { FETCH_TIMEOUT_MS, MAX_PAGE_BYTES } from "./guard";
 import { type LearnPost, learnPosts } from "./learn-content";
+import { MAX_SITE_FILE_BYTES } from "./site";
 
 const AUTHOR = "Nadim Tuhin";
 const AUTHOR_URL = "https://github.com/nadimtuhin";
@@ -88,6 +90,44 @@ function postList(posts: LearnPost[]): string {
   return `<ul>${items.join("")}</ul>`;
 }
 
+const INDEX_FAQ: LearnPost["faq"] = [
+  {
+    q: "What is findable?",
+    a: "findable checks whether a page can be found by Google and by AI answer engines. It scores SEO, AEO and GEO and lists every failing check by id so you know what to fix.",
+  },
+  {
+    q: "Where should I start?",
+    a: "Read the comparison of SEO, AEO and GEO first, then run an audit on your own page and open the check guide for each failing id.",
+  },
+  {
+    q: "Who writes these guides?",
+    a: `${AUTHOR} writes them. ${AUTHOR} builds findable, so every guide describes checks that exist in the code.`,
+  },
+];
+
+function latestModified(): string {
+  return learnPosts.map((p) => p.dateModified).sort()[learnPosts.length - 1] ?? "";
+}
+
+function indexBody(): string {
+  const updated = latestModified();
+  const start = ["seo-vs-aeo-vs-geo", "findable-in-15-minutes", "why-ai-answer-engines-skip-your-site"];
+  const steps = start
+    .map((slug) => learnPosts.find((p) => p.slug === slug))
+    .filter((p): p is LearnPost => p !== undefined)
+    .map((p) => `<li><a href="/learn/${p.slug}">${escapeHtml(p.title)}</a></li>`);
+  return [
+    `<h1>${escapeHtml(INDEX_TITLE)}</h1>`,
+    `<p class="byline">By <a href="${AUTHOR_URL}" rel="noopener">${AUTHOR}</a>. Updated <time datetime="${updated}">${updated}</time>.</p>`,
+    `<p>${escapeHtml(INDEX_DESCRIPTION)} findable is a tool that audits one page for SEO, AEO and GEO. You can read the guides in any order, and each one links to the others.</p>`,
+    `<h2 id="start-here">Where should you start?</h2>\n<ol>${steps.join("")}</ol>`,
+    `<h2 id="all-guides">All guides</h2>\n${postList(learnPosts)}`,
+    SCORING_NOTE,
+    `<h2 id="summary">Summary</h2>\n<ul><li>SEO is how crawlers find and index a page.</li><li>AEO is how easily an answer can be lifted from it.</li><li>GEO is how likely a generative model is to cite it.</li><li>Every check has a stable id, so you can look up a failure and fix it.</li></ul>`,
+    faqSection(INDEX_FAQ),
+  ].join("\n");
+}
+
 export function renderLearnIndex(origin: string): string {
   return page({
     title: INDEX_TITLE,
@@ -103,8 +143,10 @@ export function renderLearnIndex(origin: string): string {
         description: INDEX_DESCRIPTION,
         url: `${origin}/learn`,
       }),
+      identityGraph(origin),
+      faqLd(INDEX_FAQ),
     ],
-    body: `<h1>${escapeHtml(INDEX_TITLE)}</h1>\n<p>${escapeHtml(INDEX_DESCRIPTION)}</p>\n<h2>All guides</h2>\n${postList(learnPosts)}`,
+    body: indexBody(),
   });
 }
 
@@ -134,7 +176,7 @@ const SCORING_NOTE = `<section>
 <tr><td>AEO</td><td>25%</td><td>Is it easy to lift an answer from this page?</td></tr>
 <tr><td>GEO</td><td>25%</td><td>Does the page give a generative model a reason to cite it?</td></tr>
 </tbody></table>
-<p>The hosted audit waits up to 10 s for a page and fetches at most 5 MB. It reads robots.txt and llms.txt up to 512 KB each.</p>
+<p>The hosted audit waits up to ${FETCH_TIMEOUT_MS / 1000} s for a page and fetches at most ${MAX_PAGE_BYTES / (1024 * 1024)} MB. It reads robots.txt and llms.txt up to ${MAX_SITE_FILE_BYTES / 1024} KB each.</p>
 </section>`;
 
 function related(post: LearnPost): string {
@@ -142,10 +184,29 @@ function related(post: LearnPost): string {
   return `<section>\n<h2>More guides</h2>\n${postList(others)}\n</section>`;
 }
 
+const personId = (origin: string) => `${origin}/#author`;
+const orgId = (origin: string) => `${origin}/#organization`;
+
+const identityEntities = (origin: string) => [
+  { "@type": "Person", "@id": personId(origin), name: AUTHOR, url: AUTHOR_URL, sameAs: [AUTHOR_URL] },
+  { "@type": "Organization", "@id": orgId(origin), name: SITE_NAME, url: origin, sameAs: [REPO_URL] },
+];
+
+const identityGraph = (origin: string): string =>
+  jsonLd({ "@context": "https://schema.org", "@graph": identityEntities(origin) });
+
+const faqLd = (faq: LearnPost["faq"]): string =>
+  jsonLd({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  });
+
 function postStructuredData(post: LearnPost, origin: string): string[] {
-  const url = `${origin}/learn/${post.slug}`;
-  const personId = `${origin}/#author`;
-  const orgId = `${origin}/#organization`;
   const graph = jsonLd({
     "@context": "https://schema.org",
     "@graph": [
@@ -155,25 +216,14 @@ function postStructuredData(post: LearnPost, origin: string): string[] {
         description: post.description,
         datePublished: post.datePublished,
         dateModified: post.dateModified,
-        mainEntityOfPage: url,
-        author: { "@id": personId },
-        publisher: { "@id": orgId },
+        mainEntityOfPage: `${origin}/learn/${post.slug}`,
+        author: { "@id": personId(origin) },
+        publisher: { "@id": orgId(origin) },
       },
-      { "@type": "Person", "@id": personId, name: AUTHOR, url: AUTHOR_URL, sameAs: [AUTHOR_URL] },
-      { "@type": "Organization", "@id": orgId, name: SITE_NAME, url: origin, sameAs: [REPO_URL] },
+      ...identityEntities(origin),
     ],
   });
-  if (post.faq.length === 0) return [graph];
-  const faq = jsonLd({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: post.faq.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  });
-  return [graph, faq];
+  return post.faq.length === 0 ? [graph] : [graph, faqLd(post.faq)];
 }
 
 export function renderLearnPost(slug: string, origin: string): string | null {
