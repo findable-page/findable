@@ -3,6 +3,7 @@
   "name": "seoscore-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-10",
+  "routes": [{ "pattern": "seoscore.piply.xyz", "custom_domain": true }],
   "observability": {
     "enabled": true
   }

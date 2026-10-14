@@ -3,13 +3,57 @@ on:
   push:
     branches: [main]
   pull_request:
+
 jobs:
-  test:
+  go-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version-file: go.mod
       - run: go vet ./...
-      - run: go test ./...
+      - run: go test -race -timeout 10s ./...
+
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.14.0
+
+  typescript:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [mcp, worker]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+
+  worker-bundle-size:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    env:
+      MAX_GZIP_BYTES: 25600
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx wrangler deploy --dry-run --outdir dist
+      - run: |
+          size=$(gzip -9c dist/index.js | wc -c)
+          echo "worker bundle gzip: $size bytes (limit $MAX_GZIP_BYTES)"
+          test "$size" -le "$MAX_GZIP_BYTES"

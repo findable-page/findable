@@ -1,5 +1,18 @@
 # seoscore-cli
 
+[![CI](https://github.com/nadimtuhin/seoscore-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/nadimtuhin/seoscore-cli/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nadimtuhin/seoscore-cli)](https://goreportcard.com/report/github.com/nadimtuhin/seoscore-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+## Quick start
+
+```bash
+go install github.com/nadimtuhin/seoscore-cli/cmd/seoscore@latest
+seoscore https://example.com
+```
+
+Or try it in the browser: **https://seoscore.piply.xyz**
+
 A fast, unified open-source website auditor for **Traditional SEO**, **Answer Engine Optimization (AEO)**, and **Generative Engine Optimization (GEO)**.
 
 Audits live URLs or local HTML files completely offline in Go, exports identical CSV reports matching [seoscore.tools](https://seoscore.tools), runs a local API daemon with modern Web UI, serves Model Context Protocol (MCP) tools for AI agents, and includes a deployable Cloudflare Worker backend.
@@ -99,11 +112,11 @@ Add to your `claude_desktop_config.json` or Cursor `settings.json`:
 
 A production-ready edge API is deployable via Wrangler or accessible directly:
 
-- **Live Endpoint:** `https://seoscore-api.nadimtuhin.workers.dev`
-- **Audit Endpoint:** `POST https://seoscore-api.nadimtuhin.workers.dev/api/scan`
+- **Live Endpoint:** `https://seoscore.piply.xyz`
+- **Audit Endpoint:** `POST https://seoscore.piply.xyz/api/scan`
 
 ```bash
-curl -s -X POST https://seoscore-api.nadimtuhin.workers.dev/api/scan \
+curl -s -X POST https://seoscore.piply.xyz/api/scan \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","keyphrase":"example"}'
 ```
