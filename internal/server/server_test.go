@@ -3,11 +3,14 @@ package server
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -288,5 +291,46 @@ func TestRateLimiterResetsEachWindow(t *testing.T) {
 	got := []bool{first, second, l.allow("a")}
 	if want := []bool{true, false, true}; !slices.Equal(got, want) {
 		t.Errorf("allow sequence = %v, want %v", got, want)
+	}
+}
+
+func TestServerUIHasACSPHashingEveryInlineBlockAndRefusingFraming(t *testing.T) {
+	req := newRequest(http.MethodGet, "/", "")
+	req.Header.Set("Accept", "text/html")
+	rec := httptest.NewRecorder()
+	newTestMux().ServeHTTP(rec, req)
+	csp := rec.Header().Get("Content-Security-Policy")
+	directive := func(name string) string {
+		for _, d := range strings.Split(csp, ";") {
+			if strings.HasPrefix(strings.TrimSpace(d), name+" ") {
+				return d
+			}
+		}
+		return ""
+	}
+	hashOf := func(block string) string {
+		sum := sha256.Sum256([]byte(block))
+		return "'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "'"
+	}
+	body := rec.Body.String()
+	scripts := regexp.MustCompile(`(?s)<script(?:\s[^>]*)?>(.*?)</script>`).FindAllStringSubmatch(body, -1)
+	if len(scripts) == 0 {
+		t.Fatal("no inline scripts found in the UI")
+	}
+	for _, m := range scripts {
+		if !strings.Contains(directive("script-src"), hashOf(m[1])) {
+			t.Errorf("script-src %q lacks %s", directive("script-src"), hashOf(m[1]))
+		}
+	}
+	for _, m := range regexp.MustCompile(`(?s)<style(?:\s[^>]*)?>(.*?)</style>`).FindAllStringSubmatch(body, -1) {
+		if !strings.Contains(directive("style-src-elem"), hashOf(m[1])) {
+			t.Errorf("style-src-elem %q lacks %s", directive("style-src-elem"), hashOf(m[1]))
+		}
+	}
+	if strings.Contains(directive("script-src"), "unsafe-inline") || !strings.Contains(directive("frame-ancestors"), "'none'") || !strings.Contains(directive("connect-src"), "'self'") {
+		t.Errorf("CSP = %q", csp)
+	}
+	if got := rec.Header().Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Errorf("X-Content-Type-Options = %q, want nosniff", got)
 	}
 }

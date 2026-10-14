@@ -101,6 +101,8 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	if strings.Contains(r.Header.Get("Accept"), "text/html") {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Content-Security-Policy", uiPolicy)
+		w.Header().Set("X-Content-Type-Options", "nosniff")
 		writeBody(w, localWebUIHTML)
 		return
 	}

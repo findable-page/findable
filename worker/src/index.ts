@@ -42,6 +42,33 @@ export interface Env {
 
 const MAX_ANALYZED_HTML_CHARS = 1024 * 1024;
 
+let uiPolicy: Promise<string> | undefined;
+
+async function sha256Source(text: string): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+  return `'sha256-${btoa(String.fromCharCode(...digest))}'`;
+}
+
+async function hashesOf(tag: string): Promise<string> {
+  const blocks = [...UI_HTML.matchAll(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "g"))];
+  return (await Promise.all(blocks.map((m) => sha256Source(m[1] ?? "")))).join(" ");
+}
+
+async function buildUiPolicy(): Promise<string> {
+  return [
+    "default-src 'none'",
+    `script-src ${await hashesOf("script")}`,
+    "style-src 'unsafe-inline'",
+    `style-src-elem ${await hashesOf("style")}`,
+    "style-src-attr 'unsafe-inline'",
+    "connect-src 'self'",
+    "img-src 'self' data:",
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
 export default {
   async fetch(request: Request, env: Env = {}): Promise<Response> {
     const url = new URL(request.url);
@@ -52,8 +79,14 @@ export default {
 
     if (url.pathname === "/") {
       if (request.headers.get("accept")?.includes("text/html")) {
+        uiPolicy ??= buildUiPolicy();
         return new Response(UI_HTML, {
-          headers: { ...CORS_HEADERS, "Content-Type": "text/html; charset=utf-8" },
+          headers: {
+            ...CORS_HEADERS,
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Security-Policy": await uiPolicy,
+            "X-Content-Type-Options": "nosniff",
+          },
         });
       }
       return new Response(JSON.stringify({ status: "ok", name: "seoscore-api", version: "1.0.0" }), {
