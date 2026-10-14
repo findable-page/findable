@@ -145,3 +145,21 @@ test("/api/scan refuses an own-host /api/ target instead of recursing", async ()
   );
   expect([resp.status, fetched]).toEqual([400, false]);
 });
+
+async function directAnswersPass(body: string): Promise<boolean> {
+  globalThis.fetch = (async () => new Response(`<html><body>${body}</body></html>`)) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
+  );
+  const scan = (await resp.json()) as { aeo: { checks: { id: string; pass: boolean }[] } };
+  return scan.aeo.checks.find((c) => c.id === "aeo_direct_answers")?.pass ?? false;
+}
+
+const words = (n: number) => Array.from({ length: n }, () => "word").join(" ");
+
+test("aeo_direct_answers needs one 30 to 80 word paragraph, like the Go engine", async () => {
+  expect(await directAnswersPass(`<div>${words(200)}</div>`)).toBe(false);
+  expect(await directAnswersPass(`<p>${words(29)}</p><p>${words(81)}</p>`)).toBe(false);
+  expect(await directAnswersPass(`<p>${words(30)}</p>`)).toBe(true);
+  expect(await directAnswersPass(`<p>${words(80)}</p>`)).toBe(true);
+});

@@ -295,6 +295,10 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     .trim();
   const words = visibleText.split(/\s+/).filter(Boolean);
   const wordCount = words.length;
+  const hasDirectAnswer = [...rawHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].some((m) => {
+    const n = (m[1] ?? "").replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+    return n >= 30 && n <= 80;
+  });
 
   // Open Graph & Twitter
   const ogTitle = rawHtml.match(/<meta[^>]+property=["']og:title["']/i);
@@ -460,7 +464,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
   const aeoChecks: Check[] = [
     { id: "aeo_structured_data", label: "Structured data found for AI extraction", pass: jsonLdMatches.length > 0 },
     { id: "aeo_faq", label: "FAQ schema or Q&A section detected", pass: hasFAQ },
-    { id: "aeo_direct_answers", label: "Concise answer paragraphs found under headings", pass: wordCount >= 100 },
+    { id: "aeo_direct_answers", label: "Concise answer paragraphs (30-80 words) found", pass: hasDirectAnswer },
     {
       id: "aeo_question_headings",
       label: "Question-style headings found (What/How/Why/?)",
