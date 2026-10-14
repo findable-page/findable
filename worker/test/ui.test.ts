@@ -35,3 +35,16 @@ test("the UI CSP lets the Cloudflare Web Analytics beacon load and report", asyn
   expect(directive("script-src")).toContain("https://static.cloudflareinsights.com");
   expect(directive("connect-src")).toContain("https://cloudflareinsights.com");
 });
+
+test("the UI takes bare domains, offers Share and keeps the ?url= autorun", async () => {
+  const html = await (await worker.fetch(new Request("https://w.test/"))).text();
+  const input = html.match(/<input[^>]*id="urlInput"[^>]*>/)?.[0] ?? "";
+  for (const attr of ['type="text"', 'inputmode="url"', 'autocapitalize="off"']) expect(input).toContain(attr);
+  expect(html).toContain('id="btnShareReport"');
+  expect(html).toMatch(/id="shareStatus"[^>]*aria-live="polite"/);
+  expect(html).toContain("navigator.share");
+  expect(html).toContain('"https://" +');
+  expect(html).toContain('urlParams.get("url")');
+  expect(html).toContain("/og.jpg");
+  expect(html).not.toContain("/og.png");
+});

@@ -6,9 +6,11 @@ const INDEX_HTML = new URL("../../internal/server/web/index.html", import.meta.u
 
 test("worker/public holds exactly the static assets the UI references", async () => {
   const html = await Bun.file(INDEX_HTML).text();
-  const refs = [...html.matchAll(/<link rel="(?:icon|apple-touch-icon)" href="\/([^"]+)"/g)].map((m) => m[1] ?? "");
+  const refs = [...html.matchAll(/<link rel="(?:icon|apple-touch-icon|manifest)" href="\/([^"]+)"/g)].map(
+    (m) => m[1] ?? "",
+  );
   const og = html.match(/property="og:image" content="https:\/\/[^/"]+\/([^"]+)"/)?.[1] ?? "";
   const referenced = [...refs, og].sort();
-  expect(referenced).toEqual(["apple-touch-icon.png", "favicon.svg", "og.png"]);
-  expect(readdirSync(PUBLIC_DIR.pathname).sort()).toEqual(referenced);
+  expect(referenced).toEqual(["apple-touch-icon.png", "favicon.ico", "favicon.svg", "og.jpg", "site.webmanifest"]);
+  expect(readdirSync(PUBLIC_DIR.pathname).sort()).toEqual([...referenced, "og.png"].sort());
 });

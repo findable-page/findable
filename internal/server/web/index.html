@@ -7,18 +7,20 @@
   <meta name="description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
   <link rel="canonical" href="https://findable.piply.xyz/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <meta name="theme-color" content="#FFFFFF">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#6d5efc">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="findable">
   <meta property="og:url" content="https://findable.piply.xyz/">
   <meta property="og:title" content="findable: is your site findable by Google and AI?">
   <meta property="og:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
-  <meta property="og:image" content="https://findable.piply.xyz/og.png">
+  <meta property="og:image" content="https://findable.piply.xyz/og.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="findable: is your site findable by Google and AI?">
   <meta name="twitter:description" content="findable: is your site findable by Google and by AI answer engines? Free scan that scores your page for SEO, AEO and GEO with dozens of checks and ranked fixes.">
-  <meta name="twitter:image" content="https://findable.piply.xyz/og.png">
+  <meta name="twitter:image" content="https://findable.piply.xyz/og.jpg">
   <!--slot:head-->
   <script>
     (function() {
@@ -69,6 +71,7 @@
     .nav-link { color: var(--text-2); font-weight: 600; font-size: 0.9rem; text-decoration: none; padding: 0.5rem; }
     .nav-link:hover { color: var(--accent); }
     .btn-api-badge, .btn-action, .theme-toggle { background: var(--surface); border: 1px solid var(--border-ui); color: var(--text); border-radius: 10px; font: inherit; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .share-status { font-size: 0.85rem; color: var(--text); align-self: center; }
     .btn-api-badge, .btn-action { padding: 0.5rem 0.9rem; }
     .btn-api-badge { color: var(--text); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
     .theme-toggle { width: 40px; height: 40px; justify-content: center; }
@@ -329,7 +332,7 @@
           <div class="input-row">
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-              <input type="url" id="urlInput" class="url-input" placeholder="https://example.com" required autocomplete="url" spellcheck="false">
+              <input type="text" inputmode="url" autocapitalize="off" id="urlInput" class="url-input" placeholder="example.com" required autocomplete="url" spellcheck="false">
             </div>
             <button type="submit" class="scan-btn" id="scanBtn"><span>Scan now</span></button>
           </div>
@@ -392,6 +395,8 @@
           <button type="button" class="btn-action" id="btnCopyReport">Copy</button>
           <button type="button" class="btn-action" id="btnExportJSON">JSON</button>
           <button type="button" class="btn-action" id="btnExportCSV">CSV</button>
+          <button type="button" class="btn-action" id="btnShareReport">Share</button>
+          <span id="shareStatus" class="share-status" role="status" aria-live="polite"></span>
         </div>
       </section>
 
@@ -553,6 +558,12 @@ findable https://example.com</code></pre>
       document.documentElement.setAttribute("data-theme", next);
       try { localStorage.setItem("seoscore_theme", next); } catch {}
     });
+
+    const SCHEME = /^[a-z][a-z0-9+.-]*:\/\//i;
+    function withScheme(value) {
+      const v = value.trim();
+      return v && !SCHEME.test(v) ? "https://" + v : v;
+    }
 
     function showToast(msg) {
       const t = $("toast");
@@ -755,7 +766,7 @@ findable https://example.com</code></pre>
 
     scanForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const targetUrl = urlInput.value.trim();
+      const targetUrl = withScheme(urlInput.value);
       const keyphrase = keyphraseInput.value.trim();
       if (!targetUrl) return;
 
@@ -1000,6 +1011,28 @@ findable https://example.com</code></pre>
       if (!currentScan) return;
       const text = `findable audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${currentScan.seo.score} | AEO: ${currentScan.aeo.score} | GEO: ${currentScan.geo.score}\nGenerated via findable.piply.xyz`;
       navigator.clipboard.writeText(text).then(() => showToast("Summary copied to clipboard"));
+    });
+
+    function shareLink() {
+      const params = new URLSearchParams({ url: scannedUrl });
+      const kp = keyphraseInput.value.trim();
+      if (kp) params.set("k", kp);
+      return `${location.origin}/?${params}`;
+    }
+
+    $("btnShareReport").addEventListener("click", async () => {
+      if (!currentScan) return;
+      const link = shareLink();
+      if (navigator.share) {
+        try { await navigator.share({ title: "findable report", url: link }); } catch {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(link);
+        $("shareStatus").textContent = "Link copied";
+      } catch {
+        $("shareStatus").textContent = "Could not copy the link";
+      }
     });
 
     async function scanOnce(url, keyphrase) {
