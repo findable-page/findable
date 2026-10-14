@@ -93,12 +93,28 @@ async function readCapped(resp: Response): Promise<string> {
   return new TextDecoder().decode(all);
 }
 
-export async function guardedFetch(target: string, headers: Record<string, string> = {}): Promise<FetchedPage> {
+export interface SelfRoute {
+  hosts: string[];
+  handle: (request: Request) => Promise<Response>;
+}
+
+async function fetchHop(current: string, headers: Record<string, string>, signal: AbortSignal, self?: SelfRoute) {
+  const u = new URL(current);
+  if (!self?.hosts.includes(u.hostname)) return fetch(current, { headers, redirect: "manual", signal });
+  if (u.pathname.startsWith("/api/")) throw new BlockedTargetError(current);
+  return self.handle(new Request(current, { method: "GET", headers }));
+}
+
+export async function guardedFetch(
+  target: string,
+  headers: Record<string, string> = {},
+  self?: SelfRoute,
+): Promise<FetchedPage> {
   const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
   let current = target;
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     if (!publicTarget(current)) throw new BlockedTargetError(current);
-    const resp = await fetch(current, { headers, redirect: "manual", signal });
+    const resp = await fetchHop(current, headers, signal, self);
     const location = resp.headers.get("location");
     if (resp.status >= 300 && resp.status < 400 && location) {
       await resp.body?.cancel();

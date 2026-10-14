@@ -1,4 +1,4 @@
-import { guardedFetch } from "./guard";
+import { guardedFetch, type SelfRoute } from "./guard";
 import type { Check } from "./index";
 
 const AI_CRAWLERS = ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"];
@@ -97,9 +97,9 @@ export function siteCategory(pagePath: string, robots: string | null, llms: stri
   return { score: null, passed: checks.filter((c) => c.pass).length, total: checks.length, checks };
 }
 
-async function optionalText(target: string): Promise<string | null> {
+async function optionalText(target: string, self?: SelfRoute): Promise<string | null> {
   try {
-    const page = await guardedFetch(target);
+    const page = await guardedFetch(target, {}, self);
     if (page.status !== 200) return null;
     return page.body.slice(0, MAX_SITE_FILE_BYTES);
   } catch {
@@ -107,11 +107,11 @@ async function optionalText(target: string): Promise<string | null> {
   }
 }
 
-export async function siteChecks(pageUrl: string): Promise<SiteCategory> {
+export async function siteChecks(pageUrl: string, self?: SelfRoute): Promise<SiteCategory> {
   const u = new URL(pageUrl);
   const [robots, llms] = await Promise.all([
-    optionalText(`${u.origin}/robots.txt`),
-    optionalText(`${u.origin}/llms.txt`),
+    optionalText(`${u.origin}/robots.txt`, self),
+    optionalText(`${u.origin}/llms.txt`, self),
   ]);
   return siteCategory(u.pathname + u.search, robots, llms);
 }

@@ -107,3 +107,41 @@ test("/api/scan resolves links against the final URL after redirects", async () 
   const scan = (await resp.json()) as { url: string; internalLinks: string[] };
   expect([scan.url, scan.internalLinks]).toEqual(["https://example.com/a", ["https://example.com/dir/next"]]);
 });
+
+const allowAll = { SCAN_LIMITER: { limit: async () => ({ success: true }) } };
+
+test("/api/scan of its own host scans the real UI in-process instead of fetching", async () => {
+  globalThis.fetch = (async () => {
+    throw new Error("network fetch to own host");
+  }) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://seoscore.piply.xyz/api/scan", {
+      method: "POST",
+      body: JSON.stringify({ url: "https://seoscore.piply.xyz/", site: true }),
+    }),
+    allowAll,
+  );
+  const scan = (await resp.json()) as { seo: { score: number; checks: { id: string; pass: boolean; label: string }[] } };
+  const check = (id: string) => scan.seo.checks.find((c) => c.id === id);
+  expect(resp.status).toBe(200);
+  expect(check("title_exists")?.label).toContain("SEOScore Tools");
+  expect(Number.parseInt(check("word_count")?.label ?? "0", 10)).toBeGreaterThan(150);
+  expect(check("x_content_type")?.pass).toBe(true);
+  expect(scan.seo.score).toBeGreaterThan(40);
+});
+
+test("/api/scan refuses an own-host /api/ target instead of recursing", async () => {
+  let fetched = false;
+  globalThis.fetch = (async () => {
+    fetched = true;
+    return new Response("");
+  }) as unknown as typeof fetch;
+  const resp = await worker.fetch(
+    new Request("https://seoscore.piply.xyz/api/scan", {
+      method: "POST",
+      body: JSON.stringify({ url: "https://findable.piply.xyz/api/scan" }),
+    }),
+    allowAll,
+  );
+  expect([resp.status, fetched]).toEqual([400, false]);
+});

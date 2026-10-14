@@ -1,5 +1,5 @@
 import UI_HTML from "../../internal/server/web/index.html";
-import { BlockedTargetError, guardedFetch } from "./guard";
+import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
 
@@ -77,7 +77,9 @@ async function buildUiPolicy(): Promise<string> {
   ].join("; ");
 }
 
-export default {
+const OWN_HOSTS = ["findable.piply.xyz", "seoscore.piply.xyz"];
+
+const worker = {
   async fetch(request: Request, env: Env = {}): Promise<Response> {
     const url = new URL(request.url);
 
@@ -127,8 +129,9 @@ export default {
         }
 
         const targetUrl = body.url.trim();
-        const scanRes = await auditUrl(targetUrl, body.keyphrase?.trim());
-        if (body.site === true) scanRes.site = await siteChecks(targetUrl);
+        const self: SelfRoute = { hosts: [url.hostname, ...OWN_HOSTS], handle: (r) => worker.fetch(r, env) };
+        const scanRes = await auditUrl(targetUrl, self, body.keyphrase?.trim());
+        if (body.site === true) scanRes.site = await siteChecks(targetUrl, self);
 
         return new Response(JSON.stringify(scanRes), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
@@ -146,6 +149,8 @@ export default {
   },
 };
 
+export default worker;
+
 function rateLimitKey(ip: string): string {
   if (!ip.includes(":")) return ip;
   const [head = "", tail] = ip.toLowerCase().split("::");
@@ -156,11 +161,15 @@ function rateLimitKey(ip: string): string {
   return `${prefix.map((g) => Number.parseInt(g, 16).toString(16)).join(":")}::/64`;
 }
 
-async function auditUrl(targetUrl: string, keyphrase?: string): Promise<ScanResponse> {
-  const page = await guardedFetch(targetUrl, {
-    "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
-    Accept: "text/html,application/xhtml+xml",
-  });
+async function auditUrl(targetUrl: string, self: SelfRoute, keyphrase?: string): Promise<ScanResponse> {
+  const page = await guardedFetch(
+    targetUrl,
+    {
+      "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
+      Accept: "text/html,application/xhtml+xml",
+    },
+    self,
+  );
   const scan = analyzeHtml(page.url, page.body.slice(0, MAX_ANALYZED_HTML_CHARS), page.headers, keyphrase);
   return { ...scan, url: targetUrl };
 }
