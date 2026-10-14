@@ -40,6 +40,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
+      - if: matrix.package == 'worker'
+        run: bun test
 
   worker-bundle-size:
     runs-on: ubuntu-latest
