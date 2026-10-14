@@ -127,3 +127,20 @@ describe("findable audits its own learn pages", () => {
     });
   }
 });
+
+describe("site files list the learn pages", () => {
+  test("sitemap.xml and llms.txt include /learn and every post", async () => {
+    const sitemap = await (await get("/sitemap.xml")).text();
+    const llms = await (await get("/llms.txt")).text();
+    for (const path of ["/learn", ...learnPosts.map((p) => `/learn/${p.slug}`)]) {
+      expect(sitemap).toContain(`<loc>${ORIGIN}${path}</loc>`);
+      expect(llms).toContain(`${ORIGIN}${path}`);
+    }
+  });
+
+  test("learn pages carry the full security headers", async () => {
+    const res = await get("/learn");
+    expect(res.headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
+    expect(res.headers.get("Strict-Transport-Security")).toContain("includeSubDomains");
+  });
+});

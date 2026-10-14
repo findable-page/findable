@@ -1,8 +1,10 @@
 import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
+import { learnPosts } from "./learn-content";
 import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
+import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
 
 export interface Check {
   id: string;
@@ -51,6 +53,10 @@ async function allowScan(env: Env, key: string): Promise<boolean> {
   return (await env.SCAN_LIMITER.limit({ key })).success;
 }
 
+const PUBLIC_ORIGIN = "https://findable.piply.xyz";
+
+const PAGE_HTML = injectHead(UI_HTML, headSlot(PUBLIC_ORIGIN));
+
 let uiPolicy: Promise<string> | undefined;
 
 async function sha256Source(text: string): Promise<string> {
@@ -59,7 +65,7 @@ async function sha256Source(text: string): Promise<string> {
 }
 
 async function hashesOf(tag: string): Promise<string> {
-  const blocks = [...UI_HTML.matchAll(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "g"))];
+  const blocks = [...PAGE_HTML.matchAll(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "g"))];
   return (await Promise.all(blocks.map((m) => sha256Source(m[1] ?? "")))).join(" ");
 }
 
@@ -77,6 +83,46 @@ async function buildUiPolicy(): Promise<string> {
     "frame-ancestors 'none'",
   ].join("; ");
 }
+
+function securityHeaders(csp: string): Record<string, string> {
+  return {
+    "Content-Security-Policy": csp,
+    "X-Content-Type-Options": "nosniff",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+  };
+}
+
+const HOME_PAGE: PageEntry = {
+  path: "/",
+  title: "findable",
+  description: "Scan any URL for SEO, AEO and GEO signals and get a score with the fixes that matter.",
+};
+
+const LEARN_PAGES: PageEntry[] = [
+  {
+    path: "/learn",
+    title: "Learn findable",
+    description: "Plain guides to SEO, AEO and GEO, and how to check them with findable.",
+  },
+  ...learnPosts.map((p) => ({ path: `/learn/${p.slug}`, title: p.title, description: p.description })),
+];
+
+const SITE_PAGES = [HOME_PAGE, ...LEARN_PAGES];
+
+const SITE_FILES: Record<string, (origin: string) => { type: string; body: string }> = {
+  "/robots.txt": (o) => ({ type: "text/plain", body: robotsTxt(o) }),
+  "/sitemap.xml": (o) => ({
+    type: "application/xml",
+    body: sitemapXml(
+      o,
+      SITE_PAGES.map((p) => p.path),
+    ),
+  }),
+  "/llms.txt": (o) => ({ type: "text/plain", body: llmsTxt(o, SITE_PAGES) }),
+  "/llms-full.txt": (o) => ({ type: "text/plain", body: llmsFullTxt(o, SITE_PAGES) }),
+};
 
 let learnPolicy: Promise<string> | undefined;
 
@@ -96,13 +142,7 @@ async function learnResponse(pathname: string, origin: string): Promise<Response
   learnPolicy ??= buildLearnPolicy();
   return new Response(html ?? renderLearnNotFound(origin), {
     status: html ? 200 : 404,
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "Content-Security-Policy": await learnPolicy,
-      "X-Content-Type-Options": "nosniff",
-      "X-Frame-Options": "DENY",
-      "Strict-Transport-Security": "max-age=31536000",
-    },
+    headers: { "Content-Type": "text/html; charset=utf-8", ...securityHeaders(await learnPolicy) },
   });
 }
 
@@ -118,14 +158,19 @@ const worker = {
 
     if (url.pathname === "/") {
       uiPolicy ??= buildUiPolicy();
-      return new Response(UI_HTML, {
+      return new Response(PAGE_HTML, {
         headers: {
           ...CORS_HEADERS,
           "Content-Type": "text/html; charset=utf-8",
-          "Content-Security-Policy": await uiPolicy,
-          "X-Content-Type-Options": "nosniff",
+          ...securityHeaders(await uiPolicy),
         },
       });
+    }
+
+    const siteFile = request.method === "GET" ? SITE_FILES[url.pathname] : undefined;
+    if (siteFile) {
+      const { type, body } = siteFile(url.origin);
+      return new Response(body, { headers: { ...CORS_HEADERS, "Content-Type": `${type}; charset=utf-8` } });
     }
 
     if (request.method === "GET" && (url.pathname === "/learn" || url.pathname.startsWith("/learn/"))) {
