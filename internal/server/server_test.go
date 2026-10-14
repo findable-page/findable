@@ -1,10 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -198,5 +200,19 @@ func TestGuardedServerRejectsLocalFilesAndPrivateAddresses(t *testing.T) {
 		if rec.Code != http.StatusBadRequest {
 			t.Errorf("%s: status %d, want 400 (%s)", target, rec.Code, rec.Body.String())
 		}
+	}
+}
+
+func TestServerServesTheSingleUISourceByteForByte(t *testing.T) {
+	want, err := os.ReadFile("web/index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec := httptest.NewRecorder()
+	req := newRequest(http.MethodGet, "/", "")
+	req.Header.Set("Accept", "text/html")
+	newTestMux().ServeHTTP(rec, req)
+	if !bytes.Equal(rec.Body.Bytes(), want) {
+		t.Errorf("served UI (%d bytes) differs from web/index.html (%d bytes)", rec.Body.Len(), len(want))
 	}
 }

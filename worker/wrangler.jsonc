@@ -3,6 +3,7 @@
   "name": "seoscore-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-10",
+  "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": true }],
   "routes": [{ "pattern": "seoscore.piply.xyz", "custom_domain": true }],
   "observability": {
     "enabled": true

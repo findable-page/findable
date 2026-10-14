@@ -1,6 +1,6 @@
 import { BlockedTargetError, guardedFetch } from "./guard";
 import { type SiteCategory, siteChecks } from "./site";
-import { UI_HTML } from "./ui";
+import UI_HTML from "../../internal/server/web/index.html";
 
 export interface Check {
   id: string;
