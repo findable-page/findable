@@ -1,10 +1,10 @@
 # The findable story
 
-People used to ask one question: does my site rank on Google? Now they also ask ChatGPT, Perplexity and Claude, and those tools answer in a paragraph instead of a list of links. If your page is not in that paragraph, nobody sees it. I wanted one tool that tells me if a page is ready for both worlds.
+People used to ask one question: does my site rank on Google? Now they also ask ChatGPT, Perplexity and Claude, and those tools answer in a paragraph instead of a list of links. If your page is not in that paragraph, it may not get seen. I wanted one tool that tells me if a page is ready for both worlds.
 
 ## An engine that runs offline
 
-findable started as a small Go CLI that scored a page against a fixed set of checks. The first version leaned on a hosted service. I removed that. Today the whole engine runs on your machine: it reads a URL or a local HTML file, extracts signals once, and runs 72 page checks plus 7 optional site checks. No account, no rate limit, no data leaving your laptop. The same code answers every front end, so the CLI, the API and the MCP server cannot disagree.
+findable started as a small Go CLI that scored a page against a fixed set of checks. The first version leaned on a hosted service. I removed that. Today the engine runs on your machine: it reads a URL or a local HTML file, extracts signals once, and runs 72 page checks plus 7 optional site checks. No account, no rate limit. Scoring a local file is fully offline; fetching a URL or running site checks makes network requests. The same code answers every front end, so the CLI, the API and the MCP server agree on the 72 page checks. Keyphrase scoring is the exception: only the edge API does it today.
 
 ## Three families, one score
 

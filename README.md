@@ -2,7 +2,7 @@
 
 # Is your site findable by Google AND by ChatGPT/Perplexity?
 
-**findable: offline SEO + AEO + GEO auditor for the AI search era (CLI, MCP, edge API).**
+**findable: SEO + AEO + GEO auditor for the AI search era (CLI, MCP, edge API).** Scores summarise findable's own checks; they do not measure Google rankings or AI citations.
 
 [![CI](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml/badge.svg)](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nadimtuhin/findable)](https://goreportcard.com/report/github.com/nadimtuhin/findable)
@@ -15,9 +15,9 @@
 
 ## Why
 
-AI answer engines now sit between your page and your reader. They quote short, structured, attributed passages and skip the rest. A page can rank well on Google and still never appear in a ChatGPT or Perplexity answer.
+AI answer engines now sit between your page and your reader. They tend to quote short, structured, attributed passages. A page can rank well on Google and still not be cited in a ChatGPT or Perplexity answer.
 
-Classic SEO tools stop at titles, links and speed. findable also checks whether a machine can lift a clean answer out of the page (AEO), and whether the page carries the trust signals a generative engine needs to cite it (GEO). It runs offline in Go: no account, no quota, nothing leaves your machine.
+findable checks the signals answer engines are documented or commonly reported to use: whether a machine can lift a clean answer out of the page (AEO), and whether the page carries trust signals a generative engine may use to cite it (GEO), alongside classic SEO. It is written in Go with no account and no quota. Scoring a local HTML file is fully offline; URL, crawl and site checks make network requests, and the hosted API exists if you prefer not to run it yourself.
 
 ## Scoring model
 
@@ -35,9 +35,10 @@ That is 72 page checks. Seven more site checks are opt-in (`-site`) and unscored
 
 ```bash
 go install github.com/nadimtuhin/findable/cmd/findable@latest   # Go 1.26+
-brew install nadimtuhin/tap/findable                            # coming with the first release
 npx findable-mcp                                                # MCP server for agents
 ```
+
+Homebrew: planned for first release; use go install.
 
 Then:
 
