@@ -811,6 +811,43 @@
       }
     }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .results-wrap { scroll-margin-top: 84px; }
+    .results-heading { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .results-heading:focus { outline: none; }
+    .skeleton { margin: 1.5rem 0 5rem; display: grid; gap: 1.25rem; }
+    .skeleton > div, .sk-grid > div {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      animation: sk-pulse 1.2s ease-in-out infinite;
+    }
+    .skeleton > .sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; background: none; border: 0; animation: none; }
+    .sk-grid > div { height: 170px; }
+    .sk-bar { height: 72px; }
+    @keyframes sk-pulse { 50% { opacity: 0.5; } }
+    .error-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--danger);
+      border-left-width: 4px;
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .error-panel-text { flex: 1; min-width: 200px; overflow-wrap: anywhere; }
+    .error-panel-title { font-weight: 800; margin-bottom: 0.2rem; }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -909,11 +946,27 @@
       <div id="crawlTableWrap"></div>
     </div>
 
-    <!-- Results Section -->
-    <div id="results" class="results-wrap hidden" tabindex="-1">
+    <p id="scanStatus" class="sr-only" role="status" aria-live="polite"></p>
+
+    <div id="scanSkeleton" class="skeleton hidden" aria-hidden="true">
+      <div class="sk-bar"></div>
+      <div class="sk-grid"><div></div><div></div><div></div><div></div></div>
+      <div class="sk-bar"></div>
+      <div class="sk-bar"></div>
+    </div>
+
+    <div id="errorPanel" class="error-panel hidden" role="alert">
+      <div class="error-panel-text">
+        <div class="error-panel-title">Scan failed</div>
+        <div id="errorText"></div>
+      </div>
+      <button type="button" class="btn-action" id="btnRetry">Retry</button>
+    </div>
+
+    <div id="results" class="results-wrap hidden">
       <div class="site-summary-bar">
         <div class="site-url-box">
-          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Audited Target</span>
+          <h2 class="results-heading" id="resultsHeading" tabindex="-1">Audit results</h2>
           <div class="site-url-title" id="resultUrl">https://example.com</div>
           <div class="site-meta-line" id="resultDate"></div>
         </div>
@@ -1253,6 +1306,7 @@ seoscore-cli https://example.com</div>
 
       scanBtn.disabled = true;
       scanBtn.querySelector("span").textContent = activeMode === "page" ? "Scanning..." : "Crawling...";
+      errorPanel.classList.add("hidden");
 
       if (activeMode === "site") {
         await executeSiteCrawl(targetUrl, keyphrase);
@@ -1261,23 +1315,55 @@ seoscore-cli https://example.com</div>
         return;
       }
 
+      setBusy(true);
       try {
         const resp = await fetch("/api/scan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: targetUrl, keyphrase }),
         });
-        if (!resp.ok) throw new Error("Audit answered status " + resp.status);
+        if (!resp.ok) throw new Error(await apiError(resp));
         currentScan = await resp.json();
+        setBusy(false);
         renderScanResults(currentScan, targetUrl);
         saveRecentScan(targetUrl, Math.round((currentScan.seo.score||0)*0.5 + (currentScan.aeo.score||0)*0.25 + (currentScan.geo.score||0)*0.25));
       } catch (err) {
-        showToast("Scan Error: " + err.message);
+        setBusy(false);
+        showError(err.message);
       } finally {
         scanBtn.disabled = false;
         scanBtn.querySelector("span").textContent = "Scan Now";
       }
     });
+
+    const mainEl = document.querySelector("main");
+    const scanStatus = document.getElementById("scanStatus");
+    const errorPanel = document.getElementById("errorPanel");
+    document.getElementById("btnRetry").addEventListener("click", () => scanForm.requestSubmit());
+
+    function setBusy(busy) {
+      mainEl.setAttribute("aria-busy", String(busy));
+      document.getElementById("scanSkeleton").classList.toggle("hidden", !busy);
+      if (busy) {
+        document.getElementById("results").classList.add("hidden");
+        scanStatus.textContent = "Scanning " + urlInput.value.trim();
+      }
+    }
+
+    function showError(message) {
+      document.getElementById("errorText").textContent = message.slice(0, 500);
+      scanStatus.textContent = "";
+      errorPanel.classList.remove("hidden");
+    }
+
+    async function apiError(resp) {
+      const text = await resp.text().catch(() => "");
+      try {
+        const body = JSON.parse(text);
+        if (body && typeof body.error === "string" && body.error) return body.error;
+      } catch {}
+      return text.trim() || "The scan API answered with status " + resp.status;
+    }
 
     function setRing(id, score) {
       const circumference = 314.16;
@@ -1350,8 +1436,10 @@ seoscore-cli https://example.com</div>
       // Render Check List
       filterAndRenderChecks();
 
-      // Scroll smoothly to results
-      resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      scanStatus.textContent = `Scan complete for ${url}: overall ${overall} of 100, ${failingChecks.length} failing checks.`;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      resultsEl.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      document.getElementById("resultsHeading").focus({ preventScroll: true });
     }
 
     function renderPriorityFixes(failing) {
@@ -1523,6 +1611,7 @@ seoscore-cli https://example.com</div>
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: startUrl, keyphrase }),
         });
+        if (!r1.ok) throw new Error(await apiError(r1));
         const initial = await r1.json();
         const startHost = new URL(startUrl).hostname;
         const queue = [startUrl];
@@ -1546,6 +1635,7 @@ seoscore-cli https://example.com</div>
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ url: curr, keyphrase }),
             });
+            if (!res.ok) continue;
             const sData = await res.json();
             crawled.push({ url: curr, scan: sData });
             renderCrawlTable(tableWrap, crawled);
@@ -1555,7 +1645,8 @@ seoscore-cli https://example.com</div>
         crawlStatus.textContent = `Crawl complete! Scanned ${crawled.length} pages.`;
         renderScanResults(initial, startUrl);
       } catch (err) {
-        crawlStatus.textContent = "Crawl failed: " + err.message;
+        crawlSection.classList.add("hidden");
+        showError(err.message);
       }
     }
 
