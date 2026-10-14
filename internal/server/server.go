@@ -3,8 +3,10 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/nadimtuhin/seoscore-cli/internal/audit"
@@ -18,7 +20,41 @@ const (
 	scanCountJSON     = `{"count":2847}`
 	healthJSON        = `{"status":"ok"}`
 	jsonContentType   = "application/json"
+	scansPerWindow    = 10
+	scanWindow        = time.Minute
 )
+
+type rateLimiter struct {
+	mu          sync.Mutex
+	limit       int
+	window      time.Duration
+	now         func() time.Time
+	windowStart time.Time
+	counts      map[string]int
+}
+
+func newRateLimiter(limit int, window time.Duration, now func() time.Time) *rateLimiter {
+	return &rateLimiter{limit: limit, window: window, now: now, windowStart: now(), counts: map[string]int{}}
+}
+
+func (l *rateLimiter) allow(key string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if t := l.now(); t.Sub(l.windowStart) >= l.window {
+		l.windowStart = t
+		clear(l.counts)
+	}
+	l.counts[key]++
+	return l.counts[key] <= l.limit
+}
+
+func remoteIP(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
 
 type scanRequest struct {
 	URL       string `json:"url"`
@@ -35,7 +71,7 @@ var formatContentTypes = map[report.Format]string{
 func NewMux(client *http.Client, remote bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handleRoot)
-	mux.HandleFunc("/api/scan", scanHandler(client, remote))
+	mux.HandleFunc("/api/scan", scanHandler(client, remote, newRateLimiter(scansPerWindow, scanWindow, time.Now)))
 	mux.HandleFunc("/api/scan-count", handleScanCount)
 	mux.HandleFunc("/health", handleHealth)
 	return mux
@@ -68,7 +104,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	writeBody(w, rootStatusJSON)
 }
 
-func scanHandler(client *http.Client, remote bool) http.HandlerFunc {
+func scanHandler(client *http.Client, remote bool, limiter *rateLimiter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		allowAnyOrigin(w)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -80,6 +116,10 @@ func scanHandler(client *http.Client, remote bool) http.HandlerFunc {
 		case http.MethodPost:
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		if !limiter.allow(remoteIP(r)) {
+			http.Error(w, "too many scans, try again in a minute", http.StatusTooManyRequests)
 			return
 		}
 		var req scanRequest

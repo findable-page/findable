@@ -1,5 +1,6 @@
 import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch } from "./guard";
+import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
 
 export interface Check {
@@ -36,6 +37,8 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+const allowScan = fixedWindowLimiter(10, 60_000);
+
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -68,6 +71,12 @@ export default {
     }
 
     if (url.pathname === "/api/scan" && request.method === "POST") {
+      if (!allowScan(request.headers.get("CF-Connecting-IP") ?? "unknown")) {
+        return new Response(JSON.stringify({ error: "too many scans, try again in a minute" }), {
+          status: 429,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
+      }
       try {
         const body = (await request.json()) as { url?: string; keyphrase?: string; site?: boolean };
         if (!body.url) {

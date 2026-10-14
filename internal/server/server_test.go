@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/nadimtuhin/seoscore-cli/internal/audit"
 )
@@ -232,5 +234,38 @@ func TestServerScanReportsTheCompositeScore(t *testing.T) {
 	}
 	if want := int(res.SEO.Score*0.5 + res.AEO.Score*0.25 + res.GEO.Score*0.25 + 0.5); *res.Overall != want {
 		t.Errorf("overall = %d, want %d", *res.Overall, want)
+	}
+}
+
+func TestServerScanAnswers429AfterTenScansAMinuteFromOneIP(t *testing.T) {
+	mux := newTestMux()
+	scan := func(remoteAddr string) int {
+		req := newRequest(http.MethodPost, "/api/scan", `{}`)
+		req.RemoteAddr = remoteAddr
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	for range 10 {
+		if code := scan("198.51.100.7:1111"); code != http.StatusBadRequest {
+			t.Fatalf("scan under the limit = %d, want 400", code)
+		}
+	}
+	if code := scan("198.51.100.7:2222"); code != http.StatusTooManyRequests {
+		t.Errorf("11th scan from the same IP = %d, want 429", code)
+	}
+	if code := scan("198.51.100.8:1111"); code != http.StatusBadRequest {
+		t.Errorf("scan from another IP = %d, want 400", code)
+	}
+}
+
+func TestRateLimiterResetsEachWindow(t *testing.T) {
+	now := time.Unix(1000, 0)
+	l := newRateLimiter(1, time.Minute, func() time.Time { return now })
+	first, second := l.allow("a"), l.allow("a")
+	now = now.Add(time.Minute)
+	got := []bool{first, second, l.allow("a")}
+	if want := []bool{true, false, true}; !slices.Equal(got, want) {
+		t.Errorf("allow sequence = %v, want %v", got, want)
 	}
 }

@@ -22,3 +22,15 @@ test("/api/scan rejects private targets with 400", async () => {
   );
   expect(resp.status).toBe(400);
 });
+
+test("/api/scan answers 429 with a JSON error after 10 scans a minute from one IP", async () => {
+  const scan = () =>
+    worker.fetch(
+      new Request("https://w.test/api/scan", { method: "POST", body: "{}", headers: { "CF-Connecting-IP": "203.0.113.9" } }),
+    );
+  for (let i = 0; i < 10; i++) expect((await scan()).status).toBe(400);
+  const resp = await scan();
+  expect(resp.status).toBe(429);
+  expect(resp.headers.get("Access-Control-Allow-Origin")).toBe("*");
+  expect(((await resp.json()) as { error: string }).error).toContain("too many");
+});
