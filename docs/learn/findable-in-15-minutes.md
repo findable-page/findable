@@ -67,7 +67,7 @@ To audit more than one page, crawl. Use `-crawl` with `-limit`, or feed a sitema
 
 ```bash
 findable -crawl -limit 25 https://example.com
-findable -sitemap https://example.com/sitemap.xml https://example.com
+findable -sitemap https://example.com/sitemap.xml
 ```
 
 ## How do you set up MCP?
