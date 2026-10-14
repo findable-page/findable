@@ -78,6 +78,7 @@ async function buildUiPolicy(): Promise<string> {
     "style-src-attr 'unsafe-inline'",
     "connect-src 'self' https://cloudflareinsights.com",
     "img-src 'self' data:",
+    "manifest-src 'self'",
     "base-uri 'none'",
     "form-action 'self'",
     "frame-ancestors 'none'",
@@ -130,6 +131,8 @@ async function buildLearnPolicy(): Promise<string> {
   return [
     "default-src 'none'",
     `style-src ${await sha256Source(LEARN_STYLE)}`,
+    "img-src 'self'",
+    "manifest-src 'self'",
     "base-uri 'none'",
     "form-action 'none'",
     "frame-ancestors 'none'",

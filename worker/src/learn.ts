@@ -49,6 +49,11 @@ function page(input: PageInput): string {
 <title>${title}</title>
 <meta name="description" content="${description}">
 <link rel="canonical" href="${escapeHtml(url)}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#6d5efc">
 <meta property="og:type" content="${input.ogType}">
 <meta property="og:site_name" content="${SITE_NAME}">
 <meta property="og:title" content="${title}">
