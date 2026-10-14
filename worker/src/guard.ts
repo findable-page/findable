@@ -45,6 +45,7 @@ function publicV6(host: string): boolean {
   const head = (host.split("::")[0] ?? "").split(":");
   const [first = 0, second = 0] = [0, 1].map((i) => Number.parseInt(head[i] || "0", 16));
   if (first === 0x2002 || (first === 0x2001 && second === 0)) return false;
+  if (first === 0x3fff && second < 0x1000) return false;
   return first >= 0x2000 && first <= 0x3fff;
 }
 
