@@ -183,12 +183,6 @@ const worker = {
       });
     }
 
-    if (url.pathname === "/api/scan-count") {
-      return new Response(JSON.stringify({ count: 2847 }), {
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
-    }
-
     if (url.pathname === "/api/scan" && request.method === "POST") {
       const key = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
       if (!(await allowScan(env, key))) {

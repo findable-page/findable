@@ -15,7 +15,6 @@ import (
 
 const (
 	readHeaderTimeout = 10 * time.Second
-	scanCountJSON     = `{"count":2847}`
 	healthJSON        = `{"status":"ok"}`
 	jsonContentType   = "application/json"
 	scansPerWindow    = 10
@@ -74,7 +73,6 @@ func NewMux(client *http.Client) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handleRoot)
 	mux.HandleFunc("/api/scan", scanHandler(client, newRateLimiter(scansPerWindow, scanWindow, time.Now)))
-	mux.HandleFunc("/api/scan-count", handleScanCount)
 	mux.HandleFunc("/health", handleHealth)
 	return mux
 }
@@ -160,12 +158,6 @@ func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {
 		w.Header().Set("Content-Type", formatContentTypes[format])
 		writeBody(w, report.PageReport(format, host, audit.Page{URL: req.URL, Scan: res}))
 	}
-}
-
-func handleScanCount(w http.ResponseWriter, _ *http.Request) {
-	allowAnyOrigin(w)
-	w.Header().Set("Content-Type", jsonContentType)
-	writeBody(w, scanCountJSON)
 }
 
 func handleHealth(w http.ResponseWriter, _ *http.Request) {

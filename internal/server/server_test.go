@@ -48,18 +48,12 @@ func TestServerHealthEndpoint(t *testing.T) {
 	}
 }
 
-func TestServerScanCountEndpoint(t *testing.T) {
+func TestServerHasNoScanCountEndpoint(t *testing.T) {
 	mux := newTestMux()
-	req := newRequest(http.MethodGet, "/api/scan-count", "")
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200 OK, got %d", rec.Code)
-	}
-	var data map[string]int
-	if err := json.Unmarshal(rec.Body.Bytes(), &data); err != nil || data["count"] <= 0 {
-		t.Errorf("expected positive count, got %v", data)
+	mux.ServeHTTP(rec, newRequest(http.MethodGet, "/api/scan-count", ""))
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", rec.Code)
 	}
 }
 

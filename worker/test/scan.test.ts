@@ -163,3 +163,8 @@ test("aeo_direct_answers needs one 30 to 80 word paragraph, like the Go engine",
   expect(await directAnswersPass(`<p>${words(30)}</p>`)).toBe(true);
   expect(await directAnswersPass(`<p>${words(80)}</p>`)).toBe(true);
 });
+
+test("there is no fake scan-count endpoint", async () => {
+  const resp = await worker.fetch(new Request("https://w.test/api/scan-count"));
+  expect(resp.status).not.toBe(200);
+});
