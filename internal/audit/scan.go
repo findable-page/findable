@@ -81,3 +81,13 @@ func FailedCount(s Scan) int {
 	}
 	return cnt
 }
+
+func PagesBelow(pages []Page, minimum int) []Page {
+	var below []Page
+	for _, p := range pages {
+		if Overall(p.Scan) < minimum {
+			below = append(below, p)
+		}
+	}
+	return below
+}

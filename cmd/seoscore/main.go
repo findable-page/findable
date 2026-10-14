@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-q] [-k keyphrase] [-crawl] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
+	usageLine     = "usage: seoscore [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-crawl] [-limit N] [-remote] [-serve :port] [-mcp] <url or file>"
 	clientTimeout = 60 * time.Second
 	reportDirMode = 0o755
 	reportMode    = 0o644
@@ -35,6 +35,7 @@ type options struct {
 	serve     string
 	mcp       bool
 	format    report.Format
+	failUnder int
 }
 
 func parseFlags() options {
@@ -48,6 +49,7 @@ func parseFlags() options {
 	flag.BoolVar(&o.remote, "remote", false, "use remote seoscore.tools API instead of local engine")
 	flag.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. :8080)")
 	flag.BoolVar(&o.mcp, "mcp", false, "run Model Context Protocol (MCP) server over stdio")
+	flag.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when the overall score of any page is below N")
 	format := flag.String("format", string(report.FormatCSV), "report format: csv, json or sarif")
 	flag.Usage = func() { fmt.Fprintln(os.Stderr, usageLine) }
 	flag.Parse()
@@ -111,6 +113,7 @@ func runAudit(client *http.Client, target string, opts options) {
 		printFailures("", s)
 	}
 	fmt.Println("saved", path)
+	exitIfBelow([]audit.Page{{URL: target, Scan: s}}, opts.failUnder)
 }
 
 func reportHostName(target string) string {
@@ -137,6 +140,17 @@ func runCrawl(client *http.Client, start, hostName string, opts options) {
 	path := reportPath(opts.outDir, "seoscore-site-report", hostName, opts.format)
 	writeReport(path, report.SiteReport(opts.format, hostName, pages))
 	fmt.Printf("saved %s (%d pages)\n", path, len(pages))
+	exitIfBelow(pages, opts.failUnder)
+}
+
+func exitIfBelow(pages []audit.Page, minimum int) {
+	below := audit.PagesBelow(pages, minimum)
+	for _, p := range below {
+		fmt.Fprintf(os.Stderr, "seoscore: %s overall %d is below -fail-under %d\n", p.URL, audit.Overall(p.Scan), minimum)
+	}
+	if len(below) > 0 {
+		os.Exit(1)
+	}
 }
 
 func printCrawlProgress(done, limit int, p audit.Page, quiet bool) {

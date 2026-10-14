@@ -62,6 +62,10 @@ seoscore -crawl -limit 20 https://example.com
 `-format csv` (default), `-format json` (the same object `/api/scan` returns) or `-format sarif`
 (SARIF 2.1.0 for GitHub code scanning). `/api/scan` takes the same choice as `"format"` in the body.
 
+### CI gate
+
+`-fail-under 70` exits 1 and names each page whose overall score is below 70 (any crawled page counts).
+
 ### 3. Run Local REST API & Web UI
 
 ```bash
