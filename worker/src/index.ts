@@ -2,6 +2,7 @@ import UI_HTML from "../../internal/server/web/index.html";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { fixedWindowLimiter } from "./ratelimit";
 import { type SiteCategory, siteChecks } from "./site";
+import { llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
 
 export interface Check {
   id: string;
@@ -77,6 +78,29 @@ async function buildUiPolicy(): Promise<string> {
   ].join("; ");
 }
 
+const HOME_PAGE: PageEntry = {
+  path: "/",
+  title: "findable",
+  description: "Scan any URL for SEO, AEO and GEO signals and get a score with the fixes that matter.",
+};
+
+const LEARN_PAGES: PageEntry[] = [];
+
+const SITE_PAGES = [HOME_PAGE, ...LEARN_PAGES];
+
+const SITE_FILES: Record<string, (origin: string) => { type: string; body: string }> = {
+  "/robots.txt": (o) => ({ type: "text/plain", body: robotsTxt(o) }),
+  "/sitemap.xml": (o) => ({
+    type: "application/xml",
+    body: sitemapXml(
+      o,
+      SITE_PAGES.map((p) => p.path),
+    ),
+  }),
+  "/llms.txt": (o) => ({ type: "text/plain", body: llmsTxt(o, SITE_PAGES) }),
+  "/llms-full.txt": (o) => ({ type: "text/plain", body: llmsFullTxt(o, SITE_PAGES) }),
+};
+
 const OWN_HOSTS = ["findable.piply.xyz", "seoscore.piply.xyz"];
 
 const worker = {
@@ -97,6 +121,12 @@ const worker = {
           "X-Content-Type-Options": "nosniff",
         },
       });
+    }
+
+    const siteFile = request.method === "GET" ? SITE_FILES[url.pathname] : undefined;
+    if (siteFile) {
+      const { type, body } = siteFile(url.origin);
+      return new Response(body, { headers: { ...CORS_HEADERS, "Content-Type": `${type}; charset=utf-8` } });
     }
 
     if (url.pathname === "/health") {
