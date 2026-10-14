@@ -4,9 +4,9 @@
 *.dll
 *.so
 *.dylib
-findable
-seoscore-bin
 /findable
+/seoscore-cli
+/seoscore-bin
 
 # Test CSVs
 findable-report-*.csv
