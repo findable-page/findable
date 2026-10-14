@@ -64,3 +64,8 @@ test("siteCategory without robots or llms", () => {
     true,
   ]);
 });
+
+test("robotsAllows ignores patterns with more than 10 wildcards", () => {
+  expect(robotsAllows(`User-agent: *\nDisallow: /${"*".repeat(10)}\n`, "Googlebot", "/x")).toBe(false);
+  expect(robotsAllows(`User-agent: *\nDisallow: /${"*".repeat(11)}\n`, "Googlebot", "/x")).toBe(true);
+});

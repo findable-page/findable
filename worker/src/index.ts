@@ -38,6 +38,7 @@ const CORS_HEADERS = {
 };
 
 const allowScan = fixedWindowLimiter(10, 60_000);
+const MAX_ANALYZED_HTML_CHARS = 1024 * 1024;
 
 export default {
   async fetch(request: Request): Promise<Response> {
@@ -111,7 +112,7 @@ async function auditUrl(targetUrl: string, keyphrase?: string): Promise<ScanResp
     "User-Agent": "Mozilla/5.0 (compatible; seoscore-worker/1.0; +https://seoscore.tools)",
     Accept: "text/html,application/xhtml+xml",
   });
-  return analyzeHtml(targetUrl, page.body, page.headers, keyphrase);
+  return analyzeHtml(targetUrl, page.body.slice(0, MAX_ANALYZED_HTML_CHARS), page.headers, keyphrase);
 }
 
 function firstGroup(match: RegExpMatchArray | null): string {

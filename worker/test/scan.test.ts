@@ -34,3 +34,16 @@ test("/api/scan answers 429 with a JSON error after 10 scans a minute from one I
   expect(resp.headers.get("Access-Control-Allow-Origin")).toBe("*");
   expect(((await resp.json()) as { error: string }).error).toContain("too many");
 });
+
+test("/api/scan analyses only the first 1MB of HTML", async () => {
+  const scanH2 = async (padding: number) => {
+    globalThis.fetch = (async () =>
+      new Response(`<html><body>${"a".repeat(padding)}<h2>Late</h2></body></html>`)) as unknown as typeof fetch;
+    const resp = await worker.fetch(
+      new Request("https://w.test/api/scan", { method: "POST", body: JSON.stringify({ url: "https://example.com/" }) }),
+    );
+    const scan = (await resp.json()) as { seo: { checks: { id: string; pass: boolean }[] } };
+    return scan.seo.checks.find((c) => c.id === "h2_exists")?.pass;
+  };
+  expect([await scanH2(1000), await scanH2(1_100_000)]).toEqual([true, false]);
+});

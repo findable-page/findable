@@ -1,6 +1,9 @@
 package audit
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 const (
 	googlebot   = "Googlebot"
@@ -105,5 +108,14 @@ func TestReportedAddsSiteOnlyWhenPresent(t *testing.T) {
 	s.Site = &Category{}
 	if r := s.Reported(); len(r) != 4 || r[3].Name != "Site" {
 		t.Errorf("Reported with site = %+v", r)
+	}
+}
+
+func TestRobotsIgnoresPatternsWithMoreThanTenWildcards(t *testing.T) {
+	for stars, want := range map[int]bool{10: false, 11: true} {
+		robots := "User-agent: *\nDisallow: /" + strings.Repeat("*", stars) + "\n"
+		if got := RobotsAllows(robots, googlebot, "/x"); got != want {
+			t.Errorf("%d wildcards: RobotsAllows = %v, want %v", stars, got, want)
+		}
 	}
 }

@@ -4,6 +4,7 @@ import type { Check } from "./index";
 const AI_CRAWLERS = ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"];
 const PAGE_CRAWLER = "*";
 const MAX_SITE_FILE_BYTES = 512 * 1024;
+const MAX_ROBOTS_WILDCARDS = 10;
 
 interface RobotsRule {
   allow: boolean;
@@ -53,6 +54,7 @@ function rulesFor(groups: RobotsGroup[], agent: string): RobotsRule[] {
 }
 
 function patternMatches(pattern: string, path: string): boolean {
+  if (pattern.split("*").length - 1 > MAX_ROBOTS_WILDCARDS) return false;
   const anchored = pattern.endsWith("$");
   const body = anchored ? pattern.slice(0, -1) : pattern;
   const expr = body

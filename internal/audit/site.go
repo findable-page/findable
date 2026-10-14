@@ -7,7 +7,10 @@ import (
 
 var aiCrawlers = []string{"GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"}
 
-const pageCrawler = "*"
+const (
+	pageCrawler       = "*"
+	maxRobotsWildcard = 10
+)
 
 type robotsRule struct {
 	allow   bool
@@ -72,6 +75,9 @@ func rulesFor(groups []robotsGroup, agent string) []robotsRule {
 }
 
 func robotsPatternMatches(pattern, path string) bool {
+	if strings.Count(pattern, "*") > maxRobotsWildcard {
+		return false
+	}
 	anchored := strings.HasSuffix(pattern, "$")
 	expr := "^" + strings.ReplaceAll(regexp.QuoteMeta(strings.TrimSuffix(pattern, "$")), `\*`, ".*")
 	if anchored {
