@@ -24,6 +24,7 @@
     (function() {
       let saved = null;
       try { saved = localStorage.getItem("seoscore_theme"); } catch {}
+      // Light is the deliberate default: prefers-color-scheme is intentionally ignored.
       document.documentElement.setAttribute("data-theme", saved || "light");
     })();
   </script>
