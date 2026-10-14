@@ -77,3 +77,35 @@ test("toMarkdown renders the report and escapes table cells", async () => {
   expect(md).toContain("| N/A | Skipped |  |");
   expect(md).toContain("[Share this report](https://w.test/?url=https%3A%2F%2Fexample.com)");
 });
+
+test("registerWebMcp exposes a scan_url tool that calls /api/scan and summarises the result", async () => {
+  const html = await (await worker.fetch(new Request("https://w.test/"))).text();
+  const src = html.split("// webmcp:begin")[1]?.split("// webmcp:end")[0] ?? "";
+  type Tool = {
+    name: string;
+    inputSchema: { required: string[] };
+    execute: (a: unknown) => Promise<{ content: { text: string }[] }>;
+  };
+  const registerWebMcp = new Function(`${src}; return registerWebMcp;`)() as (
+    mc: unknown,
+    f: (u: string, init: RequestInit) => Promise<Response>,
+  ) => void;
+  const tools: Tool[] = [];
+  const calls: [string, string][] = [];
+  const category = (score: number, label: string, pass: boolean) => ({ score, checks: [{ id: label, label, pass }] });
+  registerWebMcp({ registerTool: (t: Tool) => tools.push(t) }, async (u, init) => {
+    calls.push([u, String(init.body)]);
+    return Response.json({
+      overall: 72,
+      seo: category(80, "Has a title", true),
+      aeo: category(60, "FAQ schema", false),
+      geo: category(70, "Author schema", false),
+    });
+  });
+  expect(tools.map((t) => t.name)).toEqual(["scan_url"]);
+  expect(tools[0]?.inputSchema.required).toEqual(["url"]);
+  const out = JSON.parse((await tools[0]?.execute({ url: "example.com", keyphrase: "seo" }))?.content[0]?.text ?? "{}");
+  expect(calls).toEqual([["/api/scan", JSON.stringify({ url: "example.com", keyphrase: "seo" })]]);
+  expect(out).toEqual({ overall: 72, seo: 80, aeo: 60, geo: 70, failing: ["FAQ schema", "Author schema"] });
+  expect(() => registerWebMcp(undefined, fetch)).not.toThrow();
+});

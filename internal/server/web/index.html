@@ -1040,6 +1040,43 @@ findable https://example.com</code></pre>
       return lines.join("\n") + "\n";
     }
     // toMarkdown:end
+    // webmcp:begin
+    function registerWebMcp(modelContext, fetchFn) {
+      if (!modelContext?.registerTool) return;
+      modelContext.registerTool({
+        name: "scan_url",
+        description: "Audit a web page for SEO, AEO (answer engines) and GEO (generative engines). Returns 0-100 scores and the failing checks.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            url: { type: "string", description: "Page to audit, e.g. example.com or https://example.com/pricing" },
+            keyphrase: { type: "string", description: "Optional focus keyphrase to check for" },
+          },
+          required: ["url"],
+        },
+        annotations: { readOnlyHint: true },
+        async execute({ url, keyphrase }) {
+          const resp = await fetchFn("/api/scan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url, keyphrase }),
+          });
+          const scan = await resp.json();
+          const result = resp.ok
+            ? {
+                overall: scan.overall,
+                seo: scan.seo.score,
+                aeo: scan.aeo.score,
+                geo: scan.geo.score,
+                failing: [scan.seo, scan.aeo, scan.geo].flatMap((c) => c.checks.filter((k) => !k.pass && k.applicable !== false).map((k) => k.label)),
+              }
+            : { error: scan.error ?? `HTTP ${resp.status}` };
+          return { content: [{ type: "text", text: JSON.stringify(result) }] };
+        },
+      });
+    }
+    // webmcp:end
+    registerWebMcp(document.modelContext ?? navigator.modelContext, (u, init) => fetch(u, init));
 
     $("btnExportMD").addEventListener("click", () => {
       if (!currentScan) return;
