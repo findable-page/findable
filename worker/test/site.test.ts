@@ -30,6 +30,10 @@ test("robotsAllows uses the most specific group and the longest rule", () => {
   }
 });
 
+test("robotsAllows matches the product token before a version", () => {
+  expect(robotsAllows("User-agent: GPTBot/1.0\nDisallow: /\n", "GPTBot", "/")).toBe(false);
+});
+
 test("robotsAllows allows everything when robots is empty or Disallow is blank", () => {
   for (const robots of ["", "User-agent: *\nDisallow:\n", "# just a comment\n"]) {
     expect(robotsAllows(robots, "GPTBot", "/any")).toBe(true);

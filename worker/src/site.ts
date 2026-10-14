@@ -32,8 +32,9 @@ function parseRobots(robots: string): RobotsGroup[] {
     const value = line.slice(colon + 1).trim();
     const current = groups[groups.length - 1];
     if (key === "user-agent") {
-      if (!inAgents || !current) groups.push({ agents: [value.toLowerCase()], rules: [] });
-      else current.agents.push(value.toLowerCase());
+      const token = (value.split("/")[0] ?? "").trim().toLowerCase();
+      if (!inAgents || !current) groups.push({ agents: [token], rules: [] });
+      else current.agents.push(token);
       inAgents = true;
     } else if (key === "allow" || key === "disallow") {
       inAgents = false;

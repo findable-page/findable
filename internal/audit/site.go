@@ -36,7 +36,8 @@ func parseRobots(robots string) []robotsGroup {
 				groups = append(groups, robotsGroup{})
 			}
 			g := &groups[len(groups)-1]
-			g.agents = append(g.agents, strings.ToLower(value))
+			token, _, _ := strings.Cut(value, "/")
+			g.agents = append(g.agents, strings.ToLower(strings.TrimSpace(token)))
 			inAgents = true
 		case "allow", "disallow":
 			inAgents = false

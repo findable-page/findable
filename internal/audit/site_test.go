@@ -41,6 +41,12 @@ func TestRobotsAllowsUsesTheMostSpecificGroupAndLongestRule(t *testing.T) {
 	}
 }
 
+func TestRobotsMatchesTheProductTokenBeforeAVersion(t *testing.T) {
+	if RobotsAllows("User-agent: GPTBot/1.0\nDisallow: /\n", "GPTBot", "/") {
+		t.Error("User-agent: GPTBot/1.0 must apply to GPTBot")
+	}
+}
+
 func TestRobotsAllowsEverythingWhenEmptyOrDisallowIsBlank(t *testing.T) {
 	for _, robots := range []string{"", "User-agent: *\nDisallow:\n", "# just a comment\n"} {
 		if !RobotsAllows(robots, "GPTBot", "/any") {

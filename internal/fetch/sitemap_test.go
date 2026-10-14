@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/nadimtuhin/seoscore-cli/internal/audit"
@@ -77,5 +78,30 @@ func TestScanAllAuditsEachURL(t *testing.T) {
 	}
 	if len(seen) != 2 || seen[1] != "2/2 "+srv.URL+"/b" {
 		t.Errorf("progress = %v", seen)
+	}
+}
+
+func TestSitemapURLsFetchesEachSitemapOnce(t *testing.T) {
+	hits := 0
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hits++
+		_, _ = fmt.Fprintf(w, `<sitemapindex><sitemap><loc>%[1]s/sitemap.xml</loc></sitemap><sitemap><loc>%[1]s/sitemap.xml</loc></sitemap></sitemapindex>`, srv.URL)
+	}))
+	t.Cleanup(srv.Close)
+	if _, err := SitemapURLs(srv.Client(), srv.URL+"/sitemap.xml", 5); err != nil {
+		t.Fatal(err)
+	}
+	if hits != 1 {
+		t.Errorf("self-referencing sitemap fetched %d times, want 1", hits)
+	}
+}
+
+func TestScanAllNamesTheCountWhenEveryPageFails(t *testing.T) {
+	srv := httptest.NewServer(http.NotFoundHandler())
+	srv.Close()
+	_, err := ScanAll(srv.Client(), []string{srv.URL + "/a", srv.URL + "/b"}, CrawlOptions{})
+	if err == nil || !strings.Contains(err.Error(), "all 2 pages failed") {
+		t.Errorf("ScanAll error = %v", err)
 	}
 }

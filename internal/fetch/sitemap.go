@@ -43,14 +43,15 @@ func trimAll(locs []string) []string {
 }
 
 type sitemapWalk struct {
-	client *http.Client
-	limit  int
-	seen   map[string]bool
-	urls   []string
+	client  *http.Client
+	limit   int
+	seen    map[string]bool
+	visited map[string]bool
+	urls    []string
 }
 
 func SitemapURLs(client *http.Client, sitemapURL string, limit int) ([]string, error) {
-	w := &sitemapWalk{client: client, limit: max(limit, 1), seen: map[string]bool{}}
+	w := &sitemapWalk{client: client, limit: max(limit, 1), seen: map[string]bool{}, visited: map[string]bool{}}
 	if err := w.visit(sitemapURL, 0); err != nil {
 		return nil, err
 	}
@@ -58,6 +59,10 @@ func SitemapURLs(client *http.Client, sitemapURL string, limit int) ([]string, e
 }
 
 func (w *sitemapWalk) visit(sitemapURL string, depth int) error {
+	if w.visited[sitemapURL] {
+		return nil
+	}
+	w.visited[sitemapURL] = true
 	body, err := getBody(w.client, sitemapURL)
 	if err != nil {
 		return err
@@ -116,7 +121,7 @@ func ScanAll(client *http.Client, targets []string, opts CrawlOptions) ([]audit.
 		s, err := scanPage(client, target, opts)
 		if err != nil {
 			if len(pages) == 0 && i == len(targets)-1 {
-				return nil, err
+				return nil, fmt.Errorf("all %d pages failed, last: %w", len(targets), err)
 			}
 			fmt.Fprintf(os.Stderr, "scan %s: %v\n", target, err)
 			continue
