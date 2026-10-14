@@ -21,3 +21,10 @@ test("the UI is served with a CSP that hashes every inline block and refuses fra
   expect(directive("connect-src")).toContain("'self'");
   expect(resp.headers.get("X-Content-Type-Options")).toBe("nosniff");
 });
+
+test("GET / serves the UI whatever the Accept header says", async () => {
+  for (const headers of [{ Accept: "*/*" }, {}]) {
+    const resp = await worker.fetch(new Request("https://w.test/", { headers }));
+    expect([resp.status, resp.headers.get("Content-Type")]).toEqual([200, "text/html; charset=utf-8"]);
+  }
+});

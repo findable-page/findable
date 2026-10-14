@@ -86,19 +86,14 @@ export default {
     }
 
     if (url.pathname === "/") {
-      if (request.headers.get("accept")?.includes("text/html")) {
-        uiPolicy ??= buildUiPolicy();
-        return new Response(UI_HTML, {
-          headers: {
-            ...CORS_HEADERS,
-            "Content-Type": "text/html; charset=utf-8",
-            "Content-Security-Policy": await uiPolicy,
-            "X-Content-Type-Options": "nosniff",
-          },
-        });
-      }
-      return new Response(JSON.stringify({ status: "ok", name: "seoscore-api", version: "1.0.0" }), {
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      uiPolicy ??= buildUiPolicy();
+      return new Response(UI_HTML, {
+        headers: {
+          ...CORS_HEADERS,
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy": await uiPolicy,
+          "X-Content-Type-Options": "nosniff",
+        },
       });
     }
 

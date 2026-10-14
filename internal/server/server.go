@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/netip"
-	"strings"
 	"sync"
 	"time"
 
@@ -16,7 +15,6 @@ import (
 
 const (
 	readHeaderTimeout = 10 * time.Second
-	rootStatusJSON    = `{"status":"ok","name":"seoscore-cli-server"}`
 	scanCountJSON     = `{"count":2847}`
 	healthJSON        = `{"status":"ok"}`
 	jsonContentType   = "application/json"
@@ -99,15 +97,10 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if strings.Contains(r.Header.Get("Accept"), "text/html") {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Content-Security-Policy", uiPolicy)
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		writeBody(w, localWebUIHTML)
-		return
-	}
-	w.Header().Set("Content-Type", jsonContentType)
-	writeBody(w, rootStatusJSON)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Security-Policy", uiPolicy)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	writeBody(w, localWebUIHTML)
 }
 
 func scanHandler(client *http.Client, remote bool, limiter *rateLimiter) http.HandlerFunc {

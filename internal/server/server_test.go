@@ -334,3 +334,15 @@ func TestServerUIHasACSPHashingEveryInlineBlockAndRefusingFraming(t *testing.T) 
 		t.Errorf("X-Content-Type-Options = %q, want nosniff", got)
 	}
 }
+
+func TestServerServesTheUIWhateverTheAcceptHeader(t *testing.T) {
+	for _, accept := range []string{"*/*", ""} {
+		req := newRequest(http.MethodGet, "/", "")
+		req.Header.Set("Accept", accept)
+		rec := httptest.NewRecorder()
+		newTestMux().ServeHTTP(rec, req)
+		if got := rec.Header().Get("Content-Type"); got != "text/html; charset=utf-8" {
+			t.Errorf("Accept %q: Content-Type = %q, want text/html", accept, got)
+		}
+	}
+}
