@@ -67,7 +67,7 @@ findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
 | `-o`, `-q` | Report directory; `-q` hides the failing-check list. |
 | `-serve 127.0.0.1:8080` | Local API and web UI. Bind to localhost; `:8080` listens on every interface. |
 | `-mcp` | MCP server over stdio. |
-| `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts. |
+| `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts, ignores `HTTPS_PROXY`/`HTTP_PROXY`, and only connects to ports 80 and 443. With it the CLI uses a plain HTTP client: no address guard, any port, proxy variables honoured. `-serve` is always guarded and ignores this flag. |
 
 ```bash
 findable -q -format sarif -fail-under 70 https://example.com

@@ -95,7 +95,9 @@ func newClient(allowPrivate bool) *http.Client {
 	if allowPrivate {
 		return &http.Client{Timeout: clientTimeout}
 	}
-	return fetch.NewGuardedClient()
+	client := fetch.NewGuardedClient()
+	client.Timeout = clientTimeout
+	return client
 }
 
 func serveHTTP(addr string) {
