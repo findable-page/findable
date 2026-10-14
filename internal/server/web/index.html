@@ -555,7 +555,7 @@ findable https://example.com</code></pre>
       <h2>Frequently asked questions</h2>
       <details class="faq"><summary>Is findable free?</summary><p>Yes. It costs $0, needs no signup and the code is MIT licensed on GitHub.</p></details>
       <details class="faq"><summary>Does findable ask ChatGPT, Perplexity, Claude or Google AI about my page?</summary><p>No. It checks the signals on your page that answer engines can use, such as structured data, direct answers, clear authorship and sources. It does not query any AI product.</p></details>
-      <details class="faq"><summary>Can it scan more than one page?</summary><p>Yes. Crawl Site mode (beta) scans your start page plus internal links, up to 8 pages. The CLI can go further, for example findable -crawl -limit 20 to scan 20 pages.</p></details>
+      <details class="faq"><summary>Can it scan more than one page?</summary><p>Yes. Crawl Site mode (beta) scans your start page plus internal links, up to 20 pages. The CLI can go further, for example findable -crawl -limit 100 to scan 100 pages.</p></details>
       <details class="faq"><summary>How do I use it in CI?</summary><p>Run the CLI with -format sarif to upload results to GitHub code scanning. The findable GitHub Action can also fail a build when the score drops below a number you choose.</p></details>
       <details class="faq"><summary>What are the site checks?</summary><p>With the site option, findable also fetches robots.txt and llms.txt. It reports whether GPTBot, ClaudeBot, PerplexityBot and Google-Extended are blocked. These are shown apart from the score.</p></details>
       <details class="faq"><summary>What limits does a scan have?</summary><p>A scan reads up to 5MB of a page and gives up after 10s. It fetches public hosts on ports 80 and 443 only.</p></details>
@@ -1237,12 +1237,21 @@ findable https://example.com</code></pre>
       if (!$("sharePanel").hidden && !e.target.closest(".share-wrap")) setSharePanel(false);
     });
 
-    async function scanOnce(url, keyphrase) {
-      const resp = await fetch("/api/scan", {
+    const CRAWL_LIMIT = 20;
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    async function scanOnce(url, keyphrase, onWait) {
+      const send = () => fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, keyphrase }),
       });
+      let resp = await send();
+      for (let retry = 0; resp.status === 429 && onWait && retry < 3; retry++) {
+        onWait();
+        await sleep(20000);
+        resp = await send();
+      }
       if (!resp.ok) throw new Error(await apiError(resp));
       return resp.json();
     }
@@ -1259,7 +1268,7 @@ findable https://example.com</code></pre>
         const queue = [startUrl];
         (initial.internalLinks || []).forEach(l => {
           try {
-            if (new URL(l).hostname === startHost && !queue.includes(l) && queue.length < 8) queue.push(l);
+            if (new URL(l).hostname === startHost && !queue.includes(l) && queue.length < CRAWL_LIMIT) queue.push(l);
           } catch {}
         });
         const crawled = [{ url: startUrl, scan: initial }];
@@ -1268,7 +1277,8 @@ findable https://example.com</code></pre>
           crawlStatus.textContent = `Crawling page ${i + 1} of ${queue.length}: ${queue[i]}`;
           $("crawlProgress").style.width = `${Math.round(((i + 1) / queue.length) * 100)}%`;
           try {
-            crawled.push({ url: queue[i], scan: await scanOnce(queue[i], keyphrase) });
+            const waiting = () => (crawlStatus.textContent = `Pausing for the rate limit, then page ${i + 1} of ${queue.length}…`);
+            crawled.push({ url: queue[i], scan: await scanOnce(queue[i], keyphrase, waiting) });
             renderCrawlTable(tableWrap, crawled);
           } catch {}
         }
