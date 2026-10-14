@@ -23,3 +23,14 @@ checksum:
 
 changelog:
   use: github
+
+brews:
+  - name: findable
+    repository:
+      owner: nadimtuhin
+      name: homebrew-tap
+    homepage: https://findable.piply.xyz
+    description: "Offline SEO, AEO and GEO auditor for the AI search era"
+    license: MIT
+    test: |
+      system "#{bin}/findable", "-h"
