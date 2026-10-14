@@ -14,21 +14,27 @@
   <style>
     :root, [data-theme="light"] {
       --bg: #F8FAFC;
-      --bg-card: #FFFFFF;
-      --bg-card-hover: #F1F5F9;
+      --surface: #FFFFFF;
+      --surface-hover: #F1F5F9;
       --bg-input: #FFFFFF;
       --text: #0F172A;
-      --text-secondary: #475569;
-      --text-muted: #64748B;
+      --text-2: #334155;
+      --muted: #5B6B7F;
       --accent: #4F46E5;
       --accent-light: #EEF2FF;
       --accent-hover: #4338CA;
-      --success: #10B981;
-      --success-light: #ECFDF5;
-      --warning: #F59E0B;
-      --warning-light: #FFFBEB;
-      --danger: #EF4444;
-      --danger-light: #FEF2F2;
+      --ok: #047857;
+      --ok-light: #ECFDF5;
+      --warn: #B45309;
+      --warn-light: #FFFBEB;
+      --bad: #B91C1C;
+      --bad-light: #FEF2F2;
+      --na: #4B5563;
+      --na-light: #F1F5F9;
+      --on-accent: #FFFFFF;
+      --fam-seo: #10B981;
+      --fam-aeo: #8B5CF6;
+      --fam-geo: #3B82F6;
       --border: #E2E8F0;
       --border-focus: #818CF8;
       --ring-bg: #E2E8F0;
@@ -39,28 +45,31 @@
     }
     [data-theme="dark"] {
       --bg: #0B0F19;
-      --bg-card: #151D2E;
-      --bg-card-hover: #1E293B;
+      --surface: #151D2E;
+      --surface-hover: #1E293B;
       --bg-input: #0F172A;
       --text: #F8FAFC;
-      --text-secondary: #94A3B8;
-      --text-muted: #64748B;
-      --accent: #6366F1;
+      --text-2: #CBD5E1;
+      --muted: #94A3B8;
+      --accent: #818CF8;
       --accent-light: #1E1B4B;
-      --accent-hover: #818CF8;
-      --success: #10B981;
-      --success-light: rgba(16, 185, 129, 0.12);
-      --warning: #F59E0B;
-      --warning-light: rgba(245, 158, 11, 0.12);
-      --danger: #EF4444;
-      --danger-light: rgba(239, 68, 68, 0.15);
+      --accent-hover: #A5B4FC;
+      --ok: #34D399;
+      --ok-light: rgba(16, 185, 129, 0.12);
+      --warn: #FBBF24;
+      --warn-light: rgba(245, 158, 11, 0.12);
+      --bad: #F87171;
+      --bad-light: rgba(239, 68, 68, 0.15);
+      --na: #9CA3AF;
+      --na-light: rgba(156, 163, 175, 0.15);
+      --on-accent: #0B0F19;
       --border: #242E42;
-      --border-focus: #6366F1;
+      --border-focus: #818CF8;
       --ring-bg: #242E42;
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
       --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-      --gradient: linear-gradient(135deg, #6366F1, #8B5CF6);
+      --gradient: linear-gradient(135deg, #4F46E5, #7C3AED);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -86,7 +95,7 @@
     /* Header */
     header {
       border-bottom: 1px solid var(--border);
-      background: var(--bg-card);
+      background: var(--surface);
       position: sticky;
       top: 0;
       z-index: 50;
@@ -137,7 +146,7 @@
       justify-content: center;
       transition: background 0.2s;
     }
-    .theme-toggle:hover { background: var(--bg-card-hover); }
+    .theme-toggle:hover { background: var(--surface-hover); }
 
     /* Hero */
     .hero { text-align: center; padding: clamp(3rem, 6vw, 5rem) 0 2rem; }
@@ -163,7 +172,7 @@
       margin-bottom: 1rem;
     }
     p.hero-subtitle {
-      color: var(--text-secondary);
+      color: var(--text-2);
       font-size: clamp(1.05rem, 1.8vw, 1.25rem);
       max-width: 720px;
       margin: 0 auto 2.25rem;
@@ -172,7 +181,7 @@
 
     /* Scan Box */
     .scan-card {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: clamp(1.25rem, 2.5vw, 2rem);
@@ -190,7 +199,7 @@
       padding: 0.65rem 1rem;
       background: transparent;
       border: 1px solid var(--border);
-      color: var(--text-secondary);
+      color: var(--text-2);
       border-radius: 10px;
       font-weight: 600;
       font-size: 0.9rem;
@@ -220,7 +229,7 @@
     .input-icon {
       position: absolute;
       left: 1.1rem;
-      color: var(--text-muted);
+      color: var(--muted);
       pointer-events: none;
     }
     input.url-input {
@@ -271,7 +280,7 @@
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
-      color: var(--text-muted);
+      color: var(--muted);
       font-size: 0.9rem;
       margin-bottom: 1.5rem;
     }
@@ -280,7 +289,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       padding: 0.4rem 1.1rem;
       border-radius: 9999px;
@@ -290,7 +299,7 @@
     .pulse-dot {
       width: 8px;
       height: 8px;
-      background: var(--success);
+      background: var(--ok);
       border-radius: 50%;
     }
 
@@ -305,7 +314,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--text-muted);
+      color: var(--muted);
       margin-bottom: 0.6rem;
       display: flex;
       justify-content: space-between;
@@ -316,12 +325,12 @@
       flex-wrap: wrap;
     }
     .recent-pill {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       padding: 0.35rem 0.85rem;
       border-radius: 9999px;
       font-size: 0.82rem;
-      color: var(--text-secondary);
+      color: var(--text-2);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -341,7 +350,7 @@
     /* Results Workspace */
     .results-wrap { margin-top: 1.5rem; margin-bottom: 5rem; }
     .site-summary-bar {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.25rem 1.75rem;
@@ -361,7 +370,7 @@
     }
     .site-meta-line {
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: var(--muted);
       margin-top: 0.2rem;
     }
     .site-actions {
@@ -378,7 +387,7 @@
       margin-bottom: 1.75rem;
     }
     .score-card {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.5rem;
@@ -388,7 +397,7 @@
       position: relative;
     }
     .score-card.hero-score {
-      background: linear-gradient(135deg, var(--bg-card), var(--accent-light));
+      background: linear-gradient(135deg, var(--surface), var(--accent-light));
       border-color: var(--accent);
     }
     .card-top {
@@ -402,11 +411,11 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--text-secondary);
+      color: var(--text-2);
     }
     .weight-tag {
       font-size: 0.75rem;
-      color: var(--text-muted);
+      color: var(--muted);
       font-weight: 600;
     }
     .gauge-wrapper {
@@ -455,19 +464,19 @@
       font-size: 0.82rem;
       margin-bottom: 0.4rem;
     }
-    .grade-a { background: #065F46; color: #34D399; }
-    .grade-b { background: #1E3A8A; color: #60A5FA; }
-    .grade-c { background: #78350F; color: #FBBF24; }
-    .grade-f { background: #7F1D1D; color: #F87171; }
+    .grade-a { background: var(--ok-light); color: var(--ok); }
+    .grade-b { background: var(--accent-light); color: var(--accent); }
+    .grade-c { background: var(--warn-light); color: var(--warn); }
+    .grade-f { background: var(--bad-light); color: var(--bad); }
     .card-footer {
       font-size: 0.82rem;
-      color: var(--text-muted);
+      color: var(--muted);
       margin-top: auto;
     }
 
     /* Weight Distribution Bar */
     .weight-bar-card {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1rem 1.5rem;
@@ -480,7 +489,7 @@
     .weight-bar-label {
       font-size: 0.85rem;
       font-weight: 700;
-      color: var(--text-secondary);
+      color: var(--text-2);
     }
     .weight-bar {
       flex: 1;
@@ -491,23 +500,23 @@
       display: flex;
       min-width: 200px;
     }
-    .wb-seo { background: #10B981; width: 50%; }
-    .wb-aeo { background: #8B5CF6; width: 25%; }
-    .wb-geo { background: #3B82F6; width: 25%; }
+    .wb-seo { background: var(--fam-seo); width: 50%; }
+    .wb-aeo { background: var(--fam-aeo); width: 25%; }
+    .wb-geo { background: var(--fam-geo); width: 25%; }
     .weight-legend {
       display: flex;
       gap: 1rem;
       font-size: 0.8rem;
-      color: var(--text-muted);
+      color: var(--muted);
     }
     .wl-item { display: flex; align-items: center; gap: 0.35rem; }
     .wl-dot { width: 8px; height: 8px; border-radius: 50%; }
 
     /* Priority Fixes Section */
     .priority-panel {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-left: 4px solid var(--warning);
+      border-left: 4px solid var(--warn);
       border-radius: 14px;
       padding: 1.5rem;
       margin-bottom: 2rem;
@@ -529,8 +538,8 @@
       gap: 0.5rem;
     }
     .priority-gain {
-      background: var(--warning-light);
-      color: var(--warning);
+      background: var(--warn-light);
+      color: var(--warn);
       padding: 0.25rem 0.65rem;
       border-radius: 6px;
       font-size: 0.82rem;
@@ -555,17 +564,17 @@
     .priority-rank {
       font-size: 1.1rem;
       font-weight: 800;
-      color: var(--warning);
+      color: var(--warn);
       width: 24px;
       text-align: center;
     }
     .priority-info { flex: 1; }
     .priority-label { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.15rem; }
-    .priority-advice { font-size: 0.82rem; color: var(--text-muted); }
+    .priority-advice { font-size: 0.82rem; color: var(--muted); }
     .priority-pts {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-weight: 700;
-      color: var(--success);
+      color: var(--ok);
       font-size: 0.9rem;
     }
 
@@ -581,9 +590,9 @@
     .tab-group { display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 2px; }
     .tab-btn {
       padding: 0.5rem 0.95rem;
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text-secondary);
+      color: var(--text-2);
       border-radius: 8px;
       font-weight: 600;
       font-size: 0.85rem;
@@ -594,11 +603,11 @@
     .tab-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
     .filter-actions { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
     .search-box {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 0.5rem 0.85rem;
@@ -611,7 +620,7 @@
     .search-box:focus { border-color: var(--accent); }
     .btn-action {
       padding: 0.5rem 0.95rem;
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 8px;
@@ -623,11 +632,11 @@
       gap: 0.4rem;
       transition: all 0.2s;
     }
-    .btn-action:hover { background: var(--bg-card-hover); border-color: var(--accent); }
+    .btn-action:hover { background: var(--surface-hover); border-color: var(--accent); }
 
     /* Accessible Checks List via <details> */
     .checks-container {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
@@ -638,7 +647,7 @@
       transition: background 0.15s;
     }
     details.check-row:last-child { border-bottom: none; }
-    details.check-row[open] { background: var(--bg-card-hover); }
+    details.check-row[open] { background: var(--surface-hover); }
     summary.check-summary {
       display: flex;
       align-items: center;
@@ -657,22 +666,22 @@
       min-width: 55px;
       text-align: center;
     }
-    .status-pass { background: var(--success-light); color: var(--success); }
-    .status-fail { background: var(--danger-light); color: var(--danger); }
-    .status-na { background: rgba(156, 163, 175, 0.15); color: #9CA3AF; }
+    .status-pass { background: var(--ok-light); color: var(--ok); }
+    .status-fail { background: var(--bad-light); color: var(--bad); }
+    .status-na { background: var(--na-light); color: var(--na); }
     .check-content { flex: 1; min-width: 0; }
     .check-label { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.15rem; }
-    .check-meta { font-size: 0.8rem; color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .check-meta { font-size: 0.8rem; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .cat-tag { font-weight: 700; color: var(--accent); margin-right: 0.5rem; }
     .drawer-arrow {
-      color: var(--text-muted);
+      color: var(--muted);
       transition: transform 0.2s;
     }
     details.check-row[open] .drawer-arrow { transform: rotate(180deg); }
     .fix-drawer {
       padding: 0 1.5rem 1.25rem 5.35rem;
       font-size: 0.875rem;
-      color: var(--text-secondary);
+      color: var(--text-2);
       line-height: 1.55;
     }
     .fix-drawer-card {
@@ -717,7 +726,7 @@
       padding: 1.5rem;
     }
     .modal-card {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
       max-width: 720px;
@@ -737,7 +746,7 @@
     .btn-close {
       background: none;
       border: none;
-      color: var(--text-muted);
+      color: var(--muted);
       cursor: pointer;
       font-size: 1.5rem;
     }
@@ -755,7 +764,7 @@
 
     /* Crawl Progress */
     .crawl-box {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1.5rem;
@@ -785,7 +794,7 @@
       text-align: left;
       border-bottom: 1px solid var(--border);
     }
-    table.crawl-table th { color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; }
+    table.crawl-table th { color: var(--text-2); font-size: 0.8rem; text-transform: uppercase; }
 
     @media (max-width: 960px) {
       .dashboard-grid {
@@ -820,11 +829,11 @@
       white-space: nowrap;
     }
     .results-wrap { scroll-margin-top: 84px; }
-    .results-heading { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .results-heading { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; }
     .results-heading:focus { outline: none; }
     .skeleton { margin: 1.5rem 0 5rem; display: grid; gap: 1.25rem; }
     .skeleton > div, .sk-grid > div {
-      background: var(--bg-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       animation: sk-pulse 1.2s ease-in-out infinite;
@@ -834,8 +843,8 @@
     .sk-bar { height: 72px; }
     @keyframes sk-pulse { 50% { opacity: 0.5; } }
     .error-panel {
-      background: var(--bg-card);
-      border: 1px solid var(--danger);
+      background: var(--surface);
+      border: 1px solid var(--bad);
       border-left-width: 4px;
       border-radius: 14px;
       padding: 1.25rem 1.5rem;
@@ -1003,7 +1012,7 @@
             </div>
             <div class="gauge-info">
               <div id="gradeOverall" class="grade-badge grade-a">A+ Excellent</div>
-              <div style="font-size: 0.85rem; color: var(--text-secondary);" id="overallSummaryText">All major signals passing.</div>
+              <div style="font-size: 0.85rem; color: var(--text-2);" id="overallSummaryText">All major signals passing.</div>
             </div>
           </div>
           <div class="card-footer" id="overallFailingSummary">0 critical issues flagged</div>
@@ -1011,14 +1020,14 @@
 
         <div class="score-card">
           <div class="card-top">
-            <span class="card-heading" style="color: #10B981;">Traditional SEO</span>
+            <span class="card-heading">Traditional SEO</span>
             <span class="weight-tag">50% Weight</span>
           </div>
           <div class="gauge-wrapper">
             <div class="ring-box">
               <svg class="ring-svg" viewBox="0 0 120 120">
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill" id="ringSEO" cx="60" cy="60" r="50" stroke="#10B981"/>
+                <circle class="ring-fill" id="ringSEO" cx="60" cy="60" r="50" stroke="var(--fam-seo)"/>
               </svg>
               <div class="ring-value" id="valSEO">0</div>
             </div>
@@ -1028,14 +1037,14 @@
 
         <div class="score-card">
           <div class="card-top">
-            <span class="card-heading" style="color: #8B5CF6;">Answer Engine (AEO)</span>
+            <span class="card-heading">Answer Engine (AEO)</span>
             <span class="weight-tag">25% Weight</span>
           </div>
           <div class="gauge-wrapper">
             <div class="ring-box">
               <svg class="ring-svg" viewBox="0 0 120 120">
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill" id="ringAEO" cx="60" cy="60" r="50" stroke="#8B5CF6"/>
+                <circle class="ring-fill" id="ringAEO" cx="60" cy="60" r="50" stroke="var(--fam-aeo)"/>
               </svg>
               <div class="ring-value" id="valAEO">0</div>
             </div>
@@ -1045,14 +1054,14 @@
 
         <div class="score-card">
           <div class="card-top">
-            <span class="card-heading" style="color: #3B82F6;">Generative (GEO)</span>
+            <span class="card-heading">Generative (GEO)</span>
             <span class="weight-tag">25% Weight</span>
           </div>
           <div class="gauge-wrapper">
             <div class="ring-box">
               <svg class="ring-svg" viewBox="0 0 120 120">
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill" id="ringGEO" cx="60" cy="60" r="50" stroke="#3B82F6"/>
+                <circle class="ring-fill" id="ringGEO" cx="60" cy="60" r="50" stroke="var(--fam-geo)"/>
               </svg>
               <div class="ring-value" id="valGEO">0</div>
             </div>
@@ -1070,9 +1079,9 @@
           <div class="wb-geo" title="GEO: 25%"></div>
         </div>
         <div class="weight-legend">
-          <div class="wl-item"><span class="wl-dot" style="background:#10B981"></span> SEO (50%)</div>
-          <div class="wl-item"><span class="wl-dot" style="background:#8B5CF6"></span> AEO (25%)</div>
-          <div class="wl-item"><span class="wl-dot" style="background:#3B82F6"></span> GEO (25%)</div>
+          <div class="wl-item"><span class="wl-dot" style="background:var(--fam-seo)"></span> SEO (50%)</div>
+          <div class="wl-item"><span class="wl-dot" style="background:var(--fam-aeo)"></span> AEO (25%)</div>
+          <div class="wl-item"><span class="wl-dot" style="background:var(--fam-geo)"></span> GEO (25%)</div>
         </div>
       </div>
 
@@ -1121,7 +1130,7 @@
         <button class="btn-close" id="btnCloseApiModal" aria-label="Close dialog">&times;</button>
       </div>
 
-      <p style="color: var(--text-secondary); margin-bottom: 1rem;">Integrate seoscore directly into your CI pipelines, terminal workflows, or AI coding agents.</p>
+      <p style="color: var(--text-2); margin-bottom: 1rem;">Integrate seoscore directly into your CI pipelines, terminal workflows, or AI coding agents.</p>
 
       <h4 style="margin-bottom: 0.5rem;">1. cURL / REST API Endpoint</h4>
       <div class="code-block">curl -s -X POST https://seoscore-api.nadimtuhin.workers.dev/api/scan \
@@ -1133,7 +1142,7 @@
 seoscore-cli https://example.com</div>
 
       <h4 style="margin-bottom: 0.5rem;">3. Model Context Protocol (MCP) in Claude / Cursor / Hermes</h4>
-      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Add to your <code>claude_desktop_config.json</code> or Cursor MCP settings:</p>
+      <p style="font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.5rem;">Add to your <code>claude_desktop_config.json</code> or Cursor MCP settings:</p>
       <div class="code-block">{
   "mcpServers": {
     "seoscore": {
@@ -1499,7 +1508,7 @@ seoscore-cli https://example.com</div>
       });
 
       if (filtered.length === 0) {
-        list.innerHTML = '<div style="padding: 2.5rem; text-align: center; color: var(--text-muted);">No checks match your current filter.</div>';
+        list.innerHTML = '<div style="padding: 2.5rem; text-align: center; color: var(--muted);">No checks match your current filter.</div>';
         return;
       }
 
