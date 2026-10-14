@@ -48,3 +48,32 @@ test("the UI takes bare domains, offers Share and keeps the ?url= autorun", asyn
   expect(html).toContain("/og.jpg");
   expect(html).not.toContain("/og.png");
 });
+
+test("toMarkdown renders the report and escapes table cells", async () => {
+  const html = await (await worker.fetch(new Request("https://w.test/"))).text();
+  const src = html.split("// toMarkdown:begin")[1]?.split("// toMarkdown:end")[0] ?? "";
+  const toMarkdown = new Function(`${src}; return toMarkdown;`)() as (r: unknown) => string;
+  const md = toMarkdown({
+    url: "https://example.com",
+    link: "https://w.test/?url=https%3A%2F%2Fexample.com",
+    date: "2026-10-15",
+    overall: 72,
+    grade: "B Fair",
+    scores: { SEO: 80, AEO: 60, GEO: 70 },
+    top: [{ label: "Add a title", worth: 2.5 }],
+    checks: [
+      { id: "a", cat: "SEO", label: "Has a|pipe", pass: false, worth: 1 },
+      { id: "b", cat: "AEO", label: "Fine", pass: true, worth: 1 },
+      { id: "c", cat: "GEO", label: "Skipped", applicable: false, pass: false, worth: 1 },
+    ],
+    advice: { a: "line one\nline two" },
+  });
+  expect(md).toContain("# findable report: https://example.com");
+  expect(md).toContain("Overall: **72/100** (B Fair)");
+  expect(md).toContain("| SEO | 80 |");
+  expect(md).toContain("1. Add a title (+2.5 pts)");
+  expect(md).toContain("| FAIL | Has a\\|pipe | line one line two |");
+  expect(md).toContain("| PASS | Fine |  |");
+  expect(md).toContain("| N/A | Skipped |  |");
+  expect(md).toContain("[Share this report](https://w.test/?url=https%3A%2F%2Fexample.com)");
+});

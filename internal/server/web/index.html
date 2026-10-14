@@ -395,6 +395,7 @@
           <button type="button" class="btn-action" id="btnCopyReport">Copy</button>
           <button type="button" class="btn-action" id="btnExportJSON">JSON</button>
           <button type="button" class="btn-action" id="btnExportCSV">CSV</button>
+          <button type="button" class="btn-action" id="btnExportMD">MD</button>
           <button type="button" class="btn-action" id="btnShareReport">Share</button>
           <span id="shareStatus" class="share-status" role="status" aria-live="polite"></span>
         </div>
@@ -1019,6 +1020,38 @@ findable https://example.com</code></pre>
       if (kp) params.set("k", kp);
       return `${location.origin}/?${params}`;
     }
+
+    // toMarkdown:begin
+    const mdCell = text => String(text ?? "").replace(/\|/g, "\\|").replace(/\s*\r?\n\s*/g, " ");
+    function toMarkdown(r) {
+      const lines = [`# findable report: ${r.url}`, "", `Overall: **${r.overall}/100** (${r.grade})`, "", `Audited ${r.date}. [Share this report](${r.link})`, "",
+        "| Family | Score |", "| --- | --- |"];
+      for (const f of ["SEO", "AEO", "GEO"]) lines.push(`| ${f} | ${r.scores[f]} |`);
+      lines.push("", "## Next actions", "");
+      if (r.top.length === 0) lines.push("Every applicable check passes.");
+      r.top.forEach((c, i) => lines.push(`${i + 1}. ${mdCell(c.label)} (+${c.worth.toFixed(1)} pts)`));
+      for (const f of ["SEO", "AEO", "GEO"]) {
+        lines.push("", `## ${f}`, "", "| Status | Check | Detail |", "| --- | --- | --- |");
+        for (const c of r.checks.filter(c => c.cat === f)) {
+          const status = c.applicable === false ? "N/A" : c.pass ? "PASS" : "FAIL";
+          lines.push(`| ${status} | ${mdCell(c.label)} | ${c.applicable !== false && !c.pass ? mdCell(r.advice[c.id] || "") : ""} |`);
+        }
+      }
+      return lines.join("\n") + "\n";
+    }
+    // toMarkdown:end
+
+    $("btnExportMD").addEventListener("click", () => {
+      if (!currentScan) return;
+      const failing = allChecks.filter(isFailing);
+      const overall = overallScore(currentScan);
+      download(toMarkdown({
+        url: scannedUrl, link: shareLink(), date: today(), overall, grade: grade(overall)[1],
+        scores: { SEO: currentScan.seo.score, AEO: currentScan.aeo.score, GEO: currentScan.geo.score },
+        top: [...failing].sort((a, b) => b.worth - a.worth).slice(0, 3), checks: allChecks, advice: fixAdvice,
+      }), "text/markdown;charset=utf-8;", `findable-${recentHost(scannedUrl) || "page"}-${today()}.md`);
+      showToast("Markdown report exported");
+    });
 
     $("btnShareReport").addEventListener("click", async () => {
       if (!currentScan) return;
