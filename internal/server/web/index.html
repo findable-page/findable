@@ -1039,10 +1039,13 @@ findable https://example.com</code></pre>
     });
 
     function shareLink() {
-      const params = new URLSearchParams({ url: scannedUrl });
+      const bare = scannedUrl.trim().replace(/^https:\/\//i, "").replace(/^([^/?#]+)\/$/, "$1");
+      const pretty = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?(\/[^?#]*)?$/i.test(bare);
+      const params = new URLSearchParams(pretty ? {} : { url: scannedUrl });
       const kp = keyphraseInput.value.trim();
       if (kp) params.set("k", kp);
-      return `${location.origin}/?${params}`;
+      const query = params.size ? `?${params}` : "";
+      return pretty ? `${location.origin}/${bare}${query}` : `${location.origin}/${query}`;
     }
 
     // toMarkdown:begin
@@ -1227,7 +1230,7 @@ findable https://example.com</code></pre>
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const queryUrl = urlParams.get("url");
+    const queryUrl = urlParams.get("url") || decodeURI(location.pathname.slice(1));
     if (queryUrl) {
       urlInput.value = queryUrl;
       const qKp = urlParams.get("k") || urlParams.get("keyphrase");

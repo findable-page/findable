@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import worker, { type Env } from "../src/index";
+import worker, { type Env, prettyShareUrl } from "../src/index";
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -32,7 +32,7 @@ test("a link-preview bot fetching /?url= gets the page's scores in the share tag
   expect(meta(html, "property", "og:description")).toBe(
     `SEO ${scan.seo.score} · AEO ${scan.aeo.score} · GEO ${scan.geo.score}. Can your site beat it? Free check, no signup.`,
   );
-  expect(meta(html, "property", "og:url")).toBe("https://findable.page/?url=https%3A%2F%2Fexample.com%2F");
+  expect(meta(html, "property", "og:url")).toBe("https://findable.page/example.com");
 });
 
 test("people opening /?url= get the generic page without a server-side scan", async () => {
@@ -74,4 +74,29 @@ test("share tags escape the scanned host", async () => {
     )
   ).text();
   expect(html).not.toContain('"><script>');
+});
+
+test("a bot fetching the short /<host> link gets the scores and a short og:url", async () => {
+  globalThis.fetch = (async () => new Response("<html></html>")) as unknown as typeof fetch;
+  const resp = await worker.fetch(new Request("https://w.test/example.com", { headers: BOT }), ENV);
+  const html = await resp.text();
+  expect(resp.status).toBe(200);
+  expect(meta(html, "property", "og:title")).toMatch(/^example\.com scored \d+\/100\. /);
+  expect(meta(html, "property", "og:url")).toBe("https://findable.page/example.com");
+});
+
+test("people opening the short /<host> link get the page", async () => {
+  const resp = await worker.fetch(new Request("https://w.test/example.com/blog/post"), ENV);
+  expect(resp.status).toBe(200);
+  expect(resp.headers.get("Content-Type")).toContain("text/html");
+});
+
+test("http-only targets keep the query-string share link", () => {
+  expect(prettyShareUrl("http://example.com")).toBe("https://findable.page/?url=http%3A%2F%2Fexample.com");
+  expect(prettyShareUrl("https://example.com/")).toBe("https://findable.page/example.com");
+  expect(prettyShareUrl("example.com/a/b")).toBe("https://findable.page/example.com/a/b");
+});
+
+test("paths without a dot still 404", async () => {
+  expect((await worker.fetch(new Request("https://w.test/nope"), ENV)).status).toBe(404);
 });

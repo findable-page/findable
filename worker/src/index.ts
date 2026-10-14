@@ -160,17 +160,7 @@ const worker = {
     }
 
     if (url.pathname === "/") {
-      uiPolicy ??= buildUiPolicy();
-      const target = url.searchParams.get("url");
-      const isPreviewBot = PREVIEW_BOTS.test(request.headers.get("User-Agent") ?? "");
-      const html = target && isPreviewBot ? await sharePreviewHtml(target, env, url) : PAGE_HTML;
-      return new Response(html, {
-        headers: {
-          ...CORS_HEADERS,
-          "Content-Type": "text/html; charset=utf-8",
-          ...securityHeaders(await uiPolicy),
-        },
-      });
+      return pageResponse(url.searchParams.get("url"), request, env, url);
     }
 
     const siteFile = request.method === "GET" ? SITE_FILES[url.pathname] : undefined;
@@ -218,9 +208,37 @@ const worker = {
       }
     }
 
+    const pathTarget = url.pathname.slice(1);
+    if (request.method === "GET" && BARE_HOST.test(pathTarget)) {
+      return pageResponse(pathTarget, request, env, url);
+    }
+
     return new Response("Not Found", { status: 404, headers: CORS_HEADERS });
   },
 };
+
+async function pageResponse(target: string | null, request: Request, env: Env, url: URL): Promise<Response> {
+  uiPolicy ??= buildUiPolicy();
+  const isPreviewBot = PREVIEW_BOTS.test(request.headers.get("User-Agent") ?? "");
+  const html = target && isPreviewBot ? await sharePreviewHtml(target, env, url) : PAGE_HTML;
+  return new Response(html, {
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": "text/html; charset=utf-8",
+      ...securityHeaders(await uiPolicy),
+    },
+  });
+}
+
+export function prettyShareUrl(target: string): string {
+  const bare = target
+    .trim()
+    .replace(/^https:\/\//i, "")
+    .replace(/^([^/?#]+)\/$/, "$1");
+  return BARE_HOST.test(bare)
+    ? `${PUBLIC_ORIGIN}/${bare}`
+    : `${PUBLIC_ORIGIN}/?${new URLSearchParams({ url: target })}`;
+}
 
 export default worker;
 
@@ -249,7 +267,7 @@ async function sharePreviewHtml(target: string, env: Env, requestUrl: URL): Prom
     const host = new URL(scan.url).hostname;
     const title = `${host} scored ${scan.overall}/100. ${scoreQuip(scan.overall)}`;
     const description = `SEO ${scan.seo.score} · AEO ${scan.aeo.score} · GEO ${scan.geo.score}. Can your site beat it? Free check, no signup.`;
-    const shareUrl = `${PUBLIC_ORIGIN}/?${new URLSearchParams({ url: target })}`;
+    const shareUrl = prettyShareUrl(target);
     let html = PAGE_HTML.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
     html = replaceMeta(html, "property", "og:title", title);
     html = replaceMeta(html, "name", "twitter:title", title);
