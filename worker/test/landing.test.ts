@@ -3,7 +3,7 @@ import worker from "../src/index";
 
 const ORIGIN = "https://findable.page";
 const get = (path: string) => worker.fetch(new Request(`${ORIGIN}${path}`));
-const PATHS = ["/free-seo-scanner", "/aeo", "/wordpress"];
+const PATHS = ["/free-seo-scanner", "/aeo", "/wordpress", "/compare"];
 
 function ldBlocks(
   html: string,
@@ -84,4 +84,16 @@ describe("self-scan", () => {
       expect(result.overall).toBeGreaterThanOrEqual(75);
     });
   }
+});
+
+describe("compare page", () => {
+  test("is titled, neutral about where the other tool leads, and in the sitemap", async () => {
+    const html = await (await get("/compare")).text();
+    expect(html).toContain("<title>findable vs seoscore.tools");
+    expect(html).toContain("<table>");
+    expect(html).toContain("AI content generator");
+    expect(html).toContain("260+");
+    expect((await (await get("/sitemap.xml")).text()).includes(`${ORIGIN}/compare`)).toBe(true);
+    expect(await (await get("/about")).text()).toContain('href="/compare"');
+  });
 });

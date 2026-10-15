@@ -131,6 +131,54 @@ ${CTA}
       },
     ],
   },
+  {
+    path: "/compare",
+    title: "findable vs seoscore.tools | findable",
+    description:
+      "A plain comparison of findable and seoscore.tools: checks, exports, WordPress plugin, CLI, MCP, API and licence. Includes where seoscore.tools is ahead.",
+    body: `<h1>findable vs seoscore.tools</h1>
+<p>Both tools scan a page for SEO, AEO and GEO and have a free scan. They differ in what surrounds the scan. This table lists what each one offers, as far as we know. We built findable, so check seoscore.tools yourself before you decide.</p>
+${CTA}
+<h2 id="table">How do they compare?</h2>
+<table>
+<thead><tr><th>Feature</th><th>findable</th><th>seoscore.tools</th></tr></thead>
+<tbody>
+<tr><td>Free scan</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>SEO, AEO and GEO</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Number of checks</td><td>160</td><td>260+ (as claimed by the site)</td></tr>
+<tr><td>Page speed</td><td>Optional speed test</td><td>Yes</td></tr>
+<tr><td>Site crawl</td><td>Yes</td><td>20 pages</td></tr>
+<tr><td>Export</td><td>CSV, PDF, JSON, Markdown, SARIF</td><td>CSV, PDF</td></tr>
+<tr><td>Public report link</td><td>Yes, kept 90 days</td><td>Yes, kept 90 days</td></tr>
+<tr><td>Languages</td><td>5</td><td>5</td></tr>
+<tr><td>WordPress plugin</td><td>Free, with Fix All, undo and full-site scan</td><td>Auto-fixes, $79</td></tr>
+<tr><td>AI mentions and AI content generator</td><td>No</td><td>Yes</td></tr>
+<tr><td>Command line tool</td><td>Yes</td><td>No</td></tr>
+<tr><td>MCP server</td><td>Yes</td><td>No</td></tr>
+<tr><td>GitHub Action</td><td>Yes</td><td>No</td></tr>
+<tr><td>Public API</td><td>Yes</td><td>No</td></tr>
+<tr><td>Open source</td><td>Yes, MIT</td><td>No</td></tr>
+</tbody>
+</table>
+<h2 id="ahead">Where is seoscore.tools ahead?</h2>
+<p>seoscore.tools has AI features that findable does not: AI mentions and an AI content generator. It also claims more checks, 260+ against our 160. If you want those, it is the better fit.</p>
+<h2 id="findable">Where is findable a better fit?</h2>
+<p>findable suits you if you want to run scans from a terminal, a CI pipeline (<code>GitHub Action</code>), an AI agent over MCP or your own code through the API. You can read and change the source, which is MIT licensed, and the WordPress plugin is free. See <a href="/wordpress">findable for WordPress</a> and <a href="/learn/findable-in-15-minutes">the command line guide</a>.</p>`,
+    faq: [
+      {
+        q: "Is findable a replacement for seoscore.tools?",
+        a: "Only for some uses. findable has a CLI, MCP server, GitHub Action, public API and open source code. seoscore.tools has AI features and claims more checks.",
+      },
+      {
+        q: "Does findable have AI features?",
+        a: "No. findable has no AI mentions tracking and no AI content generator.",
+      },
+      {
+        q: "How many checks does each tool run?",
+        a: "findable runs 160 checks. seoscore.tools claims 260+.",
+      },
+    ],
+  },
 ];
 
 export const landingEntries: PageEntry[] = LANDING_PAGES.map(({ path, title, description }) => ({

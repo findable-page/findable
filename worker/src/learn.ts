@@ -72,7 +72,7 @@ ${input.structuredData.join("\n")}
 <main>
 ${input.body}
 </main>
-<footer><p><a href="/">Audit your own page with ${SITE_NAME}</a> &middot; <a href="/about">About</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; <a href="${REPO_URL}" rel="noopener">Source on GitHub</a></p></footer>
+<footer><p><a href="/">Audit your own page with ${SITE_NAME}</a> &middot; <a href="/compare">Compare</a> &middot; <a href="/about">About</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; <a href="${REPO_URL}" rel="noopener">Source on GitHub</a></p></footer>
 </body>
 </html>
 `;
