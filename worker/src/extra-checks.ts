@@ -15,11 +15,34 @@ export interface PageCtx {
   tags: Map<string, Tag[]>;
 }
 
-const TEXT_TAGS = new Set(["a", "button", "style", "label", "h1", "h2", "h3", "h4", "h5", "h6", "p", "li"]);
-const IMPLIED_END = /<(p|li|h[1-6]|div|ul|ol|table|section|article|blockquote|dl|pre|form)(?=[\s/>])/gi;
+const TEXT_TAGS = new Set(["a", "button", "label", "h1", "h2", "h3", "h4", "h5", "h6", "p", "li"]);
 const RAW_TEXT_TAGS = new Set(["script", "style", "noscript"]);
-const TAG = /<(\/?)([a-zA-Z][\w:-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
+const P_ENDERS = new Set([
+  "p",
+  "li",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "div",
+  "ul",
+  "ol",
+  "table",
+  "section",
+  "article",
+  "blockquote",
+  "dl",
+  "pre",
+  "form",
+]);
+const PARENT_CLOSERS = new Set(["ul", "ol", "table", "body", "html"]);
+const TEXT_CAP = 8192;
+const JSON_LD_CAP = 1 << 20;
 const ATTR = /([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+const NAME_CHAR = /[\w:-]/;
+const isLetter = (code: number): boolean => (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
 
 function parseAttrs(source: string): Record<string, string> {
   const attrs: Record<string, string> = {};
@@ -27,55 +50,117 @@ function parseAttrs(source: string): Record<string, string> {
   return attrs;
 }
 
-function impliedEnd(html: string, name: string, from: number, close: number): number {
-  const end = close === -1 ? html.length : close;
-  if (name !== "p" && name !== "li") return end;
-  IMPLIED_END.lastIndex = from;
-  for (let m = IMPLIED_END.exec(html); m && m.index < end; m = IMPLIED_END.exec(html)) {
-    if (name === "p" || (close === -1 && (m[1] ?? "").toLowerCase() === "li")) return m.index;
+function stripTags(text: string): string {
+  let out = "";
+  let from = 0;
+  for (;;) {
+    const open = text.indexOf("<", from);
+    if (open === -1) return out + text.slice(from);
+    const close = text.indexOf(">", open);
+    if (close === -1) return out + text.slice(from);
+    out += text.slice(from, open);
+    from = close + 1;
   }
-  return end;
 }
 
-export function parseTags(raw: string): Map<string, Tag[]> {
-  const html = raw.replace(/<!--[\s\S]*?-->/g, " ");
+function tagEnd(html: string, from: number): number {
+  let i = from;
+  while (i < html.length) {
+    const ch = html[i];
+    if (ch === ">") return i;
+    if (ch === '"' || ch === "'") {
+      const closing = html.indexOf(ch, i + 1);
+      if (closing !== -1) i = closing;
+    }
+    i++;
+  }
+  return -1;
+}
+
+interface Pending {
+  tag: Tag;
+  start: number;
+}
+
+export function parseTags(html: string): Map<string, Tag[]> {
   const lower = html.toLowerCase();
   const tags = new Map<string, Tag[]>();
+  const pending = new Map<string, Pending>();
+  const rawClose = new Map<string, number>();
   let inHead = false;
   let pos = 0;
-  TAG.lastIndex = 0;
-  for (let m = TAG.exec(html); m; m = TAG.exec(html)) {
-    const name = (m[2] ?? "").toLowerCase();
-    if (m[1]) {
-      if (name === "head") inHead = false;
+
+  const finish = (name: string, end: number) => {
+    const open = pending.get(name);
+    if (!open) return;
+    pending.delete(name);
+    const slice = html.slice(open.start, Math.min(end, open.start + TEXT_CAP));
+    open.tag.media = /<(img|svg|picture)(?=[\s/>])/i.test(slice);
+    open.tag.text = stripTags(slice);
+  };
+  const finishAll = (end: number) => {
+    for (const name of [...pending.keys()]) finish(name, end);
+  };
+  const closeIndex = (name: string, from: number): number => {
+    const cached = rawClose.get(name);
+    if (cached !== undefined && (cached === -1 || cached >= from)) return cached;
+    const found = lower.indexOf(`</${name}`, from);
+    rawClose.set(name, found);
+    return found;
+  };
+
+  let i = 0;
+  for (;;) {
+    const lt = html.indexOf("<", i);
+    if (lt === -1) break;
+    if (html.startsWith("<!--", lt)) {
+      const commentEnd = html.indexOf("-->", lt + 4);
+      if (commentEnd === -1) break;
+      i = commentEnd + 3;
       continue;
     }
-    const bodyStart = TAG.lastIndex;
-    let text = "";
-    let media = false;
-    if (RAW_TEXT_TAGS.has(name) || TEXT_TAGS.has(name)) {
-      const close = lower.indexOf(`</${name}`, bodyStart);
-      const end = impliedEnd(html, name, bodyStart, close);
-      text = html.slice(bodyStart, end);
-      if (RAW_TEXT_TAGS.has(name)) TAG.lastIndex = end;
-      else {
-        media = /<(img|svg|picture)(?=[\s/>])/i.test(text);
-        text = text.replace(/<[^>]+>/g, "");
-      }
+    const closing = html[lt + 1] === "/";
+    const nameStart = lt + (closing ? 2 : 1);
+    if (!isLetter(html.charCodeAt(nameStart))) {
+      i = lt + 1;
+      continue;
     }
+    let nameEnd = nameStart + 1;
+    while (nameEnd < html.length && NAME_CHAR.test(html[nameEnd] ?? "")) nameEnd++;
+    const end = tagEnd(html, nameEnd);
+    if (end === -1) break;
+    const name = html.slice(nameStart, nameEnd).toLowerCase();
+    i = end + 1;
+
+    if (closing) {
+      if (name === "head") inHead = false;
+      if (PARENT_CLOSERS.has(name)) finishAll(lt);
+      else finish(name, lt);
+      continue;
+    }
+
+    if (name === "body") inHead = false;
     if (name === "head") inHead = true;
+    if (P_ENDERS.has(name)) finish("p", lt);
+    if (TEXT_TAGS.has(name)) finish(name, lt);
+
+    const attrs = parseAttrs(html.slice(nameEnd, end));
+    const tag: Tag = { pos: pos++, attrs, text: "", media: false, inHead };
     const list = tags.get(name) ?? [];
-    const attrs = parseAttrs(m[3] ?? "");
-    const isJsonLd = name === "script" && (attrs.type ?? "").trim().toLowerCase() === "application/ld+json";
-    list.push({
-      pos: pos++,
-      attrs,
-      text: isJsonLd || (name !== "script" && name !== "noscript") ? text : "",
-      media,
-      inHead,
-    });
+    list.push(tag);
     tags.set(name, list);
+
+    if (TEXT_TAGS.has(name)) pending.set(name, { tag, start: end + 1 });
+    else if (RAW_TEXT_TAGS.has(name)) {
+      const close = closeIndex(name, end + 1);
+      const stop = close === -1 ? html.length : close;
+      const isJsonLd = name === "script" && (attrs.type ?? "").trim().toLowerCase() === "application/ld+json";
+      if (isJsonLd) tag.text = html.slice(end + 1, Math.min(stop, end + 1 + JSON_LD_CAP));
+      else if (name === "style") tag.text = html.slice(end + 1, stop);
+      i = stop;
+    }
   }
+  finishAll(html.length);
   return tags;
 }
 

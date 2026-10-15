@@ -9,6 +9,7 @@ import { learnPosts } from "./learn-content";
 import { aeoParityChecks, geoParityChecks, paragraphWordCounts, seoParityChecks } from "./page-checks";
 import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
+import { sanitizeHtml } from "./sanitize";
 import { seoSchemaChecks } from "./schema-checks";
 import { seoPageChecks } from "./seo-page-checks";
 import type { CardScores } from "./share-card";
@@ -529,7 +530,8 @@ function firstGroup(match: RegExpMatchArray | null): string {
   return match?.[1]?.trim() ?? "";
 }
 
-function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyphrase?: string): ScanResponse {
+export function analyzeHtml(targetUrl: string, pageHtml: string, headers: Headers, keyphrase?: string): ScanResponse {
+  const rawHtml = sanitizeHtml(pageHtml);
   const lowerHtml = rawHtml.toLowerCase();
   const parsedUrl = new URL(targetUrl);
 
