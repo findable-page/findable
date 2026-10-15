@@ -102,7 +102,7 @@ func allowAnyOrigin(w http.ResponseWriter) {
 }
 
 func writeBody(w http.ResponseWriter, body string) {
-	_, _ = w.Write([]byte(body))
+	_, _ = w.Write([]byte(body)) // #nosec G705 -- bodies are the embedded UI, static assets, or CSV/SARIF served with a non-HTML content type
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {

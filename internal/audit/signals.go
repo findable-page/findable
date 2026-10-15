@@ -193,13 +193,13 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	"textarea":   func(s *PageSignals, _ *html.Node) { s.FormInputCount++ },
 	"select":     func(s *PageSignals, _ *html.Node) { s.FormInputCount++ },
 	"blockquote": collectBlockquote,
-	"script":     collectScript,
+	tagScript:    collectScript,
 }
 
 func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
 	name := strings.ToLower(n.Data)
 	info := TagInfo{Attrs: attrs(n), InHead: inHead, Pos: sig.DOMSize}
-	if name == "script" && strings.EqualFold(trimmedAttr(info.Attrs, "type"), "application/ld+json") {
+	if name == tagScript && strings.EqualFold(trimmedAttr(info.Attrs, "type"), "application/ld+json") {
 		info.Text = collectRawText(n)
 	}
 	if tagsWithText[name] {
@@ -532,7 +532,7 @@ func extractVisibleText(doc *html.Node) string {
 	walk = func(n *html.Node) {
 		if n.Type == html.ElementNode {
 			tag := strings.ToLower(n.Data)
-			if tag == "script" || tag == "style" || tag == "noscript" || tag == "svg" {
+			if tag == tagScript || tag == "style" || tag == "noscript" || tag == "svg" {
 				return
 			}
 		}
@@ -550,3 +550,8 @@ func extractVisibleText(doc *html.Node) string {
 	walk(doc)
 	return strings.TrimSpace(b.String())
 }
+
+const (
+	schemeHTTPS = "https"
+	tagScript   = "script"
+)

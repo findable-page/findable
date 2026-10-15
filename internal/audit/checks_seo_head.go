@@ -74,7 +74,7 @@ func seoCanonicalQuality(l *checkList, s *PageSignals) {
 	if self {
 		l.add("canonical_self", "Canonical points to this page", true)
 	} else {
-		l.add("canonical_self", fmt.Sprintf("Canonical points elsewhere: %s", canonical), false)
+		l.add("canonical_self", "Canonical points elsewhere: "+canonical, false)
 	}
 	l.add("canonical_absolute", "Canonical is an absolute URL", err == nil && target.IsAbs())
 }

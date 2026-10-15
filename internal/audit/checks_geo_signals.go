@@ -34,8 +34,8 @@ func articleContainsHeading(s *PageSignals) bool {
 		return false
 	}
 	end := len(lower)
-	if close := strings.Index(lower[start:], "</article"); close != -1 {
-		end = start + close
+	if closeAt := strings.Index(lower[start:], "</article"); closeAt != -1 {
+		end = start + closeAt
 	}
 	h1 := strings.Index(lower[start:end], "<h1")
 	return h1 != -1
@@ -95,7 +95,7 @@ func externalHosts(s *PageSignals) []string {
 	own := hostWithoutWWW(s.URL.Host)
 	for _, a := range s.Tags["a"] {
 		target := resolveNavigable(s, a.Attrs["href"])
-		if target == nil || (target.Scheme != "http" && target.Scheme != "https") {
+		if target == nil || (target.Scheme != "http" && target.Scheme != schemeHTTPS) {
 			continue
 		}
 		if host := hostWithoutWWW(target.Host); host != "" && host != own && !seen[host] {

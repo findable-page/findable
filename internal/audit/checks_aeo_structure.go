@@ -99,22 +99,7 @@ func aeoSchemaDepth(l *checkList, s *PageSignals) {
 	skipUnless(l, len(faqs) > 0, "aeo_faq_count", fmt.Sprintf("FAQPage lists %d question(s) (3 or more recommended)", questionCount), "No FAQPage schema to count", questionCount >= 3)
 
 	howtos := doc.ofType("howto")
-	skipUnless(l, len(howtos) > 0, "aeo_howto_valid", "HowTo schema has a name and 2+ steps with text", "No HowTo schema to validate", allNodes(howtos, func(n map[string]any) bool {
-		steps := jsonItems(n["step"])
-		if !jsonPresent(n["name"]) || len(steps) < 2 {
-			return false
-		}
-		for _, step := range steps {
-			if m, ok := step.(map[string]any); ok {
-				if !jsonPresent(m["text"]) && !jsonPresent(m["name"]) && !jsonPresent(m["itemListElement"]) {
-					return false
-				}
-			} else if !jsonPresent(step) {
-				return false
-			}
-		}
-		return true
-	}))
+	skipUnless(l, len(howtos) > 0, "aeo_howto_valid", "HowTo schema has a name and 2+ steps with text", "No HowTo schema to validate", allNodes(howtos, validHowTo))
 
 	var speakable []map[string]any
 	for _, node := range doc.nodes {
@@ -129,6 +114,23 @@ func aeoSchemaDepth(l *checkList, s *PageSignals) {
 	skipUnless(l, len(speakable) > 0, "aeo_speakable_valid", "Speakable markup names a cssSelector or xpath", "No speakable markup to validate", allNodes(speakable, func(n map[string]any) bool {
 		return jsonPresent(n["cssSelector"]) || jsonPresent(n["xpath"])
 	}))
+}
+
+func validHowTo(n map[string]any) bool {
+	steps := jsonItems(n["step"])
+	if !jsonPresent(n["name"]) || len(steps) < 2 {
+		return false
+	}
+	for _, step := range steps {
+		if m, ok := step.(map[string]any); ok {
+			if !jsonPresent(m["text"]) && !jsonPresent(m["name"]) && !jsonPresent(m["itemListElement"]) {
+				return false
+			}
+		} else if !jsonPresent(step) {
+			return false
+		}
+	}
+	return true
 }
 
 func aeoPassageShape(l *checkList, s *PageSignals, blocks []contentBlock) {
@@ -212,7 +214,7 @@ func aeoNavigability(l *checkList, s *PageSignals, blocks []contentBlock) {
 	skipUnless(l, len(s.Words) >= 800, "aeo_toc_links", fmt.Sprintf("%d in-page anchor links (3 or more for long pages)", toc), "Page is short enough to skip a table of contents", toc >= 3)
 }
 
-func aeoAnswerPhrasing(l *checkList, s *PageSignals, blocks []contentBlock) {
+func aeoAnswerPhrasing(l *checkList, _ *PageSignals, blocks []contentBlock) {
 	pairs, defined := 0, false
 	for i := 1; i < len(blocks); i++ {
 		if blocks[i].tag != "p" || !blocks[i-1].isHeading() {

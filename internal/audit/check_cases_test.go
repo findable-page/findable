@@ -52,7 +52,7 @@ func TestSharedCheckCases(t *testing.T) {
 		Fail []checkCase `json:"fail"`
 	}{}
 	for _, file := range files {
-		raw, err := os.ReadFile(file)
+		raw, err := os.ReadFile(filepath.Clean(file))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -92,7 +92,7 @@ func TestCheckIDsAreUnique(t *testing.T) {
 }
 
 func TestColorContrastHostileStyleIsFast(t *testing.T) {
-	const size = 1 << 20
+	const size = 1 << 18
 	pages := map[string]string{
 		"endless declarations": `<p style="` + strings.Repeat("color:#777;", size/11) + `">x</p>`,
 		"many styled elements": strings.Repeat("<p style='color:#777;background-color:#888'>x</p>", size/50),

@@ -34,11 +34,11 @@ func seoColorContrast(l *checkList, s *PageSignals) {
 				continue
 			}
 			checked++
-			min := minContrastRatio
+			minRatio := minContrastRatio
 			if largeTextTags[name] {
-				min = minLargeTextRatio
+				minRatio = minLargeTextRatio
 			}
-			if contrastRatio(fg, bg) < min {
+			if contrastRatio(fg, bg) < minRatio {
 				low++
 			}
 		}
@@ -53,12 +53,11 @@ func inlineColorPair(style string) (fg, bg [3]float64, ok bool) {
 		if !found {
 			continue
 		}
-		color, resolved := parseCSSColor(strings.ToLower(strings.Trim(value, asciiSpace)))
 		switch strings.ToLower(strings.Trim(prop, asciiSpace)) {
 		case "color":
-			fg, haveFg = color, resolved
+			fg, haveFg = parseCSSColor(strings.ToLower(strings.Trim(value, asciiSpace)))
 		case "background-color":
-			bg, haveBg = color, resolved
+			bg, haveBg = parseCSSColor(strings.ToLower(strings.Trim(value, asciiSpace)))
 		}
 	}
 	return fg, bg, haveFg && haveBg

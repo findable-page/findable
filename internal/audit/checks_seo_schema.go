@@ -28,7 +28,7 @@ type schemaDoc struct {
 
 func parseSchemaDoc(s *PageSignals) schemaDoc {
 	var doc schemaDoc
-	for _, script := range s.Tags["script"] {
+	for _, script := range s.Tags[tagScript] {
 		if !strings.EqualFold(strings.TrimSpace(script.Attrs["type"]), "application/ld+json") {
 			continue
 		}

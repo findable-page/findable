@@ -133,7 +133,7 @@ func seoSocial(l *checkList, s *PageSignals) {
 }
 
 func seoSecurityHeaders(l *checkList, s *PageSignals) {
-	l.add("https", "HTTPS enabled", s.URL != nil && s.URL.Scheme == "https")
+	l.add("https", "HTTPS enabled", s.URL != nil && s.URL.Scheme == schemeHTTPS)
 	l.add("hsts", "Strict-Transport-Security header enforced", s.Headers.Get("Strict-Transport-Security") != "")
 	l.add("x_content_type", "X-Content-Type-Options: nosniff header present", lowerContainsAny(s.Headers.Get("X-Content-Type-Options"), "nosniff"))
 	l.add("x_frame_options", "X-Frame-Options header present", s.Headers.Get("X-Frame-Options") != "")

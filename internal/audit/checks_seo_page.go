@@ -110,12 +110,12 @@ func seoLinkQuality(l *checkList, s *PageSignals) {
 }
 
 func seoMixedContent(l *checkList, s *PageSignals) {
-	if s.URL == nil || s.URL.Scheme != "https" {
+	if s.URL == nil || s.URL.Scheme != schemeHTTPS {
 		l.skip("mixed_content", "Page is not served over HTTPS, no mixed content to check")
 		return
 	}
 	insecure := 0
-	for _, name := range []string{"img", "script", "iframe", "video", "audio", "source"} {
+	for _, name := range []string{"img", tagScript, "iframe", "video", "audio", "source"} {
 		for _, t := range s.Tags[name] {
 			if strings.HasPrefix(strings.ToLower(strings.TrimSpace(t.Attrs["src"])), "http://") {
 				insecure++
@@ -132,7 +132,7 @@ func seoMixedContent(l *checkList, s *PageSignals) {
 
 func seoLoadPerformance(l *checkList, s *PageSignals) {
 	blocking, externalScripts := 0, 0
-	for _, t := range s.Tags["script"] {
+	for _, t := range s.Tags[tagScript] {
 		if strings.TrimSpace(t.Attrs["src"]) == "" {
 			continue
 		}
@@ -170,7 +170,7 @@ func hasResourceHints(s *PageSignals, stylesheets []TagInfo) bool {
 		return true
 	}
 	var resources []string
-	for _, t := range s.Tags["script"] {
+	for _, t := range s.Tags[tagScript] {
 		resources = append(resources, t.Attrs["src"])
 	}
 	for _, t := range stylesheets {
