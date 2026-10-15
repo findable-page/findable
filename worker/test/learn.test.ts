@@ -223,3 +223,23 @@ describe("about, privacy and terms pages", () => {
     for (const path of pages) expect(html).toContain(`href="${path}"`);
   });
 });
+
+describe("topic guides", () => {
+  const slugs = [
+    "meta-descriptions",
+    "json-ld-schema-basics",
+    "robots-txt-ai-crawlers",
+    "llms-txt",
+    "faq-schema-answer-engines",
+    "open-graph-share-cards",
+    "canonical-and-duplicate-content",
+    "image-alt-and-lazy-loading",
+  ];
+  for (const slug of slugs) {
+    test(`/learn/${slug} returns 200 with its canonical`, async () => {
+      const resp = await get(`/learn/${slug}`);
+      expect(resp.status).toBe(200);
+      expect(await resp.text()).toContain(`<link rel="canonical" href="${ORIGIN}/learn/${slug}">`);
+    });
+  }
+});

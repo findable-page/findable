@@ -16,7 +16,7 @@ test.each(scanPaths)("%s scores SEO 90, AEO 85 and GEO 80 or better when scanned
   const resp = await worker.fetch(
     new Request(`${ORIGIN}/api/scan`, {
       method: "POST",
-      headers: { "CF-Connecting-IP": "203.0.113.200" },
+      headers: { "CF-Connecting-IP": `203.0.113.${100 + scanPaths.indexOf(path)}` },
       body: JSON.stringify({ url: `${ORIGIN}${path}` }),
     }),
   );

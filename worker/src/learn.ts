@@ -92,9 +92,10 @@ export function renderLearnNotFound(origin: string): string {
 
 function postList(posts: LearnPost[]): string {
   const items = posts.map(
-    (post) => `<li><a href="/learn/${post.slug}">${escapeHtml(post.title)}</a><br>${escapeHtml(post.description)}</li>`,
+    (post) =>
+      `<dt><a href="/learn/${post.slug}">${escapeHtml(post.title)}</a></dt><dd>${escapeHtml(post.description)}</dd>`,
   );
-  return `<ul>${items.join("")}</ul>`;
+  return `<dl>${items.join("")}</dl>`;
 }
 
 const INDEX_FAQ: LearnPost["faq"] = [
@@ -127,6 +128,7 @@ function indexBody(): string {
     `<h1>${escapeHtml(INDEX_TITLE)}</h1>`,
     `<p class="byline">By <a href="${AUTHOR_URL}" rel="noopener">${AUTHOR}</a>. Updated <time datetime="${updated}">${updated}</time>.</p>`,
     `<p>${escapeHtml(INDEX_DESCRIPTION)} findable is a tool that audits one page for SEO, AEO and GEO. You can read the guides in any order, and each one links to the others.</p>`,
+    `<p>On this page: <a href="#start-here">start here</a>, <a href="#all-guides">all guides</a>, <a href="#quick-start">command line</a>, <a href="#summary">summary</a>.</p>`,
     `<h2 id="start-here">Where should you start?</h2>\n<ol>${steps.join("")}</ol>`,
     `<h2 id="all-guides">All guides</h2>\n${postList(learnPosts)}`,
     `<h2 id="quick-start">How do you run an audit from the command line?</h2>\n<p>Pass a URL to the seoscore command. The <code>-fail-under</code> flag fails the run when the score drops below a number, which is useful in CI.</p>\n<pre><code>seoscore -fail-under 80 https://example.com</code></pre>`,
