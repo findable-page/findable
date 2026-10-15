@@ -1,5 +1,6 @@
 import UI_HTML from "../../internal/server/web/index.html";
 import { pageSpeed } from "./cwv";
+import { buildCtx, seoExtraChecks } from "./extra-checks";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
@@ -651,6 +652,8 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
   const lowerText = visibleText.toLowerCase();
   const youCount = (lowerText.match(/\b(you|your|we)\b/g) || []).length;
 
+  const ctx = buildCtx(rawHtml, parsedUrl, visibleText);
+
   // --- SEO Checks ---
   const seoChecks: Check[] = [
     { id: "title_exists", label: title ? `Title tag found: "${title}"` : "No title tag found", pass: Boolean(title) },
@@ -709,6 +712,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     },
     { id: "jsonld", label: `${jsonLdMatches.length} JSON-LD schema block(s) found`, pass: jsonLdMatches.length > 0 },
     ...seoParityChecks(rawHtml, visibleText),
+    ...seoExtraChecks(ctx),
   ];
 
   if (keyphrase) {

@@ -18,6 +18,7 @@ func evalSEO(s *PageSignals) []Check {
 		seoSecurityHeaders,
 		seoStructure,
 		seoKeyphrase,
+		seoHead,
 	)
 }
 

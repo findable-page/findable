@@ -78,7 +78,16 @@ type PageSignals struct {
 	Favicon             string
 	WebManifest         string
 	RSSFeed             string
+	Tags                map[string][]TagInfo
 }
+
+type TagInfo struct {
+	Attrs  map[string]string
+	Text   string
+	InHead bool
+}
+
+var tagsWithText = map[string]bool{"a": true, "button": true, "style": true, "label": true}
 
 var (
 	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)`)
@@ -94,6 +103,7 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 		StatusCode:     statusCode,
 		Headers:        headers,
 		SemanticCounts: make(map[string]int),
+		Tags:           make(map[string][]TagInfo),
 		OGTags:         make(map[string]string),
 		TwitterTags:    make(map[string]string),
 	}
@@ -108,20 +118,22 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 	}
 
 	seenIDs := make(map[string]int)
-	var walk func(*html.Node)
-	walk = func(n *html.Node) {
+	var walk func(*html.Node, bool)
+	walk = func(n *html.Node, inHead bool) {
 		if n.Type == html.ElementNode {
 			sig.DOMSize++
 			countDuplicateIDs(&sig, n, seenIDs)
+			recordTag(&sig, n, inHead)
+			inHead = inHead || n.Data == "head"
 			if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
 				collect(&sig, n)
 			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c)
+			walk(c, inHead)
 		}
 	}
-	walk(doc)
+	walk(doc, false)
 
 	sig.TextContent = extractVisibleText(doc)
 	sig.Words = strings.Fields(sig.TextContent)
@@ -164,6 +176,15 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	"select":     func(s *PageSignals, _ *html.Node) { s.FormInputCount++ },
 	"blockquote": collectBlockquote,
 	"script":     collectScript,
+}
+
+func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
+	name := strings.ToLower(n.Data)
+	info := TagInfo{Attrs: attrs(n), InHead: inHead}
+	if tagsWithText[name] {
+		info.Text = collectText(n)
+	}
+	sig.Tags[name] = append(sig.Tags[name], info)
 }
 
 func attrs(n *html.Node) map[string]string {
