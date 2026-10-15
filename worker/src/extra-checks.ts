@@ -5,6 +5,7 @@ export interface Tag {
   text: string;
   media: boolean;
   inHead: boolean;
+  pos: number;
 }
 
 export interface PageCtx {
@@ -14,7 +15,8 @@ export interface PageCtx {
   tags: Map<string, Tag[]>;
 }
 
-const TEXT_TAGS = new Set(["a", "button", "style", "label"]);
+const TEXT_TAGS = new Set(["a", "button", "style", "label", "h1", "h2", "h3", "h4", "h5", "h6", "p", "li"]);
+const IMPLIED_END = /<(p|li|h[1-6]|div|ul|ol|table|section|article|blockquote|dl|pre|form)(?=[\s/>])/gi;
 const RAW_TEXT_TAGS = new Set(["script", "style", "noscript"]);
 const TAG = /<(\/?)([a-zA-Z][\w:-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
 const ATTR = /([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
@@ -25,11 +27,22 @@ function parseAttrs(source: string): Record<string, string> {
   return attrs;
 }
 
+function impliedEnd(html: string, name: string, from: number, close: number): number {
+  const end = close === -1 ? html.length : close;
+  if (name !== "p" && name !== "li") return end;
+  IMPLIED_END.lastIndex = from;
+  for (let m = IMPLIED_END.exec(html); m && m.index < end; m = IMPLIED_END.exec(html)) {
+    if (name === "p" || (close === -1 && (m[1] ?? "").toLowerCase() === "li")) return m.index;
+  }
+  return end;
+}
+
 export function parseTags(raw: string): Map<string, Tag[]> {
   const html = raw.replace(/<!--[\s\S]*?-->/g, " ");
   const lower = html.toLowerCase();
   const tags = new Map<string, Tag[]>();
   let inHead = false;
+  let pos = 0;
   TAG.lastIndex = 0;
   for (let m = TAG.exec(html); m; m = TAG.exec(html)) {
     const name = (m[2] ?? "").toLowerCase();
@@ -42,7 +55,7 @@ export function parseTags(raw: string): Map<string, Tag[]> {
     let media = false;
     if (RAW_TEXT_TAGS.has(name) || TEXT_TAGS.has(name)) {
       const close = lower.indexOf(`</${name}`, bodyStart);
-      const end = close === -1 ? html.length : close;
+      const end = impliedEnd(html, name, bodyStart, close);
       text = html.slice(bodyStart, end);
       if (RAW_TEXT_TAGS.has(name)) TAG.lastIndex = end;
       else {
@@ -55,6 +68,7 @@ export function parseTags(raw: string): Map<string, Tag[]> {
     const attrs = parseAttrs(m[3] ?? "");
     const isJsonLd = name === "script" && (attrs.type ?? "").trim().toLowerCase() === "application/ld+json";
     list.push({
+      pos: pos++,
       attrs,
       text: isJsonLd || (name !== "script" && name !== "noscript") ? text : "",
       media,

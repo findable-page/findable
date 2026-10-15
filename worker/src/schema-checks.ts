@@ -2,7 +2,7 @@ import { linkTags, ok, type PageCtx, skip, tagsNamed } from "./extra-checks";
 import type { Check } from "./index";
 
 type Json = unknown;
-type Node = Record<string, Json>;
+export type Node = Record<string, Json>;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 const HTTP_URL = /^https?:\/\//i;
@@ -54,21 +54,21 @@ const SCHEMA_CHECK_IDS = [
   "video_fields",
 ];
 
-interface SchemaDoc {
+export interface SchemaDoc {
   blocks: number;
   invalid: number;
   roots: Json[];
   nodes: Node[];
 }
 
-const isNode = (v: Json): v is Node => typeof v === "object" && v !== null && !Array.isArray(v);
+export const isNode = (v: Json): v is Node => typeof v === "object" && v !== null && !Array.isArray(v);
 
-function items(v: Json): Json[] {
+export function items(v: Json): Json[] {
   if (v === null || v === undefined) return [];
   return Array.isArray(v) ? v : [v];
 }
 
-function present(v: Json): boolean {
+export function present(v: Json): boolean {
   if (v === null || v === undefined) return false;
   if (typeof v === "string") return v.trim() !== "";
   if (Array.isArray(v)) return v.length > 0;
@@ -76,7 +76,7 @@ function present(v: Json): boolean {
   return true;
 }
 
-function parseSchemaDoc(c: PageCtx): SchemaDoc {
+export function parseSchemaDoc(c: PageCtx): SchemaDoc {
   const doc: SchemaDoc = { blocks: 0, invalid: 0, roots: [], nodes: [] };
   for (const script of tagsNamed(c, "script")) {
     if ((script.attrs.type ?? "").trim().toLowerCase() !== "application/ld+json") continue;
@@ -104,7 +104,7 @@ function typesOf(node: Node): string[] {
     .map((t) => t.trim().toLowerCase());
 }
 
-const ofType = (doc: SchemaDoc, ...wanted: string[]): Node[] =>
+export const ofType = (doc: SchemaDoc, ...wanted: string[]): Node[] =>
   doc.nodes.filter((n) => typesOf(n).some((t) => wanted.includes(t)));
 
 function countStrings(root: Json, visit: (key: string, value: string) => boolean): number {
@@ -136,7 +136,7 @@ function numeric(v: Json): boolean {
 
 const hasKey = (key: string) => (n: Node) => present(n[key]);
 
-function gated(nodes: unknown[], id: string, label: string, absent: string, pass: (n: Node) => boolean): Check {
+export function gated(nodes: unknown[], id: string, label: string, absent: string, pass: (n: Node) => boolean): Check {
   return nodes.length === 0 ? skip(id, absent) : ok(id, label, (nodes as Node[]).every(pass));
 }
 

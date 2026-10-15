@@ -86,6 +86,7 @@ type TagInfo struct {
 	Text     string
 	HasMedia bool
 	InHead   bool
+	Pos      int
 }
 
 func containsElement(n *html.Node, names ...string) bool {
@@ -104,7 +105,7 @@ func containsElement(n *html.Node, names ...string) bool {
 	return false
 }
 
-var tagsWithText = map[string]bool{"a": true, "button": true, "style": true, "label": true}
+var tagsWithText = map[string]bool{"a": true, "button": true, "style": true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
 
 var (
 	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)`)
@@ -197,7 +198,7 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 
 func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
 	name := strings.ToLower(n.Data)
-	info := TagInfo{Attrs: attrs(n), InHead: inHead}
+	info := TagInfo{Attrs: attrs(n), InHead: inHead, Pos: sig.DOMSize}
 	if name == "script" && strings.EqualFold(trimmedAttr(info.Attrs, "type"), "application/ld+json") {
 		info.Text = collectRawText(n)
 	}

@@ -1,4 +1,5 @@
 import UI_HTML from "../../internal/server/web/index.html";
+import { aeoStructureChecks } from "./aeo-structure-checks";
 import { pageSpeed } from "./cwv";
 import { buildCtx, seoExtraChecks } from "./extra-checks";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
@@ -776,6 +777,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     },
     { id: "aeo_ai_robots", label: "No AI-blocking directives detected", pass: !robotsMeta.includes("noindex") },
     ...aeoParityChecks(rawHtml, visibleText, wordCount, hasSpeakable),
+    ...aeoStructureChecks(ctx),
   ];
 
   // --- GEO Checks ---
