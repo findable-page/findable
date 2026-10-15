@@ -65,8 +65,8 @@ func pagePathKey(u *url.URL) string {
 func seoCanonicalQuality(l *checkList, s *PageSignals) {
 	canonical := firstHref(linkTags(s, "canonical"))
 	if canonical == "" {
-		l.add("canonical_self", "No canonical to compare with this page", true)
-		l.add("canonical_absolute", "No canonical to validate", true)
+		l.skip("canonical_self", "No canonical to compare with this page")
+		l.skip("canonical_absolute", "No canonical to validate")
 		return
 	}
 	target, err := url.Parse(canonical)
@@ -147,14 +147,14 @@ func seoBrandAssets(l *checkList, s *PageSignals) {
 
 func seoViewportAndLang(l *checkList, s *PageSignals) {
 	if viewport := strings.ToLower(strings.ReplaceAll(s.Viewport, " ", "")); viewport == "" {
-		l.add("viewport_device_width", "No viewport to validate", true)
-		l.add("viewport_scalable", "No viewport to validate", true)
+		l.skip("viewport_device_width", "No viewport to validate")
+		l.skip("viewport_scalable", "No viewport to validate")
 	} else {
 		l.add("viewport_device_width", "Viewport sets width=device-width", strings.Contains(viewport, "width=device-width"))
 		l.add("viewport_scalable", "Viewport does not block pinch zoom", !blocksZoom(viewport))
 	}
 	if s.Lang == "" {
-		l.add("lang_valid", "No lang attribute to validate", true)
+		l.skip("lang_valid", "No lang attribute to validate")
 		return
 	}
 	l.add("lang_valid", fmt.Sprintf("HTML lang %q is a valid language tag", s.Lang), langTagRegex.MatchString(s.Lang))
@@ -187,8 +187,8 @@ func seoHreflang(l *checkList, s *PageSignals) {
 		}
 	}
 	if total == 0 {
-		l.add("hreflang_valid", "No hreflang annotations to validate", true)
-		l.add("hreflang_absolute", "No hreflang annotations to validate", true)
+		l.skip("hreflang_valid", "No hreflang annotations to validate")
+		l.skip("hreflang_absolute", "No hreflang annotations to validate")
 		return
 	}
 	l.add("hreflang_valid", fmt.Sprintf("%d of %d hreflang codes are invalid", invalid, total), invalid == 0)
@@ -197,7 +197,7 @@ func seoHreflang(l *checkList, s *PageSignals) {
 
 func seoCharsetPlacement(l *checkList, s *PageSignals) {
 	if !charsetTagRegex.MatchString(s.RawHTML) {
-		l.add("charset_early", "No charset declaration to place", true)
+		l.skip("charset_early", "No charset declaration to place")
 		return
 	}
 	head := s.RawHTML

@@ -3,6 +3,7 @@ import type { Check } from "./index";
 export interface Tag {
   attrs: Record<string, string>;
   text: string;
+  media: boolean;
   inHead: boolean;
 }
 
@@ -38,16 +39,25 @@ export function parseTags(raw: string): Map<string, Tag[]> {
     }
     const bodyStart = TAG.lastIndex;
     let text = "";
+    let media = false;
     if (RAW_TEXT_TAGS.has(name) || TEXT_TAGS.has(name)) {
       const close = lower.indexOf(`</${name}`, bodyStart);
       const end = close === -1 ? html.length : close;
       text = html.slice(bodyStart, end);
       if (RAW_TEXT_TAGS.has(name)) TAG.lastIndex = end;
-      else text = text.replace(/<[^>]+>/g, "");
+      else {
+        media = /<(img|svg|picture)(?=[\s/>])/i.test(text);
+        text = text.replace(/<[^>]+>/g, "");
+      }
     }
     if (name === "head") inHead = true;
     const list = tags.get(name) ?? [];
-    list.push({ attrs: parseAttrs(m[3] ?? ""), text: name === "script" || name === "noscript" ? "" : text, inHead });
+    list.push({
+      attrs: parseAttrs(m[3] ?? ""),
+      text: name === "script" || name === "noscript" ? "" : text,
+      media,
+      inHead,
+    });
     tags.set(name, list);
   }
   return tags;
@@ -57,15 +67,15 @@ export function buildCtx(raw: string, url: URL, text: string): PageCtx {
   return { raw, url, text, tags: parseTags(raw) };
 }
 
-function tagsNamed(c: PageCtx, name: string): Tag[] {
+export function tagsNamed(c: PageCtx, name: string): Tag[] {
   return c.tags.get(name) ?? [];
 }
 
-function linkTags(c: PageCtx, rel: string): Tag[] {
+export function linkTags(c: PageCtx, rel: string): Tag[] {
   return tagsNamed(c, "link").filter((t) => (t.attrs.rel ?? "").toLowerCase().split(/\s+/).includes(rel));
 }
 
-function metaTags(c: PageCtx, name: string): string[] {
+export function metaTags(c: PageCtx, name: string): string[] {
   return tagsNamed(c, "meta")
     .filter((t) => (t.attrs.name ?? "").trim().toLowerCase() === name)
     .map((t) => (t.attrs.content ?? "").trim());
@@ -75,7 +85,8 @@ function firstHref(tags: Tag[]): string {
   return tags.map((t) => (t.attrs.href ?? "").trim()).find(Boolean) ?? "";
 }
 
-const ok = (id: string, label: string, pass: boolean): Check => ({ id, label, pass });
+export const ok = (id: string, label: string, pass: boolean): Check => ({ id, label, pass });
+export const skip = (id: string, label: string): Check => ({ id, label, pass: true, applicable: false });
 
 const LANG_TAG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 const HREFLANG = /^(x-default|[a-z]{2,3}(-[a-z]{4})?(-([a-z]{2}|\d{3}))?)$/i;
@@ -89,8 +100,8 @@ function canonicalQuality(c: PageCtx): Check[] {
   const canonical = firstHref(linkTags(c, "canonical"));
   if (!canonical) {
     return [
-      ok("canonical_self", "No canonical to compare with this page", true),
-      ok("canonical_absolute", "No canonical to validate", true),
+      skip("canonical_self", "No canonical to compare with this page"),
+      skip("canonical_absolute", "No canonical to validate"),
     ];
   }
   let self = false;
@@ -168,13 +179,13 @@ function viewportAndLangChecks(c: PageCtx): Check[] {
   return [
     viewport
       ? ok("viewport_device_width", "Viewport sets width=device-width", viewport.includes("width=device-width"))
-      : ok("viewport_device_width", "No viewport to validate", true),
+      : skip("viewport_device_width", "No viewport to validate"),
     viewport
       ? ok("viewport_scalable", "Viewport does not block pinch zoom", !blocksZoom(viewport))
-      : ok("viewport_scalable", "No viewport to validate", true),
+      : skip("viewport_scalable", "No viewport to validate"),
     lang
       ? ok("lang_valid", `HTML lang "${lang}" is a valid language tag`, LANG_TAG.test(lang))
-      : ok("lang_valid", "No lang attribute to validate", true),
+      : skip("lang_valid", "No lang attribute to validate"),
   ];
 }
 
@@ -182,8 +193,8 @@ function hreflangChecks(c: PageCtx): Check[] {
   const alternates = linkTags(c, "alternate").filter((t) => (t.attrs.hreflang ?? "").trim() !== "");
   if (alternates.length === 0) {
     return [
-      ok("hreflang_valid", "No hreflang annotations to validate", true),
-      ok("hreflang_absolute", "No hreflang annotations to validate", true),
+      skip("hreflang_valid", "No hreflang annotations to validate"),
+      skip("hreflang_absolute", "No hreflang annotations to validate"),
     ];
   }
   const invalid = alternates.filter((t) => !HREFLANG.test((t.attrs.hreflang ?? "").trim())).length;
@@ -195,7 +206,7 @@ function hreflangChecks(c: PageCtx): Check[] {
 }
 
 function charsetPlacementCheck(c: PageCtx): Check {
-  if (!CHARSET_TAG.test(c.raw)) return ok("charset_early", "No charset declaration to place", true);
+  if (!CHARSET_TAG.test(c.raw)) return skip("charset_early", "No charset declaration to place");
   return ok("charset_early", "Charset declared within the first 1024 bytes", CHARSET_TAG.test(c.raw.slice(0, 1024)));
 }
 

@@ -52,6 +52,11 @@ func (l *checkList) add(id, label string, pass bool) {
 	*l = append(*l, Check{ID: id, Label: label, Pass: pass})
 }
 
+func (l *checkList) skip(id, label string) {
+	notApplicable := false
+	*l = append(*l, Check{ID: id, Label: label, Pass: true, Applicable: &notApplicable})
+}
+
 func runChecks(s *PageSignals, groups ...func(*checkList, *PageSignals)) []Check {
 	var checks checkList
 	for _, group := range groups {

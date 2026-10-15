@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import cases from "../../testdata/check_cases.json";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import worker, { type Check } from "../src/index";
 
 interface CheckCase {
@@ -8,6 +9,8 @@ interface CheckCase {
   body?: string;
   doc?: string;
   pad?: number;
+  repeat?: number;
+  headRepeat?: number;
 }
 
 const realFetch = globalThis.fetch;
@@ -18,8 +21,11 @@ afterEach(() => {
 function pageOf(c: CheckCase): { url: string; page: string } {
   const url = c.url ?? "https://example.com/page";
   if (c.doc) return { url, page: c.doc };
-  const head = (c.pad ? `<title>${"x".repeat(c.pad)}</title>` : "") + (c.head ?? "");
-  return { url, page: `<!DOCTYPE html><html lang='en'><head>${head}</head><body>${c.body ?? ""}</body></html>` };
+  const head = (c.pad ? `<title>${"x".repeat(c.pad)}</title>` : "") + (c.head ?? "").repeat(c.headRepeat ?? 1);
+  return {
+    url,
+    page: `<!DOCTYPE html><html lang='en'><head>${head}</head><body>${(c.body ?? "").repeat(c.repeat ?? 1)}</body></html>`,
+  };
 }
 
 async function scanChecks(url: string, html: string): Promise<Map<string, Check>> {
@@ -31,7 +37,11 @@ async function scanChecks(url: string, html: string): Promise<Map<string, Check>
   return new Map([...scan.seo.checks, ...scan.aeo.checks, ...scan.geo.checks].map((c) => [c.id, c]));
 }
 
-const table = cases as Record<string, { pass: CheckCase[]; fail: CheckCase[] }>;
+const dataDir = join(import.meta.dir, "../../testdata");
+const table: Record<string, { pass: CheckCase[]; fail: CheckCase[] }> = {};
+for (const file of readdirSync(dataDir).filter((f) => /^check_cases.*\.json$/.test(f))) {
+  Object.assign(table, JSON.parse(readFileSync(join(dataDir, file), "utf8")));
+}
 
 for (const [id, group] of Object.entries(table)) {
   test(`${id} matches the shared cases`, async () => {
@@ -61,6 +71,9 @@ test("family counts", async () => {
     method: "POST",
     body: JSON.stringify({ url: "https://example.com/" }),
   });
-  const scan = (await (await worker.fetch(request, env)).json()) as Record<"seo" | "aeo" | "geo", { total: number }>;
-  expect([scan.seo.total, scan.aeo.total, scan.geo.total]).toEqual([56, 18, 19]);
+  const scan = (await (await worker.fetch(request, env)).json()) as Record<
+    "seo" | "aeo" | "geo",
+    { checks: unknown[] }
+  >;
+  expect([scan.seo.checks.length, scan.aeo.checks.length, scan.geo.checks.length]).toEqual([77, 18, 19]);
 });

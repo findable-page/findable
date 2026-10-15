@@ -7,6 +7,7 @@ import { learnPosts } from "./learn-content";
 import { aeoParityChecks, geoParityChecks, paragraphWordCounts, seoParityChecks } from "./page-checks";
 import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
+import { seoPageChecks } from "./seo-page-checks";
 import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
 import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
@@ -713,6 +714,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     { id: "jsonld", label: `${jsonLdMatches.length} JSON-LD schema block(s) found`, pass: jsonLdMatches.length > 0 },
     ...seoParityChecks(rawHtml, visibleText),
     ...seoExtraChecks(ctx),
+    ...seoPageChecks(ctx),
   ];
 
   if (keyphrase) {
@@ -835,8 +837,9 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
   ];
 
   const calcCat = (checks: Check[]): CategoryResult => {
-    const passed = checks.filter((c) => c.pass).length;
-    const total = checks.length;
+    const counted = checks.filter((c) => c.applicable !== false);
+    const passed = counted.filter((c) => c.pass).length;
+    const total = counted.length;
     const score = total > 0 ? Math.round((passed / total) * 100) : 0;
     return { score, passed, total, checks };
   };

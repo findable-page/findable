@@ -1,0 +1,118 @@
+{
+  "img_alt_quality": {
+    "pass": [{}, {"body": "<img src='a.png' alt='A red bicycle'>"}, {"body": "<img src='a.png' alt=''>"}],
+    "fail": [
+      {"body": "<img src='a.png' alt='IMG_1234.jpg'>"},
+      {"body": "<img src='a.png' alt='image1'>"},
+      {"body": "<img src='a.png' alt='DSC_0012'>"}
+    ]
+  },
+  "img_alt_length": {
+    "pass": [{}, {"body": "<img src='a.png' alt='Short alt'>"}],
+    "fail": [{"body": "<img src='a.png' alt='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'>"}]
+  },
+  "img_lazy_loading": {
+    "pass": [{}, {"body": "<img src='a.png' alt='a'>"}, {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b' loading='lazy'>"}],
+    "fail": [{"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'>"}]
+  },
+  "img_modern_format": {
+    "pass": [{}, {"body": "<img src='a.webp' alt='a'>"}, {"body": "<img src='a.svg' alt='a'><img src='b.png' alt='b'>"}],
+    "fail": [{"body": "<img src='a.png?v=1' alt='a'><img src='b.jpg' alt='b'>"}]
+  },
+  "nofollow_internal": {
+    "pass": [{}, {"body": "<a href='https://o.com/x' rel='nofollow'>o</a>"}, {"body": "<a href='/x'>x</a>"}],
+    "fail": [{"body": "<a href='/x' rel='nofollow'>x</a>"}, {"body": "<a href='https://example.com/y' rel='noopener nofollow'>x</a>"}]
+  },
+  "generic_anchor_text": {
+    "pass": [{}, {"body": "<a href='/x'>Pricing plans</a>"}],
+    "fail": [{"body": "<a href='/x'>Click here</a>"}, {"body": "<a href='/x'>  Read   more </a>"}]
+  },
+  "empty_anchor_text": {
+    "pass": [
+      {},
+      {"body": "<a href='/x'>Text</a>"},
+      {"body": "<a href='/x'><img src='a.png' alt='logo'></a>"},
+      {"body": "<a href='/x' aria-label='Home'></a>"},
+      {"body": "<a href='#'></a>"}
+    ],
+    "fail": [{"body": "<a href='/x'></a>"}, {"body": "<a href='/x'>  </a>"}]
+  },
+  "javascript_hrefs": {
+    "pass": [{}, {"body": "<a href='/x'>x</a>"}],
+    "fail": [{"body": "<a href='javascript:void(0)'>x</a>"}]
+  },
+  "links_count": {
+    "pass": [{}, {"body": "<a href='/x'>a</a>", "repeat": 200}],
+    "fail": [{"body": "<a href='/x'>a</a>", "repeat": 201}]
+  },
+  "mixed_content": {
+    "pass": [
+      {},
+      {"body": "<img src='https://o.com/a.png' alt='a'>"},
+      {"url": "http://example.com/page", "body": "<img src='http://o.com/a.png' alt='a'>"}
+    ],
+    "fail": [
+      {"body": "<img src='http://o.com/a.png' alt='a'>"},
+      {"head": "<link rel='stylesheet' href='http://o.com/a.css'>"},
+      {"body": "<script src='http://o.com/a.js'></script>"}
+    ]
+  },
+  "render_blocking_scripts": {
+    "pass": [
+      {},
+      {"head": "<script src='/a.js' defer></script>"},
+      {"head": "<script src='/a.js' async></script>"},
+      {"head": "<script type='module' src='/a.js'></script>"},
+      {"head": "<script>var a = 1;</script>"},
+      {"body": "<script src='/a.js'></script>"}
+    ],
+    "fail": [{"head": "<script src='/a.js'></script>"}]
+  },
+  "script_count": {
+    "pass": [{}, {"body": "<script src='/a.js'></script>", "repeat": 20}],
+    "fail": [{"body": "<script src='/a.js'></script>", "repeat": 21}]
+  },
+  "stylesheet_count": {
+    "pass": [{}, {"head": "<link rel='stylesheet' href='/a.css'>", "headRepeat": 6}],
+    "fail": [{"head": "<link rel='stylesheet' href='/a.css'>", "headRepeat": 7}]
+  },
+  "inline_css_size": {
+    "pass": [{}, {"body": "<style>aaaaaaaaaa</style>", "repeat": 100}],
+    "fail": [{"body": "<style>aaaaaaaaaa</style>", "repeat": 2001}]
+  },
+  "inline_style_attrs": {
+    "pass": [{}, {"body": "<p style='color:red'>x</p>", "repeat": 30}],
+    "fail": [{"body": "<p style='color:red'>x</p>", "repeat": 31}]
+  },
+  "resource_hints": {
+    "pass": [
+      {},
+      {"head": "<script src='/local.js' async></script>"},
+      {"head": "<link rel='preconnect' href='https://cdn.example.net'><script src='https://cdn.example.net/x.js' async></script>"}
+    ],
+    "fail": [
+      {"head": "<script src='https://cdn.example.net/x.js' async></script>"},
+      {"head": "<link rel='stylesheet' href='https://fonts.example.net/a.css'>"}
+    ]
+  },
+  "html_weight": {
+    "pass": [{}, {"pad": 1000}],
+    "fail": [{"pad": 500001}]
+  },
+  "skip_link": {
+    "pass": [{"body": "<a href='#main'>Skip to content</a>"}],
+    "fail": [{}, {"body": "<a href='#main'>Main</a>"}]
+  },
+  "button_names": {
+    "pass": [{}, {"body": "<button>Go</button>"}, {"body": "<button aria-label='Close'></button>"}, {"body": "<button><svg></svg></button>"}],
+    "fail": [{"body": "<button></button>"}, {"body": "<button> </button>"}]
+  },
+  "table_headers": {
+    "pass": [{}, {"body": "<table><tr><th>a</th></tr><tr><td>1</td></tr></table>"}],
+    "fail": [{"body": "<table><tr><td>a</td></tr></table>"}]
+  },
+  "iframe_title": {
+    "pass": [{}, {"body": "<iframe src='/x' title='Map'></iframe>"}],
+    "fail": [{"body": "<iframe src='/x'></iframe>"}]
+  }
+}

@@ -82,9 +82,26 @@ type PageSignals struct {
 }
 
 type TagInfo struct {
-	Attrs  map[string]string
-	Text   string
-	InHead bool
+	Attrs    map[string]string
+	Text     string
+	HasMedia bool
+	InHead   bool
+}
+
+func containsElement(n *html.Node, names ...string) bool {
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type == html.ElementNode {
+			for _, name := range names {
+				if strings.EqualFold(c.Data, name) {
+					return true
+				}
+			}
+		}
+		if containsElement(c, names...) {
+			return true
+		}
+	}
+	return false
 }
 
 var tagsWithText = map[string]bool{"a": true, "button": true, "style": true, "label": true}
@@ -183,6 +200,7 @@ func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
 	info := TagInfo{Attrs: attrs(n), InHead: inHead}
 	if tagsWithText[name] {
 		info.Text = collectText(n)
+		info.HasMedia = containsElement(n, "img", "svg", "picture")
 	}
 	sig.Tags[name] = append(sig.Tags[name], info)
 }
