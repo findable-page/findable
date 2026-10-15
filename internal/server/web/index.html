@@ -209,6 +209,7 @@
     .status-na { background: var(--na-light); color: var(--na); }
     .check-content { flex: 1; min-width: 0; }
     .check-label { font-size: 0.95rem; font-weight: 500; overflow-wrap: anywhere; }
+    .check-detail, .fix-detail { font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
     .check-meta { font-size: 0.8rem; color: var(--muted); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
     .fix-drawer { padding: 0 1.25rem 1.1rem 5rem; font-size: 0.875rem; color: var(--text-2); }
     .fix-drawer-card { background: var(--bg); border: 1px dashed var(--border-ui); border-radius: 8px; padding: 0.8rem 1rem; }
@@ -998,6 +999,24 @@ findable https://example.com</code></pre>
     const errorPanel = $("errorPanel");
 
     const DEFAULT_ADVICE = "Optimize this signal according to current search and AI answer guidelines.";
+    const checkTextByLang = {};
+    const checkText = c => (lang === "en" ? null : checkTextByLang[lang]?.[c.id] ?? null);
+    const checkTitle = c => checkText(c)?.name ?? c.label;
+    const checkAdvice = c => checkText(c)?.fix ?? fixAdvice[c.id] ?? DEFAULT_ADVICE;
+    function englishDetail(c, tag, cls) {
+      if (!checkText(c)) return null;
+      const node = el(tag, cls, c.label);
+      node.lang = "en";
+      return node;
+    }
+    async function loadCheckText() {
+      const wanted = lang;
+      if (wanted === "en" || checkTextByLang[wanted]) return;
+      try {
+        const resp = await fetch("/i18n/" + wanted + ".json");
+        if (resp.ok) checkTextByLang[wanted] = await resp.json();
+      } catch {}
+    }
     const fixAdvice = {
       title_exists: "Add a distinct title tag inside head that names the page's purpose.",
       title_length: "Keep the title between 30 and 60 characters so search engines do not truncate it.",
@@ -1205,12 +1224,13 @@ findable https://example.com</code></pre>
       top.forEach(c => {
         const card = el("li", "fix-card");
         const head = el("div", "fix-head");
-        head.append(el("strong", "", c.label), el("span", "pts", "+" + formatWorth(c.worth)));
+        head.append(el("strong", "", checkTitle(c)), el("span", "pts", "+" + formatWorth(c.worth)));
         const meta = el("div", "fix-meta");
         meta.append(el("span", "", familyName(c.cat)));
         const engines = engineBadges(c.cat);
         if (engines) meta.append(engines);
-        card.append(head, meta, el("p", "fix-how", fixAdvice[c.id] || DEFAULT_ADVICE));
+        const detail = englishDetail(c, "p", "fix-detail");
+        card.append(head, meta, ...(detail ? [detail] : []), el("p", "fix-how", checkAdvice(c)));
         list.append(card);
       });
     }
@@ -1336,7 +1356,7 @@ findable https://example.com</code></pre>
         list.append(el("li", "none", t("noFailingShort")));
         return;
       }
-      failing.slice(0, 3).forEach(c => list.append(el("li", "", c.label)));
+      failing.slice(0, 3).forEach(c => list.append(el("li", "", checkTitle(c))));
     }
 
     function renderGroups(container, checks, emptyText) {
@@ -1366,10 +1386,11 @@ findable https://example.com</code></pre>
       const meta = el("div", "check-meta mono", isNA ? c.id : `${c.id} · ${t("worth", { pts: formatWorth(c.worth) })}`);
       const engines = engineBadges(c.cat);
       if (engines) meta.append(engines);
-      content.append(el("div", "check-label", c.label), meta);
+      const detail = englishDetail(c, "div", "check-detail");
+      content.append(el("div", "check-label", checkTitle(c)), ...(detail ? [detail] : []), meta);
       summary.append(content);
       const card = el("div", "fix-drawer-card");
-      card.append(el("strong", "", t("howToFix")), fixAdvice[c.id] || DEFAULT_ADVICE);
+      card.append(el("strong", "", t("howToFix")), checkAdvice(c));
       const drawer = el("div", "fix-drawer");
       drawer.append(card);
       details.append(summary, drawer);
@@ -1640,11 +1661,13 @@ findable https://example.com</code></pre>
       }
     }
 
+    let crawledPages = null;
     function renderCommonIssues(wrap, pages) {
+      crawledPages = pages;
       const counts = new Map();
       pages.forEach(p => {
         ["SEO", "AEO", "GEO"].flatMap(f => familyChecks(p.scan, f)).filter(isFailing).forEach(c => {
-          const seen = counts.get(c.id) || { label: c.label, n: 0 };
+          const seen = counts.get(c.id) || { check: c, n: 0 };
           seen.n++;
           counts.set(c.id, seen);
         });
@@ -1652,7 +1675,7 @@ findable https://example.com</code></pre>
       const top = [...counts.values()].sort((a, b) => b.n - a.n).slice(0, 10);
       wrap.classList.toggle("hidden", top.length === 0);
       const list = el("ul", "common-issues");
-      top.forEach(i => list.append(el("li", "", `${i.label} (${t("commonIssuesCount", { c: i.n, n: pages.length })})`)));
+      top.forEach(i => list.append(el("li", "", `${checkTitle(i.check)} (${t("commonIssuesCount", { c: i.n, n: pages.length })})`)));
       wrap.replaceChildren(el("h3", "", t("commonIssuesHeading")), list);
     }
 
@@ -1680,12 +1703,18 @@ findable https://example.com</code></pre>
       try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch {}
       applyStatic();
       paintScanBtn();
+      repaintResults();
+      loadCheckText().then(repaintResults);
+    });
+    function repaintResults() {
+      if (crawledPages) renderCommonIssues($("crawlCommon"), crawledPages);
       if (currentScan && !$("results").classList.contains("hidden")) {
         const openIds = [...document.querySelectorAll("details.check-row[open]")].map(d => d.dataset.id);
         paintResults(currentScan, scannedUrl);
         document.querySelectorAll("details.check-row").forEach(d => { d.open = openIds.includes(d.dataset.id); });
       }
-    });
+    }
+    loadCheckText().then(repaintResults);
 
     const urlParams = new URLSearchParams(window.location.search);
     const queryUrl = urlParams.get("url") || decodeURI(location.pathname.slice(1));

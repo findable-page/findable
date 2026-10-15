@@ -1,3 +1,7 @@
+import CHECK_TEXT_DE from "../../internal/server/web/i18n/de.json";
+import CHECK_TEXT_ES from "../../internal/server/web/i18n/es.json";
+import CHECK_TEXT_RU from "../../internal/server/web/i18n/ru.json";
+import CHECK_TEXT_TR from "../../internal/server/web/i18n/tr.json";
 import UI_HTML from "../../internal/server/web/index.html";
 import { aeoStructureChecks } from "./aeo-structure-checks";
 import { pageSpeed } from "./cwv";
@@ -46,6 +50,13 @@ export interface ScanResponse {
   scannedAt: string;
   site?: SiteCategory;
 }
+
+const CHECK_TEXT = new Map<string, unknown>([
+  ["de", CHECK_TEXT_DE],
+  ["es", CHECK_TEXT_ES],
+  ["ru", CHECK_TEXT_RU],
+  ["tr", CHECK_TEXT_TR],
+]);
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -201,6 +212,18 @@ const worker = {
 
     if (url.pathname === "/og/card.png" && request.method === "GET") {
       return shareCardResponse(url, request);
+    }
+
+    const checkText =
+      request.method === "GET" ? CHECK_TEXT.get(url.pathname.match(/^\/i18n\/(\w+)\.json$/)?.[1] ?? "") : undefined;
+    if (checkText) {
+      return new Response(JSON.stringify(checkText), {
+        headers: {
+          ...CORS_HEADERS,
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+        },
+      });
     }
 
     if (url.pathname === "/health") {

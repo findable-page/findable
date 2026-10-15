@@ -2,7 +2,7 @@ package server
 
 import (
 	"crypto/sha256"
-	_ "embed"
+	"embed"
 	"encoding/base64"
 	"regexp"
 	"strings"
@@ -10,6 +10,9 @@ import (
 
 //go:embed web/index.html
 var localWebUIHTML string
+
+//go:embed web/i18n/*.json
+var checkTextFS embed.FS
 
 var (
 	inlineScripts = regexp.MustCompile(`(?s)<script(?:\s[^>]*)?>(.*?)</script>`)

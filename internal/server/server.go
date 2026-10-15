@@ -87,6 +87,7 @@ var formatContentTypes = map[report.Format]string{
 func NewMux(client *http.Client) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handleRoot)
+	mux.HandleFunc("/i18n/", handleCheckText)
 	mux.HandleFunc("/api/scan", scanHandler(client, newRateLimiter(scansPerWindow, scanWindow, time.Now)))
 	mux.HandleFunc("/health", handleHealth)
 	return mux
@@ -114,6 +115,19 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", uiPolicy)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	writeBody(w, localWebUIHTML)
+}
+
+func handleCheckText(w http.ResponseWriter, r *http.Request) {
+	allowAnyOrigin(w)
+	body, err := checkTextFS.ReadFile("web" + r.URL.Path)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	writeBody(w, string(body))
 }
 
 func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {

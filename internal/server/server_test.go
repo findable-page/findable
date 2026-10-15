@@ -369,3 +369,24 @@ func TestServerScanTreatsABareHostAsHTTPS(t *testing.T) {
 		t.Fatalf("bare host %s: status %d, want 200 (%s)", bare, rec.Code, rec.Body.String())
 	}
 }
+
+func TestServerServesCheckTextPerLanguage(t *testing.T) {
+	for _, lang := range []string{"de", "es", "tr", "ru"} {
+		rec := httptest.NewRecorder()
+		newTestMux().ServeHTTP(rec, newRequest(http.MethodGet, "/i18n/"+lang+".json", ""))
+		var texts map[string]struct{ Name, Fix string }
+		if rec.Code != http.StatusOK || json.Unmarshal(rec.Body.Bytes(), &texts) != nil {
+			t.Fatalf("%s: status %d, body not JSON", lang, rec.Code)
+		}
+		if texts["title_length"].Name == "" || texts["title_length"].Fix == "" {
+			t.Errorf("%s: title_length text missing", lang)
+		}
+	}
+	for _, bad := range []string{"/i18n/en.json", "/i18n/../index.html", "/i18n/"} {
+		rec := httptest.NewRecorder()
+		newTestMux().ServeHTTP(rec, newRequest(http.MethodGet, bad, ""))
+		if rec.Code == http.StatusOK {
+			t.Errorf("%s: expected non-200", bad)
+		}
+	}
+}
