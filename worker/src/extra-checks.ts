@@ -52,9 +52,11 @@ export function parseTags(raw: string): Map<string, Tag[]> {
     }
     if (name === "head") inHead = true;
     const list = tags.get(name) ?? [];
+    const attrs = parseAttrs(m[3] ?? "");
+    const isJsonLd = name === "script" && (attrs.type ?? "").trim().toLowerCase() === "application/ld+json";
     list.push({
-      attrs: parseAttrs(m[3] ?? ""),
-      text: name === "script" || name === "noscript" ? "" : text,
+      attrs,
+      text: isJsonLd || (name !== "script" && name !== "noscript") ? text : "",
       media,
       inHead,
     });

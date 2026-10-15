@@ -7,6 +7,7 @@ import { learnPosts } from "./learn-content";
 import { aeoParityChecks, geoParityChecks, paragraphWordCounts, seoParityChecks } from "./page-checks";
 import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
+import { seoSchemaChecks } from "./schema-checks";
 import { seoPageChecks } from "./seo-page-checks";
 import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
@@ -715,6 +716,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     ...seoParityChecks(rawHtml, visibleText),
     ...seoExtraChecks(ctx),
     ...seoPageChecks(ctx),
+    ...seoSchemaChecks(ctx),
   ];
 
   if (keyphrase) {

@@ -198,6 +198,9 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
 	name := strings.ToLower(n.Data)
 	info := TagInfo{Attrs: attrs(n), InHead: inHead}
+	if name == "script" && strings.EqualFold(trimmedAttr(info.Attrs, "type"), "application/ld+json") {
+		info.Text = collectRawText(n)
+	}
 	if tagsWithText[name] {
 		info.Text = collectText(n)
 		info.HasMedia = containsElement(n, "img", "svg", "picture")
