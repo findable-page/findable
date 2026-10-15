@@ -15,6 +15,16 @@ import { LEGAL_PAGES, renderLegalPage } from "./legal";
 import { aeoParityChecks, geoParityChecks, paragraphWordCounts, seoParityChecks } from "./page-checks";
 import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
+import {
+  deleteExpiredReports,
+  loadReport,
+  parseFixAdvice,
+  REPORT_ID,
+  ReportTooLargeError,
+  renderReport,
+  type StoredReport,
+  saveReport,
+} from "./report";
 import { sanitizeHtml } from "./sanitize";
 import { seoSchemaChecks } from "./schema-checks";
 import { seoPageChecks } from "./seo-page-checks";
@@ -85,7 +95,7 @@ const PUBLIC_ORIGIN = "https://findable.page";
 
 const PAGE_HTML = injectHead(
   UI_HTML as unknown as string,
-  `${headSlot(PUBLIC_ORIGIN)}<meta name="findable-watch" content="on">`,
+  `${headSlot(PUBLIC_ORIGIN)}<meta name="findable-watch" content="on"><meta name="findable-reports" content="on">`,
 );
 
 let uiPolicy: Promise<string> | undefined;
@@ -277,6 +287,13 @@ const worker = {
       return watchResponse(request, url, env);
     }
 
+    if (url.pathname === "/api/report" && request.method === "POST") {
+      return createReportResponse(request, url, env);
+    }
+
+    const reportId = request.method === "GET" ? url.pathname.match(/^\/r\/([^/]+)$/)?.[1] : undefined;
+    if (reportId) return viewReportResponse(reportId, url, env);
+
     const pathTarget = url.pathname.slice(1);
     if (request.method === "GET" && BARE_HOST.test(pathTarget)) {
       return pageResponse(pathTarget, request, env, url);
@@ -327,7 +344,12 @@ export function prettyShareUrl(target: string): string {
     : `${PUBLIC_ORIGIN}/?${new URLSearchParams({ url: target })}`;
 }
 
-export default worker;
+export default {
+  fetch: worker.fetch,
+  async scheduled(_event: unknown, env: Env): Promise<void> {
+    if (env.WATCH_DB) await deleteExpiredReports(env.WATCH_DB);
+  },
+};
 
 const PREVIEW_BOTS =
   /facebookexternalhit|facebot|linkedinbot|twitterbot|slackbot|discordbot|telegrambot|whatsapp|skypeuripreview|redditbot|bluesky|mastodon|embedly|iframely/i;
@@ -527,6 +549,54 @@ async function watchResponse(request: Request, url: URL, env: Env): Promise<Resp
     return watchJson(503, { error: "could not save, try again" });
   }
   return watchJson(200, { ok: true });
+}
+
+const FIX_ADVICE = parseFixAdvice(UI_HTML as unknown as string);
+
+async function createReportResponse(request: Request, url: URL, env: Env): Promise<Response> {
+  if (foreignOrigin(request, url)) return watchJson(403, { error: "reports only from findable.page" });
+  if (!request.headers.get("Content-Type")?.startsWith("application/json")) {
+    return watchJson(415, { error: "send json" });
+  }
+  const ip = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
+  if (!(await allowScan(env, ip))) return watchJson(429, { error: "too many scans, try again in a minute" });
+  const body = await readScanBody(request);
+  if (typeof body === "string") return watchJson(400, { error: body });
+  if (body.url.length > 2048) return watchJson(400, { error: "url too long" });
+  if (!env.WATCH_DB) return watchJson(503, { error: "permanent links are not available here" });
+  try {
+    const self: SelfRoute = { hosts: [url.hostname, ...OWN_HOSTS], handle: (r) => worker.fetch(r, env) };
+    const scan = await auditUrl(withScheme(body.url), self);
+    const id = await saveReport(env.WATCH_DB, scan);
+    return watchJson(200, { id, url: `${PUBLIC_ORIGIN}/r/${id}` });
+  } catch (err) {
+    if (err instanceof ReportTooLargeError) return watchJson(413, { error: "page report too large to store" });
+    if (err instanceof BlockedTargetError) return watchJson(400, { error: err.message });
+    console.error("report: create failed", err);
+    return watchJson(503, { error: "could not create the link, try again" });
+  }
+}
+
+function safeRender(id: string, report: StoredReport): string | null {
+  try {
+    return renderReport(id, report, PUBLIC_ORIGIN, FIX_ADVICE);
+  } catch {
+    return null;
+  }
+}
+
+async function viewReportResponse(id: string, url: URL, env: Env): Promise<Response> {
+  const report = REPORT_ID.test(id) && env.WATCH_DB ? await loadReport(env.WATCH_DB, id).catch(() => null) : null;
+  const rendered = report ? safeRender(id, report) : null;
+  learnPolicy ??= buildLearnPolicy();
+  return new Response(rendered ?? renderLearnNotFound(url.origin), {
+    status: rendered ? 200 : 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "X-Robots-Tag": "noindex",
+      ...securityHeaders(await learnPolicy),
+    },
+  });
 }
 
 async function readScanBody(request: Request): Promise<ScanBody | string> {

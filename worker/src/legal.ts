@@ -35,6 +35,7 @@ ${updated}
 <li>Scan results are not cached. Share previews are cached for 1 hour, and speed test results and share cards for up to 24 hours.</li>
 <li>The optional speed test sends the URL you scan to Google PageSpeed.</li>
 <li>Share links carry the score in the link itself. Anyone with the link can see it.</li>
+<li>If you press Get permanent link, we re-run the scan and store the URL, host and check results in Cloudflare D1 for 90 days, then the link stops working. Anyone with the link can read the report, and search engines are asked not to index it. To have a report removed earlier, open a <a href="${REPO_URL}/issues" rel="noopener">GitHub issue</a>.</li>
 <li>If you opt in to watch a site, we store your email and the site host in Cloudflare D1. We do not send emails yet. To have your entry removed, open a <a href="${REPO_URL}/issues" rel="noopener">GitHub issue</a>.</li>
 </ul>
 <h2>Logs</h2>

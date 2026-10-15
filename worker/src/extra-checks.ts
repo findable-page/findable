@@ -290,7 +290,7 @@ function viewportAndLangChecks(c: PageCtx): Check[] {
       ? ok("viewport_scalable", "Viewport does not block pinch zoom", !blocksZoom(viewport))
       : skip("viewport_scalable", "No viewport to validate"),
     lang
-      ? ok("lang_valid", `HTML lang "${lang}" is a valid language tag`, LANG_TAG.test(lang))
+      ? ok("lang_valid", `HTML lang "${lang.slice(0, 35)}" is a valid language tag`, LANG_TAG.test(lang))
       : skip("lang_valid", "No lang attribute to validate"),
   ];
 }
