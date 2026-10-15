@@ -1,6 +1,6 @@
 ---
 title: "Every findable SEO Check ID and How to Fix It"
-description: "A plain guide to all 103 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
+description: "A plain guide to all 97 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
 slug: seo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -22,7 +22,7 @@ You ran an audit and got a list of ids like `title_length` and `img_dimensions`.
 
 ## What does the SEO family cover in findable?
 
-SEO is 50% of your findable score, the biggest share. It has 103 checks covering metadata, structured data, performance and accessibility - the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
+SEO is 50% of your findable score, the biggest share. It has 97 checks covering metadata, structured data, performance and accessibility - the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -72,10 +72,6 @@ SEO is 50% of your findable score, the biggest share. It has 103 checks covering
 | `url_query_params` | 2 or fewer query parameters | Use clean paths over parameters |
 | `url_depth` | 5 or fewer path levels | Flatten the URL structure |
 | `favicon` | A favicon link | Add a `rel=icon` link |
-| `apple_touch_icon` | An Apple touch icon | Add `rel=apple-touch-icon` |
-| `theme_color` | A theme-color meta tag | Add `theme-color` |
-| `web_manifest` | A web app manifest link | Link a `manifest.webmanifest` |
-| `rss_feed` | An RSS or Atom feed link | Advertise your feed |
 | `viewport_device_width` | Viewport uses width=device-width (N/A without a viewport) | Set `width=device-width` |
 | `viewport_scalable` | Viewport allows pinch zoom (N/A without a viewport) | Remove `user-scalable=no` and low maximum-scale |
 | `lang_valid` | The html lang value is a valid tag (N/A without lang) | Use a code like `en` or `pt-BR` |
@@ -96,7 +92,6 @@ SEO is 50% of your findable score, the biggest share. It has 103 checks covering
 | `script_count` | 20 or fewer external scripts | Remove or bundle scripts |
 | `stylesheet_count` | 6 or fewer stylesheets | Combine stylesheets |
 | `inline_css_size` | 20000 bytes or less of inline CSS | Move large CSS to a file |
-| `inline_style_attrs` | 30 or fewer inline style attributes | Use classes |
 | `resource_hints` | Third-party resources have preconnect or preload | Add `rel=preconnect` |
 | `html_weight` | HTML of 500000 bytes or less | Cut inline data and markup |
 | `skip_link` | A skip-to-content link | Add a "Skip to content" link |
@@ -127,7 +122,6 @@ SEO is 50% of your findable score, the biggest share. It has 103 checks covering
 | `og_type` | `og:type` is set | Add `og:type` |
 | `og_site_name` | `og:site_name` is set | Add `og:site_name` |
 | `og_image_absolute` | `og:image` is an absolute URL | Use a full URL |
-| `twitter_image` | A Twitter or Open Graph image exists | Add `twitter:image` |
 | `og_url_matches_canonical` | `og:url` matches canonical | Make both URLs the same |
 
 ## How do I fix the title and description checks?
@@ -222,7 +216,7 @@ Read Google's [structured data intro](https://developers.google.com/search/docs/
 ## Key takeaways
 
 - SEO is 50% of the findable score, so start here.
-- There are 103 SEO checks. Each has a fixed id and a simple pass test.
+- There are 97 SEO checks. Each has a fixed id and a simple pass test.
 - Fix the head first: title, description, charset, viewport, lang, doctype.
 - `word_count`, `text_html_ratio` and `dom_size` are heuristics. Use judgment.
 - Security header checks pass when the header exists. They do not rate its strength.
