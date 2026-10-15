@@ -1274,7 +1274,6 @@ findable https://example.com</code></pre>
       document.body.classList.add("has-results");
       const onWorker = !!document.querySelector('meta[name="findable-watch"]');
       $("watchSection").hidden = !onWorker;
-      $("suggestSection").hidden = !onWorker;
       suggestRequestId++;
       $("btnSuggest").disabled = false;
       $("suggestOut").replaceChildren();
