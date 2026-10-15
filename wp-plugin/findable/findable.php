@@ -2,7 +2,7 @@
 /**
  * Plugin Name: findable
  * Description: Scan any post or page for SEO, AEO and GEO issues with the free findable.page API.
- * Version: 0.1.0
+ * Version: 0.2.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * License: GPLv2 or later
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'FINDABLE_VERSION', '0.1.0' );
+define( 'FINDABLE_VERSION', '0.2.0' );
 define( 'FINDABLE_API', 'https://findable.page/api/scan' );
 
 /**
@@ -175,10 +175,10 @@ add_action(
 		if ( get_transient( $lock ) ) {
 			wp_send_json_error( array( 'message' => __( 'Scanning too fast. Wait a few seconds and retry.', 'findable' ) ), 429 );
 		}
-		set_transient( $lock, 1, 6 );
+		set_transient( $lock, 1, 5 );
 		$res = findable_scan_post( $post_id, $kp );
 		if ( is_wp_error( $res ) ) {
-			wp_send_json_error( array( 'message' => $res->get_error_message() ) );
+			wp_send_json_error( array( 'message' => $res->get_error_message() ), 'findable_rate' === $res->get_error_code() ? 429 : 200 );
 		}
 		wp_send_json_success(
 			array(
@@ -208,12 +208,13 @@ add_action(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'findable_scan' ),
 				'fixNonce' => wp_create_nonce( 'findable_fix' ),
-				'delayMs' => 7000,
+				'delayMs' => 6500,
 				'i18n'    => array(
 					'scanning' => __( 'Scanning...', 'findable' ),
 					'failed'   => __( 'Scan failed.', 'findable' ),
 					'report'   => __( 'Full report', 'findable' ),
 					'done'     => __( 'Done.', 'findable' ),
+					'of'       => __( 'of', 'findable' ),
 					'fixing'   => __( 'Fixing...', 'findable' ),
 				),
 			)
@@ -254,31 +255,36 @@ function findable_tools_page() {
 	if ( ! current_user_can( 'edit_published_posts' ) ) {
 		return;
 	}
-	$n = isset( $_GET['n'] ) ? min( 20, max( 1, absint( $_GET['n'] ) ) ) : 10; // phpcs:ignore WordPress.Security.NonceVerification -- read-only display value.
-	$posts = get_posts(
+	$n     = isset( $_GET['n'] ) ? min( 50, max( 1, absint( $_GET['n'] ) ) ) : 20; // phpcs:ignore WordPress.Security.NonceVerification -- read-only display value.
+	$paged = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification -- read-only display value.
+	$query = new WP_Query(
 		array(
-			'post_type'      => 'post',
+			'post_type'      => array( 'post', 'page' ),
 			'post_status'    => 'publish',
+			'has_password'   => false,
 			'posts_per_page' => $n,
+			'paged'          => $paged,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 			'fields'         => 'ids',
 		)
 	);
+	$total = (int) $query->found_posts;
+	$pages = max( 1, (int) $query->max_num_pages );
 	$posts = array_filter(
-		$posts,
+		$query->posts,
 		function ( $id ) {
 			return current_user_can( 'edit_post', $id );
 		}
 	);
 	echo '<div class="wrap"><h1>findable</h1>';
 	echo '<form method="get"><input type="hidden" name="page" value="findable">';
-	echo '<label>' . esc_html__( 'Latest posts to scan (max 20)', 'findable' ) . ' <input type="number" name="n" min="1" max="20" value="' . esc_attr( $n ) . '"></label> ';
+	echo '<label>' . esc_html__( 'Items per page (max 50)', 'findable' ) . ' <input type="number" name="n" min="1" max="50" value="' . esc_attr( $n ) . '"></label> ';
 	echo '<button class="button">' . esc_html__( 'Set', 'findable' ) . '</button></form>';
-	echo '<p><button type="button" class="button button-primary" id="findable-bulk">' . esc_html__( 'Scan latest posts', 'findable' ) . '</button> <span id="findable-bulk-status"></span></p>';
-	echo '<p><button type="button" class="button" id="findable-fixall">' . esc_html__( 'Fix all scanned posts', 'findable' ) . '</button> <span id="findable-fixall-status"></span></p>';
-	echo '<p class="description">' . esc_html__( 'Scans run one at a time, 7 seconds apart, to respect the API rate limit.', 'findable' ) . '</p>';
-	echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Post', 'findable' ) . '</th><th>' . esc_html__( 'Overall', 'findable' ) . '</th><th>SEO</th><th>AEO</th><th>GEO</th><th>' . esc_html__( 'Failing', 'findable' ) . '</th><th></th><th>' . esc_html__( 'Fixes', 'findable' ) . '</th></tr></thead><tbody id="findable-bulk-body">';
+	echo '<p><button type="button" class="button button-primary" id="findable-bulk">' . esc_html__( 'Scan this page', 'findable' ) . '</button> <span id="findable-bulk-status"></span></p>';
+	echo '<p><button type="button" class="button" id="findable-fixall">' . esc_html__( 'Fix all scanned on this page', 'findable' ) . '</button> <span id="findable-fixall-status"></span></p>';
+	echo '<p class="description">' . esc_html__( 'Scans run one at a time, about 6.5 seconds apart, to respect the API rate limit.', 'findable' ) . '</p>';
+	echo '<table class="widefat striped" data-offset="' . esc_attr( ( $paged - 1 ) * $n ) . '" data-total="' . esc_attr( $total ) . '"><thead><tr><th>' . esc_html__( 'Title', 'findable' ) . '</th><th>' . esc_html__( 'Overall', 'findable' ) . '</th><th>SEO</th><th>AEO</th><th>GEO</th><th>' . esc_html__( 'Failing', 'findable' ) . '</th><th></th><th>' . esc_html__( 'Fixes', 'findable' ) . '</th></tr></thead><tbody id="findable-bulk-body">';
 	foreach ( $posts as $id ) {
 		$s = get_post_meta( $id, '_findable_scan', true );
 		$g = function ( $k ) use ( $s ) {
@@ -293,7 +299,23 @@ function findable_tools_page() {
 		}
 		echo '</td><td data-f="fixes">' . esc_html( findable_fix_status( $id ) ) . '</td></tr>';
 	}
-	echo '</tbody></table></div>';
+	echo '</tbody></table>';
+	$links = paginate_links(
+		array(
+			'base'      => add_query_arg( 'paged', '%#%' ),
+			'format'    => '',
+			'current'   => $paged,
+			'total'     => $pages,
+			'prev_text' => esc_html__( 'Prev', 'findable' ),
+			'next_text' => esc_html__( 'Next', 'findable' ),
+		)
+	);
+	/* translators: 1: page number, 2: total pages, 3: total items */
+	echo '<p>' . esc_html( sprintf( __( 'Page %1$d of %2$d (%3$d posts and pages)', 'findable' ), $paged, $pages, $total ) ) . '</p>';
+	if ( $links ) {
+		echo '<div class="tablenav"><div class="tablenav-pages">' . $links . '</div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- core-escaped.
+	}
+	echo '</div>';
 }
 
 /* ---------- Fix All: tags printed in wp_head, post_content is never edited ---------- */

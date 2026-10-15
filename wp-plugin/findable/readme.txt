@@ -4,7 +4,7 @@ Tags: seo, aeo, geo, audit, ai search
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,7 +16,7 @@ Scan the published URL of any post or page and see SEO, AEO (answer engines) and
 
 * Meta box in the editor with an optional keyphrase
 * Score column in the Posts and Pages lists
-* Tools > findable: bulk scan of your latest posts (up to 20)
+* Tools > findable: paginated full-site scan of published, public posts and pages
 * Fix All: "Apply fixes" in the editor box, or "Fix all scanned posts" on Tools > findable, prints a meta description, canonical, Open Graph, twitter:card, Article and BreadcrumbList JSON-LD and robots max-snippet/max-image-preview in the page head. Post content is never edited. "Undo fixes" restores the previous state. Tags are printed whenever fixes are on for a published, public post and no SEO plugin is detected (Yoast SEO, Rank Math, SEOPress, All in One SEO, The SEO Framework, Slim SEO, SmartCrawl or Jetpack Open Graph); otherwise it is skipped.
 
 = External service =
@@ -33,6 +33,10 @@ Privacy policy: https://findable.page/privacy
 3. Open a published post and click "Scan with findable".
 
 == Changelog ==
+
+= 0.2.0 =
+* Fix All: apply or undo fixes (meta description, canonical, Open Graph, JSON-LD) per post or for all scanned rows.
+* Full-site scan: Tools > findable lists all published, public posts and pages in pages of 20 (adjustable), with Prev/Next. Scans stay sequential, about 6.5 seconds apart, with progress such as "12 of 140".
 
 = 0.1.0 =
 * Initial release.

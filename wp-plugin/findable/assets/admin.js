@@ -7,7 +7,7 @@
 		body.append('action', 'findable_scan');
 		body.append('nonce', d.nonce);
 		return fetch(d.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body })
-			.then(function (r) { return r.json(); });
+			.then(function (r) { return r.json().then(function (j) { j.status = r.status; return j; }); });
 	}
 
 	var btn = document.getElementById('findable-scan');
@@ -38,11 +38,23 @@
 		bulk.addEventListener('click', async function () {
 			bulk.disabled = true;
 			var rows = document.querySelectorAll('#findable-bulk-body tr');
+			var tbl = document.getElementById('findable-bulk-body').parentNode;
+			var offset = parseInt(tbl.dataset.offset, 10) || 0;
+			var total = parseInt(tbl.dataset.total, 10) || rows.length;
+			var retried = {};
 			for (var i = 0; i < rows.length; i++) {
 				var row = rows[i];
-				status.textContent = d.i18n.scanning + ' ' + (i + 1) + '/' + rows.length;
+				var started = Date.now();
+				status.textContent = d.i18n.scanning + ' ' + (offset + i + 1) + ' ' + d.i18n.of + ' ' + total;
 				try {
 					var res = await post({ post_id: row.dataset.post });
+					if (res.status === 429 && !retried[i]) {
+						retried[i] = true;
+						status.textContent = (res.data && res.data.message) || d.i18n.failed;
+						await sleep(60000);
+						i--;
+						continue;
+					}
 					if (res.success) {
 						['overall', 'seo', 'aeo', 'geo', 'failing'].forEach(function (k) {
 							row.querySelector('[data-f="' + k + '"]').textContent = res.data[k] == null ? '-' : res.data[k];
@@ -61,7 +73,7 @@
 				} catch (e) {
 					row.querySelector('[data-f="overall"]').textContent = d.i18n.failed;
 				}
-				if (i < rows.length - 1) { await sleep(d.delayMs); }
+				if (i < rows.length - 1) { await sleep(Math.max(0, d.delayMs - (Date.now() - started))); }
 			}
 			status.textContent = d.i18n.done;
 			bulk.disabled = false;
