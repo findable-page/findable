@@ -12,6 +12,7 @@ func evalAEO(s *PageSignals) []Check {
 		aeoFormatting,
 		aeoReadability,
 		aeoSemantics,
+		aeoStructure,
 	)
 }
 

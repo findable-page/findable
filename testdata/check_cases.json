@@ -1,0 +1,90 @@
+{
+  "canonical_self": {
+    "pass": [
+      {},
+      {"head": "<link rel='canonical' href='https://example.com/page/'>"},
+      {"head": "<link rel='canonical' href='/page'>"},
+      {"url": "https://example.com/page?utm=1", "head": "<link rel='canonical' href='https://example.com/page'>"}
+    ],
+    "fail": [
+      {"head": "<link rel='canonical' href='https://example.com/other'>"},
+      {"head": "<link rel='canonical' href='https://other.com/page'>"}
+    ]
+  },
+  "canonical_absolute": {
+    "pass": [{}, {"head": "<link rel='canonical' href='https://example.com/page'>"}],
+    "fail": [{"head": "<link rel='canonical' href='/page'>"}, {"head": "<link rel='canonical' href='//example.com/page'>"}]
+  },
+  "meta_robots_conflict": {
+    "pass": [{}, {"head": "<meta name='robots' content='index, follow'>"}, {"head": "<meta name='robots' content='noindex, nofollow'>"}],
+    "fail": [
+      {"head": "<meta name='robots' content='index,noindex'>"},
+      {"head": "<meta name='robots' content='follow'><meta name='robots' content='nofollow'>"}
+    ]
+  },
+  "robots_nofollow": {
+    "pass": [{}, {"head": "<meta name='robots' content='index, follow'>"}, {"head": "<meta name='robots' content='noindex'>"}],
+    "fail": [{"head": "<meta name='robots' content='index, nofollow'>"}, {"head": "<meta name='robots' content='none'>"}]
+  },
+  "title_single": {
+    "pass": [{}, {"head": "<title>One</title>"}],
+    "fail": [{"head": "<title>One</title><title>Two</title>"}]
+  },
+  "desc_single": {
+    "pass": [{}, {"head": "<meta name='description' content='One'>"}],
+    "fail": [{"head": "<meta name='description' content='One'><meta name='description' content='Two'>"}]
+  },
+  "url_length": {
+    "pass": [{}, {"url": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}],
+    "fail": [{"url": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]
+  },
+  "url_query_params": {
+    "pass": [{}, {"url": "https://example.com/p?a=1&b=2"}],
+    "fail": [{"url": "https://example.com/p?a=1&b=2&c=3"}]
+  },
+  "url_depth": {
+    "pass": [{}, {"url": "https://example.com/a/b/c/d/e/"}],
+    "fail": [{"url": "https://example.com/a/b/c/d/e/f"}]
+  },
+  "favicon": {
+    "pass": [{"head": "<link rel='icon' href='/f.png'>"}, {"head": "<link rel='shortcut icon' href='/favicon.ico'>"}],
+    "fail": [{}, {"head": "<link rel='apple-touch-icon' href='/a.png'>"}, {"head": "<link rel='icon'>"}]
+  },
+  "viewport_device_width": {
+    "pass": [{}, {"head": "<meta name='viewport' content='width=device-width, initial-scale=1'>"}],
+    "fail": [{"head": "<meta name='viewport' content='initial-scale=1'>"}]
+  },
+  "viewport_scalable": {
+    "pass": [
+      {},
+      {"head": "<meta name='viewport' content='width=device-width, initial-scale=1'>"},
+      {"head": "<meta name='viewport' content='width=device-width, maximum-scale=5'>"}
+    ],
+    "fail": [
+      {"head": "<meta name='viewport' content='width=device-width, user-scalable=no'>"},
+      {"head": "<meta name='viewport' content='width=device-width, maximum-scale=1.0'>"}
+    ]
+  },
+  "lang_valid": {
+    "pass": [{}, {"doc": "<!DOCTYPE html><html lang='en-US'><head></head><body></body></html>"}, {"doc": "<!DOCTYPE html><html><head></head><body></body></html>"}],
+    "fail": [{"doc": "<!DOCTYPE html><html lang='english'><head></head><body></body></html>"}, {"doc": "<!DOCTYPE html><html lang='e'><head></head><body></body></html>"}]
+  },
+  "hreflang_valid": {
+    "pass": [
+      {},
+      {"head": "<link rel='alternate' hreflang='en' href='https://example.com/en'><link rel='alternate' hreflang='x-default' href='https://example.com/'><link rel='alternate' hreflang='pt-BR' href='https://example.com/br'>"}
+    ],
+    "fail": [
+      {"head": "<link rel='alternate' hreflang='english' href='https://example.com/en'>"},
+      {"head": "<link rel='alternate' hreflang='en_US' href='https://example.com/en'>"}
+    ]
+  },
+  "hreflang_absolute": {
+    "pass": [{}, {"head": "<link rel='alternate' hreflang='en' href='https://example.com/en'>"}],
+    "fail": [{"head": "<link rel='alternate' hreflang='en' href='/en'>"}]
+  },
+  "charset_early": {
+    "pass": [{}, {"head": "<meta charset='utf-8'>"}],
+    "fail": [{"pad": 1500, "head": "<meta charset='utf-8'>"}]
+  }
+}

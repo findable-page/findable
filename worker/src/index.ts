@@ -1,5 +1,8 @@
 import UI_HTML from "../../internal/server/web/index.html";
+import { aeoStructureChecks } from "./aeo-structure-checks";
 import { pageSpeed } from "./cwv";
+import { buildCtx, seoExtraChecks } from "./extra-checks";
+import { geoSignalChecks } from "./geo-signals-checks";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
@@ -7,6 +10,9 @@ import { LEGAL_PAGES, renderLegalPage } from "./legal";
 import { aeoParityChecks, geoParityChecks, paragraphWordCounts, seoParityChecks } from "./page-checks";
 import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
+import { sanitizeHtml } from "./sanitize";
+import { seoSchemaChecks } from "./schema-checks";
+import { seoPageChecks } from "./seo-page-checks";
 import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
 import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
@@ -532,7 +538,8 @@ function firstGroup(match: RegExpMatchArray | null): string {
   return match?.[1]?.trim() ?? "";
 }
 
-function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyphrase?: string): ScanResponse {
+export function analyzeHtml(targetUrl: string, pageHtml: string, headers: Headers, keyphrase?: string): ScanResponse {
+  const rawHtml = sanitizeHtml(pageHtml);
   const lowerHtml = rawHtml.toLowerCase();
   const parsedUrl = new URL(targetUrl);
 
@@ -659,6 +666,8 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
   const lowerText = visibleText.toLowerCase();
   const youCount = (lowerText.match(/\b(you|your|we)\b/g) || []).length;
 
+  const ctx = buildCtx(rawHtml, parsedUrl, visibleText);
+
   // --- SEO Checks ---
   const seoChecks: Check[] = [
     { id: "title_exists", label: title ? `Title tag found: "${title}"` : "No title tag found", pass: Boolean(title) },
@@ -717,6 +726,9 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     },
     { id: "jsonld", label: `${jsonLdMatches.length} JSON-LD schema block(s) found`, pass: jsonLdMatches.length > 0 },
     ...seoParityChecks(rawHtml, visibleText),
+    ...seoExtraChecks(ctx),
+    ...seoPageChecks(ctx),
+    ...seoSchemaChecks(ctx),
   ];
 
   if (keyphrase) {
@@ -776,6 +788,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
     },
     { id: "aeo_ai_robots", label: "No AI-blocking directives detected", pass: !robotsMeta.includes("noindex") },
     ...aeoParityChecks(rawHtml, visibleText, wordCount, hasSpeakable),
+    ...aeoStructureChecks(ctx),
   ];
 
   // --- GEO Checks ---
@@ -836,11 +849,13 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
       robotsMeta,
       schemaTypeCount: schemaTypes.length,
     }),
+    ...geoSignalChecks(ctx),
   ];
 
   const calcCat = (checks: Check[]): CategoryResult => {
-    const passed = checks.filter((c) => c.pass).length;
-    const total = checks.length;
+    const counted = checks.filter((c) => c.applicable !== false);
+    const passed = counted.filter((c) => c.pass).length;
+    const total = counted.length;
     const score = total > 0 ? Math.round((passed / total) * 100) : 0;
     return { score, passed, total, checks };
   };

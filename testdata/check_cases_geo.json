@@ -1,0 +1,91 @@
+{
+  "geo_date_published": {
+    "pass": [
+      {},
+      {"body": "<article><p>No heading, so not treated as an article</p></article>"},
+      {"body": "<h1>T</h1><article><p>Heading outside</p></article><article><h1>U</h1></article>"},
+      {"head": "<meta property='article:published_time' content='2025-01-02T10:00:00Z'>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"datePublished\":\"2025-01-02\"}</script>"}
+    ],
+    "fail": [
+      {"body": "<article><h1>T</h1><p>Post</p></article>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"datePublished\":\"last week\"}</script>"}
+    ]
+  },
+  "geo_date_modified": {
+    "pass": [
+      {},
+      {"head": "<meta property='article:modified_time' content='2025-02-02'><meta property='article:published_time' content='2025-01-02'>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"dateModified\":\"2025-02-02T08:00:00+00:00\"}</script>"}
+    ],
+    "fail": [
+      {"body": "<article><h1>T</h1><p>Post</p></article>"},
+      {"head": "<meta property='article:published_time' content='2025-01-02'><meta property='article:modified_time' content=''>"}
+    ]
+  },
+  "geo_modified_after_published": {
+    "pass": [
+      {},
+      {"head": "<meta property='article:published_time' content='2025-01-02'><meta property='article:modified_time' content='2025-03-04'>"},
+      {"head": "<meta property='article:published_time' content='2025-01-02'><meta property='article:modified_time' content='2025-01-02'>"}
+    ],
+    "fail": [
+      {"head": "<meta property='article:published_time' content='2025-03-04'><meta property='article:modified_time' content='2025-01-02'>"}
+    ]
+  },
+  "geo_visible_date": {
+    "pass": [
+      {},
+      {"body": "<article><h1>T</h1><p>Last updated: March 4, 2025</p></article>"},
+      {"body": "<article><h1>T</h1><p>Published on 2025-03-04</p></article>"},
+      {"body": "<article><h1>T</h1><p>Posted 4 March 2025</p></article>"}
+    ],
+    "fail": [
+      {"body": "<article><h1>T</h1><p>Post</p></article>"},
+      {"body": "<article><h1>T</h1><p>Updated regularly with new advice.</p></article>"},
+      {"body": "<article><h1>T</h1><p>March 4, 2025</p></article>"}
+    ]
+  },
+  "geo_authoritative_links": {
+    "pass": [
+      {},
+      {"body": "<article><h1>T</h1><a href='https://www.cdc.gov/health'>CDC</a></article>"},
+      {"body": "<article><h1>T</h1><a href='https://en.wikipedia.org/wiki/SEO'>Wiki</a></article>"},
+      {"body": "<article><h1>T</h1><a href='https://cs.ox.ac.uk/paper'>Paper</a></article>"}
+    ],
+    "fail": [
+      {"body": "<article><h1>T</h1><p>Post</p></article>"},
+      {"body": "<article><h1>T</h1><a href='https://example.com/other'>Own host</a><a href='https://blog.test/x'>Blog</a></article>"},
+      {"body": "<article><h1>T</h1><a href='/gov/page'>Internal</a><a href='https://notwikipedia.org/x'>Lookalike</a></article>"}
+    ]
+  },
+  "geo_source_diversity": {
+    "pass": [
+      {},
+      {"body": "<article><h1>T</h1><a href='https://a.test/'>a</a><a href='https://b.test/'>b</a><a href='https://www.c.test/'>c</a></article>"}
+    ],
+    "fail": [
+      {"body": "<article><h1>T</h1><p>Post</p></article>"},
+      {"body": "<article><h1>T</h1><a href='https://a.test/1'>a</a><a href='https://a.test/2'>a</a><a href='https://b.test/'>b</a></article>"},
+      {"body": "<article><h1>T</h1><a href='https://a.test/'>a</a><a href='https://b.test/'>b</a><a href='https://www.example.com/x'>own</a></article>"}
+    ]
+  },
+  "geo_quote_attribution": {
+    "pass": [
+      {},
+      {"body": "<blockquote cite='https://a.test/'>Words</blockquote>"},
+      {"body": "<blockquote>Words</blockquote><cite>Someone</cite>"}
+    ],
+    "fail": [
+      {"body": "<blockquote>Words</blockquote>"},
+      {"body": "<blockquote cite='https://a.test/'>A</blockquote><blockquote>B</blockquote>"}
+    ]
+  },
+  "geo_policy_links": {
+    "pass": [
+      {"body": "<a href='/privacy'>Legal</a>"},
+      {"body": "<a href='/legal'>Terms of Service</a>"}
+    ],
+    "fail": [{}, {"body": "<a href='/about'>About</a><a href='/contact'>Contact</a>"}]
+  }
+}

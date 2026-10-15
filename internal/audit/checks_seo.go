@@ -18,6 +18,8 @@ func evalSEO(s *PageSignals) []Check {
 		seoSecurityHeaders,
 		seoStructure,
 		seoKeyphrase,
+		seoHead,
+		seoPage, seoSchema, seoSocialCompleteness,
 	)
 }
 

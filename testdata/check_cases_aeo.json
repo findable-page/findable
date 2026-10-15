@@ -1,0 +1,92 @@
+{
+  "aeo_answer_after_question": {
+    "pass": [{}, {"body": "<h2>What is it?</h2><p>It is a tool.</p>"}],
+    "fail": [
+      {"body": "<h2>What is it?</h2><ul><li>a tool</li></ul>"},
+      {"body": "<h2>What is it?</h2><h3>Details</h3><p>It is a tool.</p>"},
+      {"body": "<h2>What is it?</h2><p>A tool.</p><h2>Why use it?</h2><div>Because</div>"}
+    ]
+  },
+  "aeo_answer_length_ideal": {
+    "pass": [
+      {},
+      {"body": "<h2>What is it?</h2><p>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega</p>"}
+    ],
+    "fail": [{"body": "<h2>What is it?</h2><p>Short answer.</p>"}]
+  },
+  "aeo_faq_count": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"a\"},{\"@type\":\"Question\",\"name\":\"b\"},{\"@type\":\"Question\",\"name\":\"c\"}]}</script>"}
+    ],
+    "fail": [{"head": "<script type='application/ld+json'>{\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"a\"}]}</script>"}]
+  },
+  "aeo_howto_valid": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"HowTo\",\"name\":\"Bake\",\"step\":[{\"@type\":\"HowToStep\",\"text\":\"Mix\"},{\"@type\":\"HowToStep\",\"name\":\"Bake\"}]}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"HowTo\",\"name\":\"Bake\",\"step\":[{\"@type\":\"HowToStep\",\"text\":\"Mix\"}]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"HowTo\",\"step\":[{\"@type\":\"HowToStep\",\"text\":\"Mix\"},{\"@type\":\"HowToStep\",\"text\":\"Bake\"}]}</script>"}
+    ]
+  },
+  "aeo_speakable_valid": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"speakable\":{\"@type\":\"SpeakableSpecification\",\"cssSelector\":[\"h1\"]}}</script>"}
+    ],
+    "fail": [{"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"speakable\":{\"@type\":\"SpeakableSpecification\"}}</script>"}]
+  },
+  "aeo_list_after_heading": {
+    "pass": [{"body": "<h2>Steps</h2><ul><li>a</li></ul>"}],
+    "fail": [{}, {"body": "<h2>Steps</h2><p>x</p><ul><li>a</li></ul>"}]
+  },
+  "aeo_list_item_length": {
+    "pass": [{}, {"body": "<ul><li>short</li><li>also short</li></ul>"}, {"body": "<ul><li>short<li>also short</ul><p>w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w</p>"}, {"body": "<ol><li>short</ol><p>w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w</p>"}],
+    "fail": [{"body": "<ul><li>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega one two three four five six</li></ul>"}, {"body": "<ul><li>short<li>w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w</ul>"}]
+  },
+  "aeo_paragraph_length": {
+    "pass": [{}, {"body": "<p>A short paragraph.</p>"}],
+    "fail": [{"body": "<p>w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w</p>"}]
+  },
+  "aeo_section_length": {
+    "pass": [{}, {"body": "<p>w w w w w w w w w w</p>", "repeat": 35}, {"body": "<h2>A</h2><p>w w w w w w w w w w</p><h2>B</h2><p>w w w w w w w w w w</p>", "repeat": 20}],
+    "fail": [{"body": "<p>w w w w w w w w w w</p>", "repeat": 36}]
+  },
+  "aeo_unique_headings": {
+    "pass": [{}, {"body": "<h2>One</h2><h2>Two</h2>"}],
+    "fail": [{"body": "<h2>Intro</h2><h2>intro</h2>"}]
+  },
+  "aeo_heading_length": {
+    "pass": [{}, {"body": "<h2>A short heading</h2>"}],
+    "fail": [{"body": "<h2>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</h2>"}]
+  },
+  "aeo_heading_anchors": {
+    "pass": [{}, {"body": "<h2 id='a'>A</h2><h3>B</h3>"}],
+    "fail": [{"body": "<h2>A</h2><h3 id='b'>B</h3><h3>C</h3>"}]
+  },
+  "aeo_toc_links": {
+    "pass": [
+      {},
+      {"body": "<a href='#a'>a</a><a href='#b'>b</a><a href='#c'>c</a><p>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega</p>", "repeat": 34}
+    ],
+    "fail": [{"body": "<p>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega</p>", "repeat": 34}]
+  },
+  "aeo_definition_lead": {
+    "pass": [{}, {"body": "<h2>Cache</h2><p>A cache is a small fast store. It helps.</p>"}],
+    "fail": [{"body": "<h2>Cache</h2><p>Use it daily. It helps.</p>"}]
+  },
+  "aeo_table_captions": {
+    "pass": [{}, {"body": "<table><caption>c</caption><tr><th>a</th></tr></table>"}],
+    "fail": [{"body": "<table><tr><th>a</th></tr></table>"}]
+  },
+  "aeo_figure_captions": {
+    "pass": [{}, {"body": "<figure><img src='a.png' alt='a'><figcaption>c</figcaption></figure>"}],
+    "fail": [{"body": "<figure><img src='a.png' alt='a'></figure>"}]
+  },
+  "aeo_details_summary": {
+    "pass": [{}, {"body": "<details><summary>S</summary>x</details>"}],
+    "fail": [{"body": "<details>x</details>"}]
+  }
+}

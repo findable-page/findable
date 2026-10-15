@@ -78,7 +78,34 @@ type PageSignals struct {
 	Favicon             string
 	WebManifest         string
 	RSSFeed             string
+	Tags                map[string][]TagInfo
 }
+
+type TagInfo struct {
+	Attrs    map[string]string
+	Text     string
+	HasMedia bool
+	InHead   bool
+	Pos      int
+}
+
+func containsElement(n *html.Node, names ...string) bool {
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type == html.ElementNode {
+			for _, name := range names {
+				if strings.EqualFold(c.Data, name) {
+					return true
+				}
+			}
+		}
+		if containsElement(c, names...) {
+			return true
+		}
+	}
+	return false
+}
+
+var tagsWithText = map[string]bool{"a": true, "button": true, "style": true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
 
 var (
 	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)`)
@@ -94,6 +121,7 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 		StatusCode:     statusCode,
 		Headers:        headers,
 		SemanticCounts: make(map[string]int),
+		Tags:           make(map[string][]TagInfo),
 		OGTags:         make(map[string]string),
 		TwitterTags:    make(map[string]string),
 	}
@@ -108,20 +136,22 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 	}
 
 	seenIDs := make(map[string]int)
-	var walk func(*html.Node)
-	walk = func(n *html.Node) {
+	var walk func(*html.Node, bool)
+	walk = func(n *html.Node, inHead bool) {
 		if n.Type == html.ElementNode {
 			sig.DOMSize++
 			countDuplicateIDs(&sig, n, seenIDs)
+			recordTag(&sig, n, inHead)
+			inHead = inHead || n.Data == "head"
 			if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
 				collect(&sig, n)
 			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c)
+			walk(c, inHead)
 		}
 	}
-	walk(doc)
+	walk(doc, false)
 
 	sig.TextContent = extractVisibleText(doc)
 	sig.Words = strings.Fields(sig.TextContent)
@@ -164,6 +194,19 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	"select":     func(s *PageSignals, _ *html.Node) { s.FormInputCount++ },
 	"blockquote": collectBlockquote,
 	"script":     collectScript,
+}
+
+func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
+	name := strings.ToLower(n.Data)
+	info := TagInfo{Attrs: attrs(n), InHead: inHead, Pos: sig.DOMSize}
+	if name == "script" && strings.EqualFold(trimmedAttr(info.Attrs, "type"), "application/ld+json") {
+		info.Text = collectRawText(n)
+	}
+	if tagsWithText[name] {
+		info.Text = collectText(n)
+		info.HasMedia = containsElement(n, "img", "svg", "picture")
+	}
+	sig.Tags[name] = append(sig.Tags[name], info)
 }
 
 func attrs(n *html.Node) map[string]string {

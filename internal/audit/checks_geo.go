@@ -13,6 +13,7 @@ func evalGEO(s *PageSignals) []Check {
 		geoTrust,
 		geoFreshness,
 		geoIntent,
+		geoSignals,
 	)
 }
 

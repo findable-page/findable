@@ -1,6 +1,6 @@
 ---
 title: "Every findable SEO Check ID and How to Fix It"
-description: "A plain guide to all 36 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
+description: "A plain guide to all 97 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
 slug: seo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -22,7 +22,7 @@ You ran an audit and got a list of ids like `title_length` and `img_dimensions`.
 
 ## What does the SEO family cover in findable?
 
-SEO is 50% of your findable score, the biggest share. It has 36 checks on the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
+SEO is 50% of your findable score, the biggest share. It has 97 checks covering metadata, structured data, performance and accessibility - the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -62,6 +62,67 @@ SEO is 50% of your findable score, the biggest share. It has 36 checks on the ba
 | `jsonld` | At least one JSON-LD block | Add structured data |
 | `aria_landmarks` | `<main>` and `<nav>` are present | Use landmark elements |
 | `duplicate_ids` | No duplicate id attributes | Make each id unique |
+| `canonical_self` | Canonical points to this page | Point canonical at the page itself |
+| `canonical_absolute` | Canonical is an absolute URL | Use a full https URL |
+| `meta_robots_conflict` | Robots meta has no contradictory directives | Drop the conflicting index or follow token |
+| `robots_nofollow` | Robots meta does not nofollow every link | Remove nofollow or none |
+| `title_single` | At most one title tag in head | Keep a single title |
+| `desc_single` | At most one meta description | Keep a single description |
+| `url_length` | Path and query of 100 characters or fewer | Shorten the URL |
+| `url_query_params` | 2 or fewer query parameters | Use clean paths over parameters |
+| `url_depth` | 5 or fewer path levels | Flatten the URL structure |
+| `favicon` | A favicon link | Add a `rel=icon` link |
+| `viewport_device_width` | Viewport uses width=device-width (N/A without a viewport) | Set `width=device-width` |
+| `viewport_scalable` | Viewport allows pinch zoom (N/A without a viewport) | Remove `user-scalable=no` and low maximum-scale |
+| `lang_valid` | The html lang value is a valid tag (N/A without lang) | Use a code like `en` or `pt-BR` |
+| `hreflang_valid` | Hreflang codes are valid (N/A without hreflang) | Use language-region codes or `x-default` |
+| `hreflang_absolute` | Hreflang URLs are absolute (N/A without hreflang) | Use full URLs |
+| `charset_early` | Charset declared in the first 1024 bytes (N/A without charset) | Put the charset meta first in head |
+| `img_alt_quality` | Alt text is not a filename or placeholder (N/A without images) | Describe the image |
+| `img_alt_length` | Alt text of 125 characters or fewer (N/A without images) | Shorten long alt text |
+| `img_lazy_loading` | At most 5 images load eagerly; lazy-load the rest (N/A without images) | Add `loading=lazy` |
+| `img_modern_format` | Half or more images are WebP, AVIF or SVG (N/A without images) | Convert to WebP or AVIF |
+| `nofollow_internal` | No internal link marked nofollow | Remove nofollow from your own links |
+| `generic_anchor_text` | No "click here" style anchors | Write descriptive link text |
+| `empty_anchor_text` | No links without text, label or image | Add text or an aria-label |
+| `javascript_hrefs` | No `javascript:` hrefs | Use real URLs |
+| `links_count` | 200 or fewer links | Trim link-heavy navigation |
+| `mixed_content` | No http resources on an https page (N/A on http) | Load everything over https |
+| `render_blocking_scripts` | No blocking scripts in head | Add `defer` or `async` |
+| `script_count` | 20 or fewer external scripts | Remove or bundle scripts |
+| `stylesheet_count` | 6 or fewer stylesheets | Combine stylesheets |
+| `inline_css_size` | 20000 bytes or less of inline CSS | Move large CSS to a file |
+| `resource_hints` | Third-party resources have preconnect or preload | Add `rel=preconnect` |
+| `html_weight` | HTML of 500000 bytes or less | Cut inline data and markup |
+| `skip_link` | A skip-to-content link | Add a "Skip to content" link |
+| `button_names` | Every button has an accessible name | Add button text or aria-label |
+| `table_headers` | At least one `th` per table | Use `th` header cells |
+| `iframe_title` | Every iframe has a title | Add a `title` attribute |
+| `jsonld_valid` | All JSON-LD blocks parse (N/A without JSON-LD) | Fix the JSON syntax |
+| `jsonld_context` | Every JSON-LD root has a schema.org @context | Add `@context` |
+| `schema_empty_values` | No empty strings in structured data | Fill or remove empty fields |
+| `schema_urls_absolute` | url, logo and image values are absolute | Use full http(s) URLs |
+| `org_name` | Organization has a name (N/A without Organization) | Add `name` |
+| `org_logo` | Organization has a logo (N/A without Organization) | Add `logo` |
+| `org_url` | Organization has a url (N/A without Organization) | Add `url` |
+| `website_name_url` | WebSite has name and url (N/A without WebSite) | Add both fields |
+| `searchaction_valid` | SearchAction has a target template (N/A without it) | Add a `target` with `{search_term_string}` |
+| `breadcrumb_valid` | BreadcrumbList items are complete (N/A without it) | Give each item a position and name |
+| `faq_valid` | FAQPage questions have a name and answer text | Fill every question and answer |
+| `article_headline` | Article headline of 110 characters or fewer | Add a short `headline` |
+| `article_author` | Article names an author | Add `author` with a name |
+| `article_dates` | Article dates are valid ISO dates | Use `2025-01-31` style dates |
+| `article_image` | Article has an image | Add `image` |
+| `product_offers` | Product has offers (N/A without Product) | Add `offers` |
+| `product_price` | Product offer has a price and currency (N/A without Product) | Add price and priceCurrency |
+| `product_rating` | aggregateRating is complete (N/A without it) | Add ratingValue and a count |
+| `localbusiness_address` | LocalBusiness has an address (N/A without it) | Add `address` |
+| `localbusiness_phone` | LocalBusiness has a telephone (N/A without it) | Add `telephone` |
+| `video_fields` | VideoObject has name, thumbnail and date (N/A without it) | Fill the required fields |
+| `og_type` | `og:type` is set | Add `og:type` |
+| `og_site_name` | `og:site_name` is set | Add `og:site_name` |
+| `og_image_absolute` | `og:image` is an absolute URL | Use a full URL |
+| `og_url_matches_canonical` | `og:url` matches canonical | Make both URLs the same |
 
 ## How do I fix the title and description checks?
 
@@ -155,7 +216,7 @@ Read Google's [structured data intro](https://developers.google.com/search/docs/
 ## Key takeaways
 
 - SEO is 50% of the findable score, so start here.
-- There are 36 SEO checks. Each has a fixed id and a simple pass test.
+- There are 97 SEO checks. Each has a fixed id and a simple pass test.
 - Fix the head first: title, description, charset, viewport, lang, doctype.
 - `word_count`, `text_html_ratio` and `dom_size` are heuristics. Use judgment.
 - Security header checks pass when the header exists. They do not rate its strength.
