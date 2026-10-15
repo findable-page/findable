@@ -93,5 +93,9 @@ export function colorContrastCheck(c: PageCtx): Check {
   }
   return checked === 0
     ? skip("color_contrast", "No inline color pairs to check")
-    : ok("color_contrast", `${low} of ${checked} inline-colored text element(s) fall below WCAG AA contrast (4.5:1, 3:1 for h1-h3)`, low === 0);
+    : ok(
+        "color_contrast",
+        `${low} of ${checked} inline-colored text element(s) fall below WCAG AA contrast (4.5:1, 3:1 for h1-h3)`,
+        low === 0,
+      );
 }
