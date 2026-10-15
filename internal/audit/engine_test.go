@@ -324,7 +324,10 @@ func TestLocalAuditEngineOnThinPage(t *testing.T) {
 	if ov > 45 {
 		t.Errorf("expected thin page to score low, got overall=%d", ov)
 	}
-	if scanResult.SEO.Score == nil || *scanResult.SEO.Score > 50 {
+	if scanResult.SEO.Score == nil {
+		t.Fatal("expected an SEO score, got none")
+	}
+	if *scanResult.SEO.Score > 50 {
 		t.Errorf("expected low SEO score, got %v", *scanResult.SEO.Score)
 	}
 }

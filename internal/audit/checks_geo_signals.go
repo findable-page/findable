@@ -21,7 +21,24 @@ func geoSignals(l *checkList, s *PageSignals) {
 }
 
 func isArticlePage(s *PageSignals) bool {
-	return len(parseSchemaDoc(s).ofType(articleTypes...)) > 0 || metaProperty(s, "article:published_time") != "" || len(s.Tags["article"]) > 0
+	return len(parseSchemaDoc(s).ofType(articleTypes...)) > 0 || metaProperty(s, "article:published_time") != "" || articleContainsHeading(s)
+}
+
+func articleContainsHeading(s *PageSignals) bool {
+	if len(s.Tags["article"]) != 1 {
+		return false
+	}
+	lower := strings.ToLower(s.RawHTML)
+	start := strings.Index(lower, "<article")
+	if start == -1 {
+		return false
+	}
+	end := len(lower)
+	if close := strings.Index(lower[start:], "</article"); close != -1 {
+		end = start + close
+	}
+	h1 := strings.Index(lower[start:end], "<h1")
+	return h1 != -1
 }
 
 func metaProperty(s *PageSignals, prop string) string {

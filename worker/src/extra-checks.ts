@@ -65,13 +65,15 @@ function stripTags(text: string): string {
 
 function tagEnd(html: string, from: number): number {
   let i = from;
+  let previous = "";
   while (i < html.length) {
-    const ch = html[i];
+    const ch = html[i] as string;
     if (ch === ">") return i;
-    if (ch === '"' || ch === "'") {
+    if ((ch === '"' || ch === "'") && previous === "=") {
       const closing = html.indexOf(ch, i + 1);
       if (closing !== -1) i = closing;
     }
+    if (ch !== " " && ch !== "\t" && ch !== "\n" && ch !== "\r") previous = ch;
     i++;
   }
   return -1;

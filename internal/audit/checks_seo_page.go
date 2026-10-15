@@ -14,7 +14,7 @@ var (
 	genericAnchors      = map[string]bool{"click here": true, "here": true, "read more": true, "more": true, "learn more": true, "link": true, "this": true, "this link": true, "click": true}
 )
 
-const eagerImageAllowance = 3
+const maxEagerImages = 5
 
 func seoPage(l *checkList, s *PageSignals) {
 	seoImageQuality(l, s)
@@ -32,7 +32,7 @@ func seoImageQuality(l *checkList, s *PageSignals) {
 		return
 	}
 	placeholder, long, modern, recognised, eager := 0, 0, 0, 0, 0
-	for i, img := range images {
+	for _, img := range images {
 		alt := strings.TrimSpace(img.Attrs["alt"])
 		if alt != "" && altFilenameRegex.MatchString(alt) {
 			placeholder++
@@ -50,13 +50,13 @@ func seoImageQuality(l *checkList, s *PageSignals) {
 				modern++
 			}
 		}
-		if i >= eagerImageAllowance && !strings.EqualFold(strings.TrimSpace(img.Attrs["loading"]), "lazy") && !strings.EqualFold(strings.TrimSpace(img.Attrs["fetchpriority"]), "high") {
+		if !strings.EqualFold(strings.TrimSpace(img.Attrs["loading"]), "lazy") && !strings.EqualFold(strings.TrimSpace(img.Attrs["fetchpriority"]), "high") {
 			eager++
 		}
 	}
 	l.add("img_alt_quality", fmt.Sprintf("%d image alt text(s) look like filenames or placeholders", placeholder), placeholder == 0)
 	l.add("img_alt_length", fmt.Sprintf("%d image alt text(s) longer than 125 characters", long), long == 0)
-	l.add("img_lazy_loading", fmt.Sprintf("%d image(s) after the first %d are not lazy-loaded", eager, eagerImageAllowance), eager == 0)
+	l.add("img_lazy_loading", fmt.Sprintf("%d image(s) load eagerly (limit %d)", eager, maxEagerImages), eager <= maxEagerImages)
 	l.add("img_modern_format", fmt.Sprintf("%d of %d images use WebP, AVIF or SVG", modern, recognised), recognised == 0 || modern*2 >= recognised)
 }
 

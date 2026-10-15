@@ -80,7 +80,7 @@ SEO is 50% of your findable score, the biggest share. It has 97 checks covering 
 | `charset_early` | Charset declared in the first 1024 bytes (N/A without charset) | Put the charset meta first in head |
 | `img_alt_quality` | Alt text is not a filename or placeholder (N/A without images) | Describe the image |
 | `img_alt_length` | Alt text of 125 characters or fewer (N/A without images) | Shorten long alt text |
-| `img_lazy_loading` | Images after the first are lazy-loaded (N/A without images) | Add `loading=lazy` |
+| `img_lazy_loading` | At most 5 images load eagerly; lazy-load the rest (N/A without images) | Add `loading=lazy` |
 | `img_modern_format` | Half or more images are WebP, AVIF or SVG (N/A without images) | Convert to WebP or AVIF |
 | `nofollow_internal` | No internal link marked nofollow | Remove nofollow from your own links |
 | `generic_anchor_text` | No "click here" style anchors | Write descriptive link text |

@@ -1,4 +1,11 @@
 {
+  "h2_exists": {
+    "pass": [
+      {"body": "<img src=a.png alt=Bob's><h2>Heading</h2><p>It's fine</p>"},
+      {"body": "<h2>One</h2>"}
+    ],
+    "fail": [{}, {"body": "<p>No heading, only text.</p>"}]
+  },
   "img_alt_quality": {
     "pass": [{}, {"body": "<img src='a.png' alt='A red bicycle'>"}, {"body": "<img src='a.png' alt=''>"}],
     "fail": [
@@ -14,14 +21,13 @@
   "img_lazy_loading": {
     "pass": [
       {},
-      {"body": "<img src='a.png' alt='a'>"},
-      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'>"},
-      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b' loading='lazy'>"},
-      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d' fetchpriority='high'>"}
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d'><img src='e.png' alt='e'>"},
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d'><img src='e.png' alt='e'><img src='f.png' alt='f' loading='lazy'>"},
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d'><img src='e.png' alt='e'><img src='f.png' alt='f' fetchpriority='high'>"}
     ],
     "fail": [
-      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d'>"},
-      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d' fetchpriority='low'>"}
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d'><img src='e.png' alt='e'><img src='f.png' alt='f'>"},
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d'><img src='e.png' alt='e'><img src='f.png' alt='f' fetchpriority='low'>"}
     ]
   },
   "img_modern_format": {

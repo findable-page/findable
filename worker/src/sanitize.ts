@@ -4,13 +4,15 @@ const ESCAPED = "&lt;";
 
 function tagEnd(html: string, from: number): number {
   let i = from;
+  let previous = "";
   while (i < html.length) {
-    const ch = html[i];
+    const ch = html[i] as string;
     if (ch === ">") return i;
-    if (ch === '"' || ch === "'") {
+    if ((ch === '"' || ch === "'") && previous === "=") {
       const closing = html.indexOf(ch, i + 1);
       if (closing !== -1) i = closing;
     }
+    if (ch !== " " && ch !== "\t" && ch !== "\n" && ch !== "\r") previous = ch;
     i++;
   }
   return -1;
@@ -20,6 +22,7 @@ function tagEnd(html: string, from: number): number {
 // never close, stray "<" inside a tag) into escaped text, in one linear pass.
 export function sanitizeHtml(html: string): string {
   const lower = html.toLowerCase();
+  const lastGt = html.lastIndexOf(">");
   const closeAt = new Map<string, number>();
   const out: string[] = [];
   let copied = 0;
@@ -40,9 +43,20 @@ export function sanitizeHtml(html: string): string {
       i = end + 3;
       continue;
     }
-    const closing = html[lt + 1] === "/";
+    const second = html[lt + 1];
+    if (second === "?" || (second === "!" && html.slice(lt + 2, lt + 9).toLowerCase() === "doctype")) {
+      if (lt > lastGt) {
+        escapeAt(lt);
+        i = lt + 1;
+      } else {
+        i = html.indexOf(">", lt) + 1;
+      }
+      continue;
+    }
+    const closing = second === "/";
     const name = NAME.exec(html.slice(lt + (closing ? 2 : 1), lt + 40))?.[0];
     if (!name) {
+      escapeAt(lt);
       i = lt + 1;
       continue;
     }
@@ -52,7 +66,8 @@ export function sanitizeHtml(html: string): string {
       break;
     }
     const lowerName = name.toLowerCase();
-    if (!closing && NEEDS_CLOSE.has(lowerName)) {
+    const selfClosing = html[end - 1] === "/";
+    if (!closing && !selfClosing && NEEDS_CLOSE.has(lowerName)) {
       let close = closeAt.get(lowerName);
       if (close === undefined || (close !== -1 && close < end)) {
         close = lower.indexOf(`</${lowerName}`, end);
@@ -66,7 +81,7 @@ export function sanitizeHtml(html: string): string {
     }
     for (let j = html.indexOf("<", lt + 1); j !== -1 && j < end; j = html.indexOf("<", j + 1)) escapeAt(j);
     i = end + 1;
-    if (!closing && (lowerName === "script" || lowerName === "style")) {
+    if (!closing && !selfClosing && (lowerName === "script" || lowerName === "style")) {
       const close = closeAt.get(lowerName);
       if (close !== undefined && close > end) i = close;
     }

@@ -11,6 +11,12 @@ const hostile: Record<string, string> = {
   "unclosed headings": "<h1>".repeat(SIZE / 4),
   "unclosed scripts": "<script>".repeat(SIZE / 8),
   "unclosed comments": "<!--".repeat(SIZE / 4),
+  "spaced angle brackets": "< a".repeat(SIZE / 3),
+  "bang without name": "<!a".repeat(SIZE / 3),
+  "closing without name": "</ ".repeat(SIZE / 3),
+  "digit after angle bracket": "<1".repeat(SIZE / 2),
+  "processing instructions": "<?".repeat(SIZE / 2),
+  "unterminated doctypes": "<!doctype".repeat(SIZE / 9),
 };
 
 for (const [name, html] of Object.entries(hostile)) {

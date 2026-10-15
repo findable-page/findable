@@ -38,8 +38,17 @@ function isArticlePage(c: PageCtx): boolean {
   return (
     ofType(parseSchemaDoc(c), ...ARTICLE_TYPES).length > 0 ||
     metaProperty(c, "article:published_time") !== "" ||
-    tagsNamed(c, "article").length > 0
+    articleContainsHeading(c)
   );
+}
+
+function articleContainsHeading(c: PageCtx): boolean {
+  if (tagsNamed(c, "article").length !== 1) return false;
+  const lower = c.raw.toLowerCase();
+  const start = lower.indexOf("<article");
+  if (start === -1) return false;
+  const close = lower.indexOf("</article", start);
+  return lower.slice(start, close === -1 ? undefined : close).includes("<h1");
 }
 
 function publishingDateChecks(c: PageCtx, article: boolean): Check[] {

@@ -17,7 +17,7 @@ const GENERIC_ANCHORS = new Set([
   "click",
 ]);
 const NON_NAVIGABLE = ["#", "javascript:", "mailto:", "tel:"];
-const EAGER_IMAGE_ALLOWANCE = 3;
+const MAX_EAGER_IMAGES = 5;
 const byteLength = (text: string): number => new TextEncoder().encode(text).length;
 
 function imageQualityChecks(c: PageCtx): Check[] {
@@ -32,7 +32,7 @@ function imageQualityChecks(c: PageCtx): Check[] {
   let modern = 0;
   let recognised = 0;
   let eager = 0;
-  for (const [i, img] of images.entries()) {
+  for (const img of images) {
     const alt = (img.attrs.alt ?? "").trim();
     if (alt && ALT_FILENAME.test(alt)) placeholder++;
     if (alt.length > 125) long++;
@@ -43,16 +43,12 @@ function imageQualityChecks(c: PageCtx): Check[] {
     }
     const lazy = (img.attrs.loading ?? "").trim().toLowerCase() === "lazy";
     const prioritised = (img.attrs.fetchpriority ?? "").trim().toLowerCase() === "high";
-    if (i >= EAGER_IMAGE_ALLOWANCE && !lazy && !prioritised) eager++;
+    if (!lazy && !prioritised) eager++;
   }
   return [
     ok("img_alt_quality", `${placeholder} image alt text(s) look like filenames or placeholders`, placeholder === 0),
     ok("img_alt_length", `${long} image alt text(s) longer than 125 characters`, long === 0),
-    ok(
-      "img_lazy_loading",
-      `${eager} image(s) after the first ${EAGER_IMAGE_ALLOWANCE} are not lazy-loaded`,
-      eager === 0,
-    ),
+    ok("img_lazy_loading", `${eager} image(s) load eagerly (limit ${MAX_EAGER_IMAGES})`, eager <= MAX_EAGER_IMAGES),
     ok(
       "img_modern_format",
       `${modern} of ${recognised} images use WebP, AVIF or SVG`,
