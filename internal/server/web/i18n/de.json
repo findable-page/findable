@@ -71,6 +71,7 @@
 "button_names":{"name":"Beschriftung von Buttons","fix":"Gib jedem Button Text oder ein aria-label."},
 "table_headers":{"name":"Tabellenköpfe","fix":"Nutze th-Zellen als Kopfzellen in jeder Tabelle."},
 "iframe_title":{"name":"Titel bei iframes","fix":"Füge jedem iframe ein title-Attribut hinzu."},
+"color_contrast":{"name":"Farbkontrast","fix":"Wähle Text- und Hintergrundfarbe mit mindestens 4,5:1 Kontrast."},
 "jsonld_valid":{"name":"Gültiges JSON-LD","fix":"Behebe die JSON-Syntaxfehler im JSON-LD."},
 "jsonld_context":{"name":"JSON-LD @context","fix":"Füge ein @context mit schema.org zu jedem JSON-LD-Block hinzu."},
 "schema_empty_values":{"name":"Leere Werte in Schema-Daten","fix":"Fülle leere Felder aus oder entferne sie."},

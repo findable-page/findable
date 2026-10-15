@@ -71,6 +71,7 @@
 "button_names":{"name":"Названия кнопок","fix":"Задайте каждой кнопке текст или aria-label."},
 "table_headers":{"name":"Заголовки таблиц","fix":"Используйте ячейки th как заголовки в каждой таблице."},
 "iframe_title":{"name":"Заголовки iframe","fix":"Добавьте каждому iframe атрибут title."},
+"color_contrast":{"name":"Контраст цветов","fix":"Выберите цвета текста и фона с контрастом не менее 4,5:1."},
 "jsonld_valid":{"name":"Корректный JSON-LD","fix":"Исправьте синтаксические ошибки JSON в JSON-LD."},
 "jsonld_context":{"name":"@context в JSON-LD","fix":"Добавьте @context со schema.org в каждый блок JSON-LD."},
 "schema_empty_values":{"name":"Пустые значения в структурированных данных","fix":"Заполните пустые поля или удалите их."},

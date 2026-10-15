@@ -34,6 +34,26 @@
     "pass": [{}, {"body": "<img src='a.webp' alt='a'>"}, {"body": "<img src='a.svg' alt='a'><img src='b.png' alt='b'>"}],
     "fail": [{"body": "<img src='a.png?v=1' alt='a'><img src='b.jpg' alt='b'>"}]
   },
+  "color_contrast": {
+    "pass": [
+      {"body": "<p style='color:#000;background-color:#fff'>Readable</p>"},
+      {"body": "<p style='color: rgb(0, 0, 0); background-color: white'>Readable</p>"},
+      {"body": "<p style='color:#777'>No background, unresolvable</p>"},
+      {"body": "<h1 style='color:#777;background-color:#fff'>Large heading</h1>"},
+      {"body": "<p style='color:#767676;background-color:#fff'>Just enough</p>"},
+      {"body": "<p style='color:rgb(300,0,0);background-color:#fff'>rgb out of range</p>"},
+      {"body": "<p style='color:#777;background-color:#888;color:red'>Later override unresolvable</p>"},
+      {"body": "<p style='color:\u00a0#777;background-color:#888'>NBSP before value</p>"}
+    ],
+    "fail": [
+      {"body": "<p style='color:#777;background-color:#888'>Faint</p>"},
+      {"body": "<p style='color:&#35;777;background-color:#888'>Entity hex</p>"},
+      {"body": "<p style='color:#777;background-color:#fff'>Body text under 4.5</p>"},
+      {"body": "<p style='color:#777;background-color:#888'>x</p><p style='color:#000;background-color:#fff'>y</p>"},
+      {"body": "<p style='color:#abc;background-color:#bcd'>Short hex</p>"},
+      {"body": "<a href='/x' style='background-color:#ffffff;color:#ccc'>Faint link</a>"}
+    ]
+  },
   "nofollow_internal": {
     "pass": [{}, {"body": "<a href='https://o.com/x' rel='nofollow'>o</a>"}, {"body": "<a href='/x'>x</a>"}],
     "fail": [{"body": "<a href='/x' rel='nofollow'>x</a>"}, {"body": "<a href='https://example.com/y' rel='noopener nofollow'>x</a>"}]

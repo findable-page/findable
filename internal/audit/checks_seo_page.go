@@ -205,4 +205,6 @@ func seoAccessibility(l *checkList, s *PageSignals) {
 		}
 	}
 	skipUnless(l, len(s.Tags["iframe"]) > 0, "iframe_title", fmt.Sprintf("%d iframe(s) missing a title attribute", untitled), "No iframes", untitled == 0)
+
+	seoColorContrast(l, s)
 }

@@ -71,6 +71,7 @@
 "button_names":{"name":"Düğme adları","fix":"Her düğmeye bir metin veya aria-label ver."},
 "table_headers":{"name":"Tablo başlıkları","fix":"Her tabloda başlık hücresi olarak th kullan."},
 "iframe_title":{"name":"iframe başlıkları","fix":"Her iframe'e bir title özniteliği ekle."},
+"color_contrast":{"name":"Renk kontrastı","fix":"Metin ve arka plan renklerini en az 4,5:1 kontrastla seç."},
 "jsonld_valid":{"name":"Geçerli JSON-LD","fix":"JSON-LD içindeki JSON sözdizimi hatalarını düzelt."},
 "jsonld_context":{"name":"JSON-LD @context","fix":"Her JSON-LD bloğuna schema.org @context ekle."},
 "schema_empty_values":{"name":"Yapılandırılmış veride boş değerler","fix":"Boş alanları doldur veya kaldır."},

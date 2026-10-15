@@ -1,6 +1,6 @@
 ---
 title: "Every findable SEO Check ID and How to Fix It"
-description: "A plain guide to all 97 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
+description: "A plain guide to all 98 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
 slug: seo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -22,7 +22,7 @@ You ran an audit and got a list of ids like `title_length` and `img_dimensions`.
 
 ## What does the SEO family cover in findable?
 
-SEO is 50% of your findable score, the biggest share. It has 97 checks covering metadata, structured data, performance and accessibility - the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
+SEO is 50% of your findable score, the biggest share. It has 98 checks covering metadata, structured data, performance and accessibility - the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -98,6 +98,7 @@ SEO is 50% of your findable score, the biggest share. It has 97 checks covering 
 | `button_names` | Every button has an accessible name | Add button text or aria-label |
 | `table_headers` | At least one `th` per table | Use `th` header cells |
 | `iframe_title` | Every iframe has a title | Add a `title` attribute |
+| `color_contrast` | Inline text and background colors reach WCAG AA contrast, 4.5:1 or 3:1 for h1-h3 (N/A without inline color pairs) | Darken the text or lighten the background |
 | `jsonld_valid` | All JSON-LD blocks parse (N/A without JSON-LD) | Fix the JSON syntax |
 | `jsonld_context` | Every JSON-LD root has a schema.org @context | Add `@context` |
 | `schema_empty_values` | No empty strings in structured data | Fill or remove empty fields |
@@ -216,7 +217,7 @@ Read Google's [structured data intro](https://developers.google.com/search/docs/
 ## Key takeaways
 
 - SEO is 50% of the findable score, so start here.
-- There are 97 SEO checks. Each has a fixed id and a simple pass test.
+- There are 98 SEO checks. Each has a fixed id and a simple pass test.
 - Fix the head first: title, description, charset, viewport, lang, doctype.
 - `word_count`, `text_html_ratio` and `dom_size` are heuristics. Use judgment.
 - Security header checks pass when the header exists. They do not rate its strength.

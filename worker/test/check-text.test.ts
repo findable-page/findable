@@ -46,7 +46,7 @@ const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1
 
 test("every check id the engine produces has a name and fix in all four languages", () => {
   const ids = engineCheckIds();
-  expect(ids.size).toBe(159);
+  expect(ids.size).toBe(160);
   for (const lang of LANGS) {
     const missing = [...ids].filter((id) => !texts[lang][id]?.name?.trim() || !texts[lang][id]?.fix?.trim());
     expect({ lang, missing }).toEqual({ lang, missing: [] });

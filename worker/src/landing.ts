@@ -11,20 +11,20 @@ const UPDATED = "2026-10-15";
 
 const CTA = `<p><a href="/"><strong>Scan a page free</strong></a>. Paste a URL, no signup.</p>`;
 
-const COUNTS = "159 checks: 97 SEO, 35 AEO and 27 GEO";
+const COUNTS = "160 checks: 98 SEO, 35 AEO and 27 GEO";
 
 const LANDING_PAGES: LandingPage[] = [
   {
     path: "/free-seo-scanner",
     title: "Free SEO scanner for SEO, AEO and GEO | findable",
     description:
-      "Paste a URL and get a 0 to 100 score from 159 checks (97 SEO, 35 AEO, 27 GEO), plus the fixes worth the most points. Free, no signup.",
+      "Paste a URL and get a 0 to 100 score from 160 checks (98 SEO, 35 AEO, 27 GEO), plus the fixes worth the most points. Free, no signup.",
     body: `<h1>Free SEO scanner for any page</h1>
 <p>findable fetches one public URL and runs ${COUNTS}. You get an overall score from 0 to 100, a score for each family and a list of failing checks ranked by the points they would recover.</p>
 ${CTA}
 <h2 id="what-it-checks">What does it check?</h2>
 <ul>
-<li><strong>SEO (97 checks, 50% of the score)</strong>: title, meta description, canonical, headings, links, images, structured data and other signals a search crawler reads.</li>
+<li><strong>SEO (98 checks, 50% of the score)</strong>: title, meta description, canonical, headings, links, images, structured data and other signals a search crawler reads.</li>
 <li><strong>AEO (35 checks, 25%)</strong>: whether an answer can be lifted from the page, such as FAQ markup, short direct answers, lists and tables.</li>
 <li><strong>GEO (27 checks, 25%)</strong>: whether a generative model has facts, authorship, dates and sources to cite.</li>
 </ul>
@@ -43,7 +43,7 @@ ${CTA}
       },
       {
         q: "How many checks does it run?",
-        a: "159 page checks: 97 for SEO, 35 for AEO and 27 for GEO. The hosted scan can also read robots.txt and llms.txt as separate site checks.",
+        a: "160 page checks: 98 for SEO, 35 for AEO and 27 for GEO. The hosted scan can also read robots.txt and llms.txt as separate site checks.",
       },
       {
         q: "What limits does a scan have?",

@@ -17,6 +17,8 @@ const hostile: Record<string, string> = {
   "digit after angle bracket": "<1".repeat(SIZE / 2),
   "processing instructions": "<?".repeat(SIZE / 2),
   "unterminated doctypes": "<!doctype".repeat(SIZE / 9),
+  "inline styles with endless declarations": `<p style="${"color:#777;".repeat(SIZE / 11)}">x</p>`,
+  "many styled paragraphs": "<p style='color:#777;background-color:#888'>x</p>".repeat(SIZE / 50),
 };
 
 for (const [name, html] of Object.entries(hostile)) {

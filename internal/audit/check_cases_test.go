@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 type checkCase struct {
@@ -86,6 +87,24 @@ func TestCheckIDsAreUnique(t *testing.T) {
 				t.Errorf("duplicate check id %s", c.ID)
 			}
 			seen[c.ID] = true
+		}
+	}
+}
+
+func TestColorContrastHostileStyleIsFast(t *testing.T) {
+	const size = 1 << 20
+	pages := map[string]string{
+		"endless declarations": `<p style="` + strings.Repeat("color:#777;", size/11) + `">x</p>`,
+		"many styled elements": strings.Repeat("<p style='color:#777;background-color:#888'>x</p>", size/50),
+	}
+	for name, body := range pages {
+		started := time.Now()
+		scan := Analyze("https://example.com/", body, "", make(http.Header), 200)
+		if elapsed := time.Since(started); elapsed > time.Second {
+			t.Errorf("%s: took %v", name, elapsed)
+		}
+		if len(scan.SEO.Checks) == 0 {
+			t.Errorf("%s: no checks", name)
 		}
 	}
 }

@@ -25,11 +25,11 @@ One overall score from 0 to 100, built from three families:
 
 | Family | Weight | Page checks | What it measures |
 |---|---|---|---|
-| SEO | 50% | 97 | Title and meta tags, headings, canonical, Open Graph and Twitter cards, mobile, HTTPS and security headers, accessibility landmarks |
+| SEO | 50% | 98 | Title and meta tags, headings, canonical, Open Graph and Twitter cards, mobile, HTTPS and security headers, accessibility landmarks |
 | AEO (answer engine optimization) | 25% | 35 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
 | GEO (generative engine optimization) | 25% | 27 | Author and organization markup, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
 
-That is 159 page checks in the Go engine. The edge API runs a port with the same 159. Seven more site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, GPTBot, ClaudeBot, PerplexityBot and Google-Extended, and `/llms.txt` present. Every failing check names what to fix.
+That is 160 page checks in the Go engine. The edge API runs a port with the same 160. Seven more site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, GPTBot, ClaudeBot, PerplexityBot and Google-Extended, and `/llms.txt` present. Every failing check names what to fix.
 
 ## Quickstart
 

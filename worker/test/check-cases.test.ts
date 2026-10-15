@@ -75,5 +75,5 @@ test("family counts", async () => {
     "seo" | "aeo" | "geo",
     { checks: unknown[] }
   >;
-  expect([scan.seo.checks.length, scan.aeo.checks.length, scan.geo.checks.length]).toEqual([97, 35, 27]);
+  expect([scan.seo.checks.length, scan.aeo.checks.length, scan.geo.checks.length]).toEqual([98, 35, 27]);
 });

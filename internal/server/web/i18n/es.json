@@ -71,6 +71,7 @@
 "button_names":{"name":"Nombre de los botones","fix":"Da a cada botón un texto o un aria-label."},
 "table_headers":{"name":"Cabeceras de tabla","fix":"Usa celdas th como cabeceras en cada tabla."},
 "iframe_title":{"name":"Título en iframes","fix":"Añade un atributo title a cada iframe."},
+"color_contrast":{"name":"Contraste de color","fix":"Elige colores de texto y fondo con un contraste mínimo de 4,5:1."},
 "jsonld_valid":{"name":"JSON-LD válido","fix":"Corrige los errores de sintaxis JSON del JSON-LD."},
 "jsonld_context":{"name":"@context de JSON-LD","fix":"Añade un @context de schema.org a cada bloque JSON-LD."},
 "schema_empty_values":{"name":"Valores vacíos en datos estructurados","fix":"Rellena o elimina los campos vacíos."},

@@ -1,3 +1,4 @@
+import { colorContrastCheck } from "./color-contrast";
 import { linkTags, ok, type PageCtx, skip, type Tag, tagsNamed } from "./extra-checks";
 import type { Check } from "./index";
 
@@ -173,6 +174,7 @@ function accessibilityChecks(c: PageCtx): Check[] {
     iframes.length === 0
       ? skip("iframe_title", "No iframes")
       : ok("iframe_title", `${untitled} iframe(s) missing a title attribute`, untitled === 0),
+    colorContrastCheck(c),
   ];
 }
 
