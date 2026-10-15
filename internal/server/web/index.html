@@ -58,7 +58,7 @@
     body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg) radial-gradient(var(--dot) 1.2px, transparent 1.3px) 0 0 / 24px 24px; color: var(--text); line-height: 1.55; }
     body::before { content: ""; position: fixed; inset: -20%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 8% 12%, var(--blob-amber), transparent 30%), radial-gradient(circle at 92% 18%, var(--blob-violet), transparent 30%); }
     .container { width: min(100% - 2rem, 1240px); margin-inline: auto; }
-    :where(button, input, a, summary, [tabindex]):focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    :where(button, input, select, a, summary, [tabindex]):focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
     a { color: var(--accent); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
@@ -85,6 +85,7 @@
     .share-text { font: inherit; font-size: 0.85rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; resize: vertical; }
     .btn-api-badge, .btn-action { padding: 0.5rem 0.9rem; }
     .btn-api-badge { color: var(--text); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+    .lang-select { background: var(--surface); border: 1px solid var(--border-ui); color: var(--text); border-radius: 10px; font: inherit; font-weight: 600; font-size: 0.85rem; height: 40px; padding: 0 0.4rem; cursor: pointer; }
     .theme-toggle { width: 40px; height: 40px; justify-content: center; }
     .btn-api-badge:hover, .btn-action:hover, .theme-toggle:hover { background: var(--surface-hover); }
     @media (max-width: 640px) { .btn-api-badge span, .nav-link { display: none; } }
@@ -315,32 +316,39 @@
           <text class="logo-word" x="76" y="46" font-family="system-ui, sans-serif" font-weight="700" font-size="42" letter-spacing="-1">findable</text>
         </svg>
       </a>
-      <nav class="nav-actions" aria-label="Primary">
-        <a class="nav-link" href="/learn">Learn</a>
-        <button type="button" class="btn-api-badge" id="btnOpenApiModal" aria-haspopup="dialog" aria-label="API and MCP tools">
+      <nav class="nav-actions" aria-label="Primary" data-i18n-attr="aria-label:navPrimary">
+        <a class="nav-link" href="/learn" data-i18n="navLearn">Learn</a>
+        <button type="button" class="btn-api-badge" id="btnOpenApiModal" aria-haspopup="dialog" aria-label="API and MCP tools" data-i18n-attr="aria-label:apiBtnLabel">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-          <span>API &amp; MCP</span>
+          <span data-i18n="apiMcp">API &amp; MCP</span>
         </button>
-        <button type="button" class="theme-toggle" id="themeToggle" title="Toggle color theme" aria-label="Toggle color theme">
+        <button type="button" class="theme-toggle" id="themeToggle" title="Toggle color theme" aria-label="Toggle color theme" data-i18n-attr="title:themeToggle,aria-label:themeToggle">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
         </button>
+        <select id="langSelect" class="lang-select" aria-label="Language" data-i18n-attr="aria-label:language">
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="es">Español</option>
+          <option value="tr">Türkçe</option>
+          <option value="ru">Русский</option>
+        </select>
       </nav>
     </div>
   </header>
 
   <main class="container">
     <section class="hero">
-      <div class="hero-badge">70+ checks · 0 signups · 100% free</div>
-      <h1 class="hero-title">Is your site findable by Google and by <span class="hl">ChatGPT, Perplexity and Claude</span>?</h1>
-      <p class="hero-subtitle">Paste a URL. findable scores the page for SEO, AEO and GEO with 70+ checks, then shows the fixes worth the most points. New to the terms? Read the <a href="/learn">plain-words guide</a>.</p>
+      <div class="hero-badge" data-i18n="heroBadge">70+ checks · 0 signups · 100% free</div>
+      <h1 class="hero-title"><span data-i18n="heroTitle1">Is your site findable by Google and by</span> <span class="hl" data-i18n="heroTitle2">ChatGPT, Perplexity and Claude</span><span data-i18n="heroTitle3">?</span></h1>
+      <p class="hero-subtitle"><span data-i18n="heroSub">Paste a URL. findable scores the page for SEO, AEO and GEO with 70+ checks, then shows the fixes worth the most points. New to the terms? Read the</span> <a href="/learn" data-i18n="heroSubLink">plain-words guide</a>.</p>
 
       <div class="scan-card">
         <div class="mode-toggle">
-          <button type="button" class="mode-btn active" id="btnModePage" aria-pressed="true">Scan page</button>
-          <button type="button" class="mode-btn" id="btnModeSite" aria-pressed="false">Crawl site</button>
+          <button type="button" class="mode-btn active" id="btnModePage" aria-pressed="true" data-i18n="modePage">Scan page</button>
+          <button type="button" class="mode-btn" id="btnModeSite" aria-pressed="false" data-i18n="modeSite">Crawl site</button>
         </div>
         <form id="scanForm">
-          <label class="field-label" for="urlInput">Page URL to audit</label>
+          <label class="field-label" for="urlInput" data-i18n="urlLabel">Page URL to audit</label>
           <div class="input-row">
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
@@ -348,30 +356,30 @@
             </div>
             <button type="submit" class="scan-btn" id="scanBtn"><span>Scan now</span></button>
           </div>
-          <input type="text" id="keyphraseInput" class="keyphrase-input" placeholder="Focus keyphrase (optional)" aria-label="Focus keyphrase (optional)">
+          <input type="text" id="keyphraseInput" class="keyphrase-input" placeholder="Focus keyphrase (optional)" aria-label="Focus keyphrase (optional)" data-i18n-attr="placeholder:keyphrase,aria-label:keyphrase">
         </form>
       </div>
 
       <div id="errorPanel" class="error-panel hidden" role="alert">
         <div class="error-panel-text">
-          <div class="error-panel-title">Scan failed</div>
+          <div class="error-panel-title" data-i18n="scanFailed">Scan failed</div>
           <div id="errorText"></div>
         </div>
-        <button type="button" class="btn-action" id="btnRetry">Retry</button>
+        <button type="button" class="btn-action" id="btnRetry" data-i18n="retry">Retry</button>
       </div>
 
       <div id="recentScansWrap" class="recent-strip hidden">
         <div class="recent-header">
-          <span>Recent scans</span>
-          <button type="button" class="link-btn" id="btnClearHistory">Clear</button>
+          <span data-i18n="recentScans">Recent scans</span>
+          <button type="button" class="link-btn" id="btnClearHistory" data-i18n="clear">Clear</button>
         </div>
         <div id="recentList" class="recent-items"></div>
       </div>
 
-      <p class="trust-row"><span>70+ page checks</span><span>SEO, AEO and GEO</span><span>Free API and MCP</span></p>
+      <p class="trust-row"><span data-i18n="trust1">70+ page checks</span><span data-i18n="trust2">SEO, AEO and GEO</span><span data-i18n="trust3">Free API and MCP</span></p>
     </section>
 
-    <div id="crawlSection" class="crawl-box hidden" role="region" aria-label="Crawl progress" aria-live="polite">
+    <div id="crawlSection" class="crawl-box hidden" role="region" aria-label="Crawl progress" aria-live="polite" data-i18n-attr="aria-label:crawlRegion">
       <h2 id="crawlStatus" class="crawl-title">Crawling internal links...</h2>
       <div class="progress-bar-bg"><div class="progress-bar-fill" id="crawlProgress"></div></div>
       <div id="crawlTableWrap"></div>
@@ -380,7 +388,7 @@
     <p id="scanStatus" class="sr-only" role="status" aria-live="polite"></p>
 
     <section id="agentRun" class="agent hidden" aria-hidden="true">
-      <h2 class="agent-title">findable is checking <span id="agentHost"></span></h2>
+      <h2 class="agent-title"><span data-i18n="agentTitle">findable is checking</span> <span id="agentHost"></span></h2>
       <ol class="steps" id="agentSteps"></ol>
     </section>
 
@@ -394,7 +402,7 @@
           <div class="ring-value large" id="valOverall">0</div>
         </div>
         <div class="hero-info">
-          <h2 class="results-heading" id="resultsHeading" tabindex="-1">Overall score</h2>
+          <h2 class="results-heading" id="resultsHeading" tabindex="-1" data-i18n="overallScore">Overall score</h2>
           <p class="summary-line" id="summaryLine"></p>
           <div class="grade-row">
             <span id="gradeOverall" class="grade-badge"></span>
@@ -404,25 +412,25 @@
           <div class="site-meta-line" id="resultDate"></div>
         </div>
         <div class="site-actions">
-          <button type="button" class="btn-action" id="btnCopyReport">Copy</button>
+          <button type="button" class="btn-action" id="btnCopyReport" data-i18n="copy">Copy</button>
           <button type="button" class="btn-action" id="btnExportJSON">JSON</button>
           <button type="button" class="btn-action" id="btnExportCSV">CSV</button>
           <button type="button" class="btn-action" id="btnExportMD">MD</button>
           <button type="button" class="btn-action" id="btnExportPDF">PDF</button>
           <div class="share-wrap">
-            <button type="button" class="btn-action" id="btnShareReport" aria-expanded="false" aria-controls="sharePanel">Share</button>
+            <button type="button" class="btn-action" id="btnShareReport" aria-expanded="false" aria-controls="sharePanel" data-i18n="share">Share</button>
             <div class="share-panel" id="sharePanel" hidden>
               <div class="share-links">
                 <a class="btn-action" id="shareX" target="_blank" rel="noopener">X</a>
                 <a class="btn-action" id="shareLinkedIn" target="_blank" rel="noopener">LinkedIn</a>
                 <a class="btn-action" id="shareFacebook" target="_blank" rel="noopener">Facebook</a>
-                <button type="button" class="btn-action" id="shareNative" hidden>More…</button>
+                <button type="button" class="btn-action" id="shareNative" hidden data-i18n="more">More…</button>
               </div>
-              <label class="share-label" for="shareText">Text to paste anywhere</label>
+              <label class="share-label" for="shareText" data-i18n="shareTextLabel">Text to paste anywhere</label>
               <textarea id="shareText" class="share-text" rows="4" readonly></textarea>
               <div class="share-links">
-                <button type="button" class="btn-action" id="shareCopyText">Copy text</button>
-                <button type="button" class="btn-action" id="shareCopyLink">Copy link</button>
+                <button type="button" class="btn-action" id="shareCopyText" data-i18n="copyText">Copy text</button>
+                <button type="button" class="btn-action" id="shareCopyLink" data-i18n="copyLink">Copy link</button>
               </div>
             </div>
           </div>
@@ -431,26 +439,26 @@
       </section>
 
       <section class="next-actions" id="cwvSection" aria-labelledby="cwvHeading" hidden>
-        <h2 id="cwvHeading">Page speed (mobile)</h2>
+        <h2 id="cwvHeading" data-i18n="cwvHeading">Page speed (mobile)</h2>
         <p id="cwvLine" role="status" aria-live="polite"></p>
         <ul id="cwvList" role="list"></ul>
       </section>
 
       <section class="next-actions" id="watchSection" aria-labelledby="watchHeading" hidden>
-        <h2 id="watchHeading">Watch this score</h2>
-        <p>Get an email when your score changes. Free, no account.</p>
+        <h2 id="watchHeading" data-i18n="watchHeading">Watch this score</h2>
+        <p data-i18n="watchLead">Get an email when your score changes. Free, no account.</p>
         <form id="watchForm" class="watch-form">
-          <label class="share-label" for="watchEmail">Email</label>
+          <label class="share-label" for="watchEmail" data-i18n="email">Email</label>
           <input type="email" id="watchEmail" required maxlength="254" autocomplete="email">
           <input type="text" name="hp_x7" id="watchTrap" class="watch-trap" tabindex="-1" autocomplete="new-password" aria-hidden="true">
-          <button type="submit" class="btn-action">Watch</button>
-          <label class="watch-consent"><input type="checkbox" id="watchConsent" required> Email me about this site's score. Unsubscribe anytime. We never share your email.</label>
+          <button type="submit" class="btn-action" data-i18n="watchBtn">Watch</button>
+          <label class="watch-consent"><input type="checkbox" id="watchConsent" required> <span data-i18n="watchConsent">Email me about this site's score. Unsubscribe anytime. We never share your email.</span></label>
           <span id="watchStatus" class="share-status" role="status" aria-live="polite"></span>
         </form>
       </section>
 
       <section class="next-actions" aria-labelledby="nextHeading">
-        <h2 id="nextHeading">Your next 3 actions</h2>
+        <h2 id="nextHeading" data-i18n="nextHeading">Your next 3 actions</h2>
         <p id="nextLine"></p>
         <ol class="fixes" id="topFixes" role="list"></ol>
       </section>
@@ -459,23 +467,23 @@
         <section class="family-card" aria-labelledby="famSEOTitle">
           <div class="family-top">
             <div class="ring-box"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fill" id="ringSEO" cx="60" cy="60" r="50" stroke="var(--fam-seo)"/></svg><div class="ring-value" id="valSEO">0</div></div>
-            <div><h3 class="card-heading" id="famSEOTitle">Traditional SEO</h3><div class="weight-tag">50% of overall</div><div class="card-footer" id="detailSEO"></div></div>
+            <div><h3 class="card-heading" id="famSEOTitle" data-i18n="famSEO">Traditional SEO</h3><div class="weight-tag" data-i18n="weight50">50% of overall</div><div class="card-footer" id="detailSEO"></div></div>
           </div>
-          <ul class="worst-list" id="worstSEO" aria-label="Top failing SEO checks"></ul>
+          <ul class="worst-list" id="worstSEO" aria-label="Top failing SEO checks" data-i18n-attr="aria-label:worstSEO"></ul>
         </section>
         <section class="family-card" aria-labelledby="famAEOTitle">
           <div class="family-top">
             <div class="ring-box"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fill" id="ringAEO" cx="60" cy="60" r="50" stroke="var(--fam-aeo)"/></svg><div class="ring-value" id="valAEO">0</div></div>
-            <div><h3 class="card-heading" id="famAEOTitle">Answer Engine (AEO)</h3><div class="weight-tag">25% of overall</div><div class="card-footer" id="detailAEO"></div></div>
+            <div><h3 class="card-heading" id="famAEOTitle" data-i18n="famAEO">Answer Engine (AEO)</h3><div class="weight-tag" data-i18n="weight25">25% of overall</div><div class="card-footer" id="detailAEO"></div></div>
           </div>
-          <ul class="worst-list" id="worstAEO" aria-label="Top failing AEO checks"></ul>
+          <ul class="worst-list" id="worstAEO" aria-label="Top failing AEO checks" data-i18n-attr="aria-label:worstAEO"></ul>
         </section>
         <section class="family-card" aria-labelledby="famGEOTitle">
           <div class="family-top">
             <div class="ring-box"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fill" id="ringGEO" cx="60" cy="60" r="50" stroke="var(--fam-geo)"/></svg><div class="ring-value" id="valGEO">0</div></div>
-            <div><h3 class="card-heading" id="famGEOTitle">Generative (GEO)</h3><div class="weight-tag">25% of overall</div><div class="card-footer" id="detailGEO"></div></div>
+            <div><h3 class="card-heading" id="famGEOTitle" data-i18n="famGEO">Generative (GEO)</h3><div class="weight-tag" data-i18n="weight25">25% of overall</div><div class="card-footer" id="detailGEO"></div></div>
           </div>
-          <ul class="worst-list" id="worstGEO" aria-label="Top failing GEO checks"></ul>
+          <ul class="worst-list" id="worstGEO" aria-label="Top failing GEO checks" data-i18n-attr="aria-label:worstGEO"></ul>
         </section>
       </div>
 
@@ -486,7 +494,7 @@
         </div>
         <div id="failingList"></div>
         <div id="passingWrap" class="passing-wrap" hidden>
-          <h2 class="issues-title">Passing and not applicable</h2>
+          <h2 class="issues-title" data-i18n="passingHeading">Passing and not applicable</h2>
           <div id="passingList"></div>
         </div>
       </section>
@@ -552,13 +560,13 @@ findable https://example.com</code></pre>
         <li>It runs in the browser, the terminal, an AI agent or a CI job.</li>
       </ul>
 
-      <h2>Frequently asked questions</h2>
-      <details class="faq"><summary>Is findable free?</summary><p>Yes. It costs $0, needs no signup and the code is MIT licensed on GitHub.</p></details>
-      <details class="faq"><summary>Does findable ask ChatGPT, Perplexity, Claude or Google AI about my page?</summary><p>No. It checks the signals on your page that answer engines can use, such as structured data, direct answers, clear authorship and sources. It does not query any AI product.</p></details>
-      <details class="faq"><summary>Can it scan more than one page?</summary><p>Yes. Crawl Site mode (beta) scans your start page plus internal links, up to 20 pages. The CLI can go further, for example findable -crawl -limit 100 to scan 100 pages.</p></details>
-      <details class="faq"><summary>How do I use it in CI?</summary><p>Run the CLI with -format sarif to upload results to GitHub code scanning. The findable GitHub Action can also fail a build when the score drops below a number you choose.</p></details>
-      <details class="faq"><summary>What are the site checks?</summary><p>With the site option, findable also fetches robots.txt and llms.txt. It reports whether GPTBot, ClaudeBot, PerplexityBot and Google-Extended are blocked. These are shown apart from the score.</p></details>
-      <details class="faq"><summary>What limits does a scan have?</summary><p>A scan reads up to 5MB of a page and gives up after 10s. It fetches public hosts on ports 80 and 443 only.</p></details>
+      <h2 data-i18n="faqHeading">Frequently asked questions</h2>
+      <details class="faq"><summary data-i18n="faq1q">Is findable free?</summary><p data-i18n="faq1a">Yes. It costs $0, needs no signup and the code is MIT licensed on GitHub.</p></details>
+      <details class="faq"><summary data-i18n="faq2q">Does findable ask ChatGPT, Perplexity, Claude or Google AI about my page?</summary><p data-i18n="faq2a">No. It checks the signals on your page that answer engines can use, such as structured data, direct answers, clear authorship and sources. It does not query any AI product.</p></details>
+      <details class="faq"><summary data-i18n="faq3q">Can it scan more than one page?</summary><p data-i18n="faq3a">Yes. Crawl Site mode (beta) scans your start page plus internal links, up to 20 pages. The CLI can go further, for example findable -crawl -limit 100 to scan 100 pages.</p></details>
+      <details class="faq"><summary data-i18n="faq4q">How do I use it in CI?</summary><p data-i18n="faq4a">Run the CLI with -format sarif to upload results to GitHub code scanning. The findable GitHub Action can also fail a build when the score drops below a number you choose.</p></details>
+      <details class="faq"><summary data-i18n="faq5q">What are the site checks?</summary><p data-i18n="faq5a">With the site option, findable also fetches robots.txt and llms.txt. It reports whether GPTBot, ClaudeBot, PerplexityBot and Google-Extended are blocked. These are shown apart from the score.</p></details>
+      <details class="faq"><summary data-i18n="faq6q">What limits does a scan have?</summary><p data-i18n="faq6a">A scan reads up to 5MB of a page and gives up after 10s. It fetches public hosts on ports 80 and 443 only.</p></details>
 
       <h2 id="contact">How do I contact the author?</h2>
       <p>Open an issue on <a href="https://github.com/nadimtuhin/findable/issues">GitHub</a> with a bug, a question or a check you want added. The source is at <a href="https://github.com/nadimtuhin/findable">github.com/nadimtuhin/findable</a>.</p>
@@ -568,9 +576,9 @@ findable https://example.com</code></pre>
   <footer class="site-footer">
     <div class="container">
       <nav aria-label="Footer">
-        <a href="/#about">About</a> · <a href="/#contact">Contact</a> · <a href="/learn">Learn</a> · <a href="https://github.com/nadimtuhin/findable">GitHub</a> · <a href="https://github.com/nadimtuhin/findable/issues">Issues</a>
+        <a href="/#about" data-i18n="footAbout">About</a> · <a href="/#contact" data-i18n="footContact">Contact</a> · <a href="/learn" data-i18n="navLearn">Learn</a> · <a href="https://github.com/nadimtuhin/findable">GitHub</a> · <a href="https://github.com/nadimtuhin/findable/issues" data-i18n="footIssues">Issues</a>
       </nav>
-      <p>findable is MIT licensed. Built by Nadim Tuhin.</p>
+      <p data-i18n="footLicense">findable is MIT licensed. Built by Nadim Tuhin.</p>
     </div>
   </footer>
 
@@ -579,11 +587,11 @@ findable https://example.com</code></pre>
   <dialog id="apiModal" class="modal" aria-labelledby="apiModalTitle">
     <div class="modal-card">
       <div class="modal-title-row">
-        <h2 class="modal-title" id="apiModalTitle">API and MCP tools</h2>
-        <button type="button" class="btn-close" id="btnCloseApiModal" aria-label="Close dialog">&times;</button>
+        <h2 class="modal-title" id="apiModalTitle" data-i18n="apiTitle">API and MCP tools</h2>
+        <button type="button" class="btn-close" id="btnCloseApiModal" aria-label="Close dialog" data-i18n-attr="aria-label:closeDialog">&times;</button>
       </div>
-      <p>Run findable from CI, a terminal or an AI agent. Command line and API examples are on the main page.</p>
-      <h3>MCP in Claude, Cursor or Windsurf</h3>
+      <p data-i18n="apiIntro">Run findable from CI, a terminal or an AI agent. Command line and API examples are on the main page.</p>
+      <h3 data-i18n="apiMcpHeading">MCP in Claude, Cursor or Windsurf</h3>
       <pre><code>{
   "mcpServers": {
     "findable": { "command": "npx", "args": ["-y", "findable-mcp"] }
@@ -601,6 +609,280 @@ findable https://example.com</code></pre>
       return node;
     };
     const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const I18N = {
+      en: {
+        navLearn: "Learn", apiMcp: "API & MCP", apiBtnLabel: "API and MCP tools", themeToggle: "Toggle color theme", language: "Language", navPrimary: "Primary",
+        heroBadge: "70+ checks · 0 signups · 100% free",
+        heroTitle1: "Is your site findable by Google and by", heroTitle2: "ChatGPT, Perplexity and Claude", heroTitle3: "?",
+        heroSub: "Paste a URL. findable scores the page for SEO, AEO and GEO with 70+ checks, then shows the fixes worth the most points. New to the terms? Read the",
+        heroSubLink: "plain-words guide",
+        modePage: "Scan page", modeSite: "Crawl site", urlLabel: "Page URL to audit", scanNow: "Scan now",
+        keyphrase: "Focus keyphrase (optional)", scanFailed: "Scan failed", retry: "Retry", recentScans: "Recent scans", clear: "Clear",
+        trust1: "70+ page checks", trust2: "SEO, AEO and GEO", trust3: "Free API and MCP", crawlRegion: "Crawl progress",
+        agentTitle: "findable is checking", overallScore: "Overall score",
+        copy: "Copy", share: "Share", more: "More…", shareTextLabel: "Text to paste anywhere", copyText: "Copy text", copyLink: "Copy link",
+        cwvHeading: "Page speed (mobile)", watchHeading: "Watch this score", watchLead: "Get an email when your score changes. Free, no account.",
+        email: "Email", watchBtn: "Watch", watchConsent: "Email me about this site's score. Unsubscribe anytime. We never share your email.",
+        nextHeading: "Your next 3 actions", famSEO: "Traditional SEO", famAEO: "Answer Engine (AEO)", famGEO: "Generative (GEO)",
+        weight50: "50% of overall", weight25: "25% of overall",
+        worstSEO: "Top failing SEO checks", worstAEO: "Top failing AEO checks", worstGEO: "Top failing GEO checks",
+        passingHeading: "Passing and not applicable", footAbout: "About", footContact: "Contact", footIssues: "Issues",
+        footLicense: "findable is MIT licensed. Built by Nadim Tuhin.",
+        faqHeading: "Frequently asked questions",
+        faq1q: "Is findable free?", faq1a: "Yes. It costs $0, needs no signup and the code is MIT licensed on GitHub.",
+        faq2q: "Does findable ask ChatGPT, Perplexity, Claude or Google AI about my page?", faq2a: "No. It checks the signals on your page that answer engines can use, such as structured data, direct answers, clear authorship and sources. It does not query any AI product.",
+        faq3q: "Can it scan more than one page?", faq3a: "Yes. Crawl Site mode (beta) scans your start page plus internal links, up to 20 pages. The CLI can go further, for example findable -crawl -limit 100 to scan 100 pages.",
+        faq4q: "How do I use it in CI?", faq4a: "Run the CLI with -format sarif to upload results to GitHub code scanning. The findable GitHub Action can also fail a build when the score drops below a number you choose.",
+        faq5q: "What are the site checks?", faq5a: "With the site option, findable also fetches robots.txt and llms.txt. It reports whether GPTBot, ClaudeBot, PerplexityBot and Google-Extended are blocked. These are shown apart from the score.",
+        faq6q: "What limits does a scan have?", faq6a: "A scan reads up to 5MB of a page and gives up after 10s. It fetches public hosts on ports 80 and 443 only.",
+        apiTitle: "API and MCP tools", apiIntro: "Run findable from CI, a terminal or an AI agent. Command line and API examples are on the main page.",
+        apiMcpHeading: "MCP in Claude, Cursor or Windsurf", closeDialog: "Close dialog",
+        scanning: "Scanning...", crawling: "Crawling...",
+        stepFetch: "Fetching the page", stepSEO: "Checking SEO", stepAEO: "Checking AEO", stepGEO: "Checking GEO", stepRank: "Ranking your fixes",
+        stepFor: "{step} for {host}", scanningHost: "Scanning {host}", apiStatus: "The scan API answered with status {n}", historyCleared: "History cleared",
+        gradeA: "A+ Excellent", gradeB: "A Good", gradeC: "B Fair", gradeD: "C Needs work", gradeF: "Critical issues",
+        head90: "Findable. Nicely done.", head70: "Mostly findable, with quick wins left", head50: "Findable in parts. Three fixes move the needle", head0: "Hard to find right now. Start with three fixes",
+        allPass: "Every applicable check passes. Re-scan after each release to keep it that way.",
+        nextOne: "This fix recovers {got} of the {all} points you are missing.", nextMany: "These {n} fixes recover {got} of the {all} points you are missing.",
+        pts: "{n} pts", answerEngines: "Answer engines this helps",
+        cwvTesting: "Testing page speed with Google PageSpeed Insights (takes about 20 seconds)…", cwvScore: "Performance {score}/100 · {passed} of {total} vitals good", cwvFail: "Page speed test failed",
+        docTitle: "{host} scored {n}/100 · findable", audited: "Audited {date}", keyphraseLine: " · keyphrase: {kp}",
+        summaryLine: "Overall score: {n} out of 100.", failingSummary: "{f} of {a} checks failing", famDetail: "{p} / {t} passed",
+        issuesCount: "Failing checks ({n})", noFailingAll: "No failing checks. Every applicable check passes.", noPassing: "No passing checks yet.", noFailingShort: "No failing checks",
+        groupTitle: "{fam} · {n} · {pts} each", statusPass: "PASS", statusFail: "FAIL", statusNA: "N/A", worth: "worth {pts}", howToFix: "How to fix: ",
+        showPassing: "Show passing ({n})", hidePassing: "Hide passing ({n})",
+        scanComplete: "Scan complete for {url}: overall {o} of 100, {f} failing checks.",
+        jsonExported: "JSON report exported", csvExported: "CSV report exported", mdExported: "Markdown report exported", summaryCopied: "Summary copied to clipboard",
+        copyReport: "findable audit for {url}:\nOverall: {o}/100 | SEO: {s} | AEO: {a} | GEO: {g}\nGenerated via findable.page",
+        watchSaving: "Saving…", watchOk: "You're on the list. We'll email you when the score moves.", watchFail: "Could not save, try again",
+        shareSummary: "{host} scores {n}/100 on findable (SEO {s}, AEO {a}, GEO {g}).", shareAsk: "How findable is your site by Google and AI?",
+        shareFull: "Full report: {link}", shareTitle: "findable report", textCopied: "Text copied", linkCopied: "Link copied", copyFail: "Could not copy",
+        crawlStart: "Scanning start page...", crawlPage: "Crawling page {i} of {n}: {url}", crawlWait: "Pausing for the rate limit, then page {i} of {n}…",
+        crawlDone: "Crawl complete! Scanned {n} pages.", colOverall: "Overall",
+      },
+      de: {
+        navLearn: "Lernen", apiMcp: "API & MCP", apiBtnLabel: "API- und MCP-Tools", themeToggle: "Farbschema wechseln", language: "Sprache", navPrimary: "Hauptnavigation",
+        heroBadge: "70+ Checks · 0 Anmeldungen · 100 % kostenlos",
+        heroTitle1: "Wird deine Website von Google und von", heroTitle2: "ChatGPT, Perplexity und Claude", heroTitle3: " gefunden?",
+        heroSub: "URL einfügen. findable bewertet die Seite mit über 70 Checks für SEO, AEO und GEO und zeigt dir die Fixes, die die meisten Punkte bringen. Neu bei den Begriffen? Lies den",
+        heroSubLink: "Klartext-Leitfaden",
+        modePage: "Seite scannen", modeSite: "Website crawlen", urlLabel: "Zu prüfende Seiten-URL", scanNow: "Jetzt scannen",
+        keyphrase: "Fokus-Keyphrase (optional)", scanFailed: "Scan fehlgeschlagen", retry: "Erneut versuchen", recentScans: "Letzte Scans", clear: "Löschen",
+        trust1: "70+ Seiten-Checks", trust2: "SEO, AEO und GEO", trust3: "Kostenlose API und MCP", crawlRegion: "Crawl-Fortschritt",
+        agentTitle: "findable prüft", overallScore: "Gesamtwert",
+        copy: "Kopieren", share: "Teilen", more: "Mehr…", shareTextLabel: "Text zum Einfügen überall", copyText: "Text kopieren", copyLink: "Link kopieren",
+        cwvHeading: "Seitengeschwindigkeit (mobil)", watchHeading: "Diesen Wert beobachten", watchLead: "Erhalte eine E-Mail, wenn sich dein Wert ändert. Kostenlos, ohne Konto.",
+        email: "E-Mail", watchBtn: "Beobachten", watchConsent: "Sende mir eine E-Mail zum Wert dieser Website. Jederzeit abbestellbar. Wir geben deine E-Mail nie weiter.",
+        nextHeading: "Deine nächsten 3 Aktionen", famSEO: "Klassisches SEO", famAEO: "Antwortmaschinen (AEO)", famGEO: "Generativ (GEO)",
+        weight50: "50 % vom Gesamtwert", weight25: "25 % vom Gesamtwert",
+        worstSEO: "Wichtigste fehlgeschlagene SEO-Checks", worstAEO: "Wichtigste fehlgeschlagene AEO-Checks", worstGEO: "Wichtigste fehlgeschlagene GEO-Checks",
+        passingHeading: "Bestanden und nicht anwendbar", footAbout: "Über uns", footContact: "Kontakt", footIssues: "Issues",
+        footLicense: "findable steht unter MIT-Lizenz. Entwickelt von Nadim Tuhin.",
+        faqHeading: "Häufige Fragen",
+        faq1q: "Ist findable kostenlos?", faq1a: "Ja. Es kostet 0 $, braucht keine Anmeldung, und der Code steht unter MIT-Lizenz auf GitHub.",
+        faq2q: "Fragt findable ChatGPT, Perplexity, Claude oder Google AI nach meiner Seite?", faq2a: "Nein. Es prüft die Signale auf deiner Seite, die Antwortmaschinen nutzen können, etwa strukturierte Daten, direkte Antworten, klare Urheberschaft und Quellen. Es fragt kein KI-Produkt ab.",
+        faq3q: "Kann es mehr als eine Seite scannen?", faq3a: "Ja. Der Modus „Website crawlen“ (Beta) scannt deine Startseite plus interne Links, bis zu 20 Seiten. Die CLI schafft mehr, zum Beispiel findable -crawl -limit 100 für 100 Seiten.",
+        faq4q: "Wie nutze ich es in CI?", faq4a: "Starte die CLI mit -format sarif, um Ergebnisse ins GitHub Code Scanning hochzuladen. Die findable GitHub Action kann außerdem einen Build fehlschlagen lassen, wenn der Wert unter eine gewählte Zahl fällt.",
+        faq5q: "Was sind die Website-Checks?", faq5a: "Mit der Website-Option lädt findable zusätzlich robots.txt und llms.txt. Es meldet, ob GPTBot, ClaudeBot, PerplexityBot und Google-Extended blockiert sind. Diese Ergebnisse werden getrennt vom Wert angezeigt.",
+        faq6q: "Welche Grenzen hat ein Scan?", faq6a: "Ein Scan liest bis zu 5 MB einer Seite und gibt nach 10 s auf. Er ruft nur öffentliche Hosts auf den Ports 80 und 443 ab.",
+        apiTitle: "API- und MCP-Tools", apiIntro: "Nutze findable in CI, im Terminal oder mit einem KI-Agenten. Beispiele für Kommandozeile und API stehen auf der Hauptseite.",
+        apiMcpHeading: "MCP in Claude, Cursor oder Windsurf", closeDialog: "Dialog schließen",
+        scanning: "Scanne...", crawling: "Crawle...",
+        stepFetch: "Seite wird abgerufen", stepSEO: "SEO wird geprüft", stepAEO: "AEO wird geprüft", stepGEO: "GEO wird geprüft", stepRank: "Fixes werden gereiht",
+        stepFor: "{step}: {host}", scanningHost: "{host} wird gescannt", apiStatus: "Die Scan-API antwortete mit Status {n}", historyCleared: "Verlauf gelöscht",
+        gradeA: "A+ Ausgezeichnet", gradeB: "A Gut", gradeC: "B Ordentlich", gradeD: "C Verbesserungsbedarf", gradeF: "Kritische Probleme",
+        head90: "Gut zu finden. Starke Arbeit.", head70: "Meist gut zu finden, ein paar schnelle Gewinne bleiben", head50: "Teilweise auffindbar. Drei Fixes bringen den Durchbruch", head0: "Aktuell schwer zu finden. Starte mit drei Fixes",
+        allPass: "Alle anwendbaren Checks bestanden. Scanne nach jedem Release erneut, damit es so bleibt.",
+        nextOne: "Dieser Fix bringt {got} der {all} fehlenden Punkte zurück.", nextMany: "Diese {n} Fixes bringen {got} der {all} fehlenden Punkte zurück.",
+        pts: "{n} Pkt.", answerEngines: "Antwortmaschinen, denen das hilft",
+        cwvTesting: "Seitengeschwindigkeit wird mit Google PageSpeed Insights getestet (dauert etwa 20 Sekunden)…", cwvScore: "Leistung {score}/100 · {passed} von {total} Vitalwerten gut", cwvFail: "Geschwindigkeitstest fehlgeschlagen",
+        docTitle: "{host} erreicht {n}/100 · findable", audited: "Geprüft am {date}", keyphraseLine: " · Keyphrase: {kp}",
+        summaryLine: "Gesamtwert: {n} von 100.", failingSummary: "{f} von {a} Checks fehlgeschlagen", famDetail: "{p} / {t} bestanden",
+        issuesCount: "Fehlgeschlagene Checks ({n})", noFailingAll: "Keine fehlgeschlagenen Checks. Alle anwendbaren Checks bestanden.", noPassing: "Noch keine bestandenen Checks.", noFailingShort: "Keine fehlgeschlagenen Checks",
+        groupTitle: "{fam} · {n} · je {pts}", statusPass: "OK", statusFail: "FEHLER", statusNA: "k. A.", worth: "Wert {pts}", howToFix: "So behebst du es: ",
+        showPassing: "Bestandene anzeigen ({n})", hidePassing: "Bestandene ausblenden ({n})",
+        scanComplete: "Scan für {url} abgeschlossen: Gesamt {o} von 100, {f} fehlgeschlagene Checks.",
+        jsonExported: "JSON-Bericht exportiert", csvExported: "CSV-Bericht exportiert", mdExported: "Markdown-Bericht exportiert", summaryCopied: "Zusammenfassung in die Zwischenablage kopiert",
+        copyReport: "findable-Audit für {url}:\nGesamt: {o}/100 | SEO: {s} | AEO: {a} | GEO: {g}\nErstellt mit findable.page",
+        watchSaving: "Speichere…", watchOk: "Du bist auf der Liste. Wir mailen dir, wenn sich der Wert ändert.", watchFail: "Speichern fehlgeschlagen, bitte erneut versuchen",
+        shareSummary: "{host} erreicht {n}/100 bei findable (SEO {s}, AEO {a}, GEO {g}).", shareAsk: "Wie gut findet man deine Website bei Google und KI?",
+        shareFull: "Ganzer Bericht: {link}", shareTitle: "findable-Bericht", textCopied: "Text kopiert", linkCopied: "Link kopiert", copyFail: "Kopieren fehlgeschlagen",
+        crawlStart: "Startseite wird gescannt...", crawlPage: "Seite {i} von {n} wird gecrawlt: {url}", crawlWait: "Pause wegen Ratenlimit, dann Seite {i} von {n}…",
+        crawlDone: "Crawl abgeschlossen! {n} Seiten gescannt.", colOverall: "Gesamt",
+      },
+      es: {
+        navLearn: "Aprender", apiMcp: "API & MCP", apiBtnLabel: "Herramientas API y MCP", themeToggle: "Cambiar tema de color", language: "Idioma", navPrimary: "Principal",
+        heroBadge: "Más de 70 comprobaciones · 0 registros · 100 % gratis",
+        heroTitle1: "¿Pueden encontrar tu sitio Google y", heroTitle2: "ChatGPT, Perplexity y Claude", heroTitle3: "?",
+        heroSub: "Pega una URL. findable puntúa la página en SEO, AEO y GEO con más de 70 comprobaciones y te muestra las correcciones que más puntos valen. ¿Nuevo con los términos? Lee la",
+        heroSubLink: "guía en palabras sencillas",
+        modePage: "Escanear página", modeSite: "Rastrear sitio", urlLabel: "URL de la página a auditar", scanNow: "Escanear ahora",
+        keyphrase: "Frase clave principal (opcional)", scanFailed: "Falló el escaneo", retry: "Reintentar", recentScans: "Escaneos recientes", clear: "Borrar",
+        trust1: "Más de 70 comprobaciones", trust2: "SEO, AEO y GEO", trust3: "API y MCP gratis", crawlRegion: "Progreso del rastreo",
+        agentTitle: "findable está revisando", overallScore: "Puntuación global",
+        copy: "Copiar", share: "Compartir", more: "Más…", shareTextLabel: "Texto para pegar donde quieras", copyText: "Copiar texto", copyLink: "Copiar enlace",
+        cwvHeading: "Velocidad de página (móvil)", watchHeading: "Vigila esta puntuación", watchLead: "Recibe un correo cuando cambie tu puntuación. Gratis, sin cuenta.",
+        email: "Correo", watchBtn: "Vigilar", watchConsent: "Quiero recibir un correo sobre la puntuación de este sitio. Puedes darte de baja cuando quieras. Nunca compartimos tu correo.",
+        nextHeading: "Tus próximas 3 acciones", famSEO: "SEO tradicional", famAEO: "Motores de respuesta (AEO)", famGEO: "Generativo (GEO)",
+        weight50: "50 % del total", weight25: "25 % del total",
+        worstSEO: "Principales comprobaciones SEO fallidas", worstAEO: "Principales comprobaciones AEO fallidas", worstGEO: "Principales comprobaciones GEO fallidas",
+        passingHeading: "Superadas y no aplicables", footAbout: "Acerca de", footContact: "Contacto", footIssues: "Incidencias",
+        footLicense: "findable tiene licencia MIT. Creado por Nadim Tuhin.",
+        faqHeading: "Preguntas frecuentes",
+        faq1q: "¿findable es gratis?", faq1a: "Sí. Cuesta 0 $, no pide registro y el código tiene licencia MIT en GitHub.",
+        faq2q: "¿findable le pregunta a ChatGPT, Perplexity, Claude o Google AI sobre mi página?", faq2a: "No. Revisa las señales de tu página que los motores de respuesta pueden usar, como datos estructurados, respuestas directas, autoría clara y fuentes. No consulta ningún producto de IA.",
+        faq3q: "¿Puede escanear más de una página?", faq3a: "Sí. El modo Rastrear sitio (beta) escanea tu página de inicio y sus enlaces internos, hasta 20 páginas. La CLI llega más lejos, por ejemplo findable -crawl -limit 100 para escanear 100 páginas.",
+        faq4q: "¿Cómo lo uso en CI?", faq4a: "Ejecuta la CLI con -format sarif para subir los resultados al escaneo de código de GitHub. La GitHub Action de findable también puede hacer fallar una compilación cuando la puntuación baja de un número que elijas.",
+        faq5q: "¿Qué son las comprobaciones del sitio?", faq5a: "Con la opción de sitio, findable también descarga robots.txt y llms.txt. Informa si GPTBot, ClaudeBot, PerplexityBot y Google-Extended están bloqueados. Estos datos se muestran aparte de la puntuación.",
+        faq6q: "¿Qué límites tiene un escaneo?", faq6a: "Un escaneo lee hasta 5 MB de una página y se rinde a los 10 s. Solo accede a hosts públicos en los puertos 80 y 443.",
+        apiTitle: "Herramientas API y MCP", apiIntro: "Ejecuta findable desde CI, una terminal o un agente de IA. Los ejemplos de línea de comandos y API están en la página principal.",
+        apiMcpHeading: "MCP en Claude, Cursor o Windsurf", closeDialog: "Cerrar diálogo",
+        scanning: "Escaneando...", crawling: "Rastreando...",
+        stepFetch: "Descargando la página", stepSEO: "Revisando SEO", stepAEO: "Revisando AEO", stepGEO: "Revisando GEO", stepRank: "Ordenando tus correcciones",
+        stepFor: "{step}: {host}", scanningHost: "Escaneando {host}", apiStatus: "La API de escaneo respondió con el estado {n}", historyCleared: "Historial borrado",
+        gradeA: "A+ Excelente", gradeB: "A Bueno", gradeC: "B Aceptable", gradeD: "C Necesita mejoras", gradeF: "Problemas críticos",
+        head90: "Fácil de encontrar. Buen trabajo.", head70: "Bastante fácil de encontrar, con mejoras rápidas pendientes", head50: "Se encuentra a medias. Tres correcciones marcan la diferencia", head0: "Ahora es difícil de encontrar. Empieza con tres correcciones",
+        allPass: "Todas las comprobaciones aplicables se superan. Vuelve a escanear tras cada versión para mantenerlo.",
+        nextOne: "Esta corrección recupera {got} de los {all} puntos que te faltan.", nextMany: "Estas {n} correcciones recuperan {got} de los {all} puntos que te faltan.",
+        pts: "{n} pts", answerEngines: "Motores de respuesta a los que ayuda",
+        cwvTesting: "Probando la velocidad con Google PageSpeed Insights (tarda unos 20 segundos)…", cwvScore: "Rendimiento {score}/100 · {passed} de {total} métricas vitales buenas", cwvFail: "Falló la prueba de velocidad",
+        docTitle: "{host} obtiene {n}/100 · findable", audited: "Auditado el {date}", keyphraseLine: " · frase clave: {kp}",
+        summaryLine: "Puntuación global: {n} de 100.", failingSummary: "{f} de {a} comprobaciones fallan", famDetail: "{p} / {t} superadas",
+        issuesCount: "Comprobaciones fallidas ({n})", noFailingAll: "Ninguna comprobación falla. Todas las aplicables se superan.", noPassing: "Aún no hay comprobaciones superadas.", noFailingShort: "Ninguna comprobación falla",
+        groupTitle: "{fam} · {n} · {pts} cada una", statusPass: "OK", statusFail: "FALLO", statusNA: "N/D", worth: "vale {pts}", howToFix: "Cómo corregirlo: ",
+        showPassing: "Mostrar superadas ({n})", hidePassing: "Ocultar superadas ({n})",
+        scanComplete: "Escaneo de {url} completado: global {o} de 100, {f} comprobaciones fallidas.",
+        jsonExported: "Informe JSON exportado", csvExported: "Informe CSV exportado", mdExported: "Informe Markdown exportado", summaryCopied: "Resumen copiado al portapapeles",
+        copyReport: "Auditoría de findable para {url}:\nGlobal: {o}/100 | SEO: {s} | AEO: {a} | GEO: {g}\nGenerado con findable.page",
+        watchSaving: "Guardando…", watchOk: "Estás en la lista. Te escribiremos cuando cambie la puntuación.", watchFail: "No se pudo guardar, inténtalo de nuevo",
+        shareSummary: "{host} obtiene {n}/100 en findable (SEO {s}, AEO {a}, GEO {g}).", shareAsk: "¿Qué tan fácil de encontrar es tu sitio en Google y en la IA?",
+        shareFull: "Informe completo: {link}", shareTitle: "Informe de findable", textCopied: "Texto copiado", linkCopied: "Enlace copiado", copyFail: "No se pudo copiar",
+        crawlStart: "Escaneando la página de inicio...", crawlPage: "Rastreando página {i} de {n}: {url}", crawlWait: "Pausa por el límite de peticiones, luego página {i} de {n}…",
+        crawlDone: "¡Rastreo completo! Se escanearon {n} páginas.", colOverall: "Global",
+      },
+      tr: {
+        navLearn: "Öğren", apiMcp: "API & MCP", apiBtnLabel: "API ve MCP araçları", themeToggle: "Renk temasını değiştir", language: "Dil", navPrimary: "Ana",
+        heroBadge: "70+ kontrol · 0 kayıt · %100 ücretsiz",
+        heroTitle1: "Siteni Google ve", heroTitle2: "ChatGPT, Perplexity ve Claude", heroTitle3: " bulabiliyor mu?",
+        heroSub: "Bir URL yapıştır. findable sayfayı 70'ten fazla kontrolle SEO, AEO ve GEO açısından puanlar, sonra en çok puan getiren düzeltmeleri gösterir. Terimlere yabancı mısın? Şunu oku:",
+        heroSubLink: "sade dille rehber",
+        modePage: "Sayfayı tara", modeSite: "Siteyi tara", urlLabel: "Denetlenecek sayfa URL'si", scanNow: "Şimdi tara",
+        keyphrase: "Odak anahtar ifade (isteğe bağlı)", scanFailed: "Tarama başarısız", retry: "Yeniden dene", recentScans: "Son taramalar", clear: "Temizle",
+        trust1: "70+ sayfa kontrolü", trust2: "SEO, AEO ve GEO", trust3: "Ücretsiz API ve MCP", crawlRegion: "Tarama ilerlemesi",
+        agentTitle: "findable şunu kontrol ediyor:", overallScore: "Genel puan",
+        copy: "Kopyala", share: "Paylaş", more: "Daha fazla…", shareTextLabel: "Her yere yapıştırılacak metin", copyText: "Metni kopyala", copyLink: "Bağlantıyı kopyala",
+        cwvHeading: "Sayfa hızı (mobil)", watchHeading: "Bu puanı izle", watchLead: "Puanın değişince e-posta al. Ücretsiz, hesap gerekmez.",
+        email: "E-posta", watchBtn: "İzle", watchConsent: "Bu sitenin puanı hakkında bana e-posta gönder. İstediğin zaman abonelikten çık. E-postanı asla paylaşmayız.",
+        nextHeading: "Sıradaki 3 adımın", famSEO: "Geleneksel SEO", famAEO: "Cevap motoru (AEO)", famGEO: "Üretken (GEO)",
+        weight50: "Genel puanın %50'si", weight25: "Genel puanın %25'i",
+        worstSEO: "En çok başarısız olan SEO kontrolleri", worstAEO: "En çok başarısız olan AEO kontrolleri", worstGEO: "En çok başarısız olan GEO kontrolleri",
+        passingHeading: "Geçenler ve uygulanamayanlar", footAbout: "Hakkında", footContact: "İletişim", footIssues: "Sorunlar",
+        footLicense: "findable MIT lisanslıdır. Nadim Tuhin tarafından yapıldı.",
+        faqHeading: "Sık sorulan sorular",
+        faq1q: "findable ücretsiz mi?", faq1a: "Evet. Maliyeti 0 $, kayıt gerektirmez ve kod GitHub'da MIT lisanslıdır.",
+        faq2q: "findable sayfam hakkında ChatGPT, Perplexity, Claude veya Google AI'a soruyor mu?", faq2a: "Hayır. Sayfandaki cevap motorlarının kullanabileceği sinyallere bakar: yapılandırılmış veri, doğrudan cevaplar, net yazar bilgisi ve kaynaklar. Hiçbir yapay zekâ ürününü sorgulamaz.",
+        faq3q: "Birden fazla sayfayı tarayabilir mi?", faq3a: "Evet. Siteyi tara modu (beta) başlangıç sayfanı ve iç bağlantıları tarar, en fazla 20 sayfa. CLI daha ileri gidebilir, örneğin 100 sayfa taramak için findable -crawl -limit 100.",
+        faq4q: "CI'da nasıl kullanırım?", faq4a: "Sonuçları GitHub kod taramasına yüklemek için CLI'ı -format sarif ile çalıştır. findable GitHub Action, puan seçtiğin sayının altına düşerse derlemeyi de başarısız yapabilir.",
+        faq5q: "Site kontrolleri nedir?", faq5a: "Site seçeneğiyle findable ayrıca robots.txt ve llms.txt dosyalarını çeker. GPTBot, ClaudeBot, PerplexityBot ve Google-Extended'ın engellenip engellenmediğini bildirir. Bunlar puandan ayrı gösterilir.",
+        faq6q: "Bir taramanın sınırları neler?", faq6a: "Tarama bir sayfanın en fazla 5 MB'ını okur ve 10 sn sonra vazgeçer. Yalnızca 80 ve 443 portlarındaki herkese açık sunuculara bağlanır.",
+        apiTitle: "API ve MCP araçları", apiIntro: "findable'ı CI'dan, terminalden veya bir yapay zekâ ajanından çalıştır. Komut satırı ve API örnekleri ana sayfada.",
+        apiMcpHeading: "Claude, Cursor veya Windsurf'te MCP", closeDialog: "İletişim kutusunu kapat",
+        scanning: "Taranıyor...", crawling: "Site taranıyor...",
+        stepFetch: "Sayfa getiriliyor", stepSEO: "SEO kontrol ediliyor", stepAEO: "AEO kontrol ediliyor", stepGEO: "GEO kontrol ediliyor", stepRank: "Düzeltmeler sıralanıyor",
+        stepFor: "{step}: {host}", scanningHost: "{host} taranıyor", apiStatus: "Tarama API'si {n} durumuyla yanıt verdi", historyCleared: "Geçmiş temizlendi",
+        gradeA: "A+ Mükemmel", gradeB: "A İyi", gradeC: "B Orta", gradeD: "C Çalışma gerek", gradeF: "Kritik sorunlar",
+        head90: "Kolay bulunuyor. Güzel iş.", head70: "Çoğunlukla bulunabilir, hızlı kazanımlar var", head50: "Kısmen bulunabilir. Üç düzeltme fark yaratır", head0: "Şu an bulunması zor. Üç düzeltmeyle başla",
+        allPass: "Uygulanabilir tüm kontroller geçti. Böyle kalması için her sürümden sonra yeniden tara.",
+        nextOne: "Bu düzeltme eksik {all} puanın {got} kadarını geri kazandırır.", nextMany: "Bu {n} düzeltme eksik {all} puanın {got} kadarını geri kazandırır.",
+        pts: "{n} puan", answerEngines: "Bunun yardımcı olduğu cevap motorları",
+        cwvTesting: "Sayfa hızı Google PageSpeed Insights ile test ediliyor (yaklaşık 20 saniye sürer)…", cwvScore: "Performans {score}/100 · {total} temel metrikten {passed} tanesi iyi", cwvFail: "Sayfa hızı testi başarısız",
+        docTitle: "{host} {n}/100 puan aldı · findable", audited: "Denetim: {date}", keyphraseLine: " · anahtar ifade: {kp}",
+        summaryLine: "Genel puan: 100 üzerinden {n}.", failingSummary: "{a} kontrolün {f} tanesi başarısız", famDetail: "{p} / {t} geçti",
+        issuesCount: "Başarısız kontroller ({n})", noFailingAll: "Başarısız kontrol yok. Uygulanabilir tüm kontroller geçti.", noPassing: "Henüz geçen kontrol yok.", noFailingShort: "Başarısız kontrol yok",
+        groupTitle: "{fam} · {n} · her biri {pts}", statusPass: "GEÇTİ", statusFail: "KALDI", statusNA: "YOK", worth: "değeri {pts}", howToFix: "Nasıl düzeltilir: ",
+        showPassing: "Geçenleri göster ({n})", hidePassing: "Geçenleri gizle ({n})",
+        scanComplete: "{url} taraması tamamlandı: genel 100 üzerinden {o}, {f} başarısız kontrol.",
+        jsonExported: "JSON raporu dışa aktarıldı", csvExported: "CSV raporu dışa aktarıldı", mdExported: "Markdown raporu dışa aktarıldı", summaryCopied: "Özet panoya kopyalandı",
+        copyReport: "{url} için findable denetimi:\nGenel: {o}/100 | SEO: {s} | AEO: {a} | GEO: {g}\nfindable.page ile oluşturuldu",
+        watchSaving: "Kaydediliyor…", watchOk: "Listedesin. Puan değişince sana e-posta göndereceğiz.", watchFail: "Kaydedilemedi, tekrar dene",
+        shareSummary: "{host}, findable'da {n}/100 aldı (SEO {s}, AEO {a}, GEO {g}).", shareAsk: "Siten Google ve yapay zekâ tarafından ne kadar bulunabilir?",
+        shareFull: "Tam rapor: {link}", shareTitle: "findable raporu", textCopied: "Metin kopyalandı", linkCopied: "Bağlantı kopyalandı", copyFail: "Kopyalanamadı",
+        crawlStart: "Başlangıç sayfası taranıyor...", crawlPage: "{n} sayfadan {i}. sayfa taranıyor: {url}", crawlWait: "İstek sınırı için bekleniyor, sonra {n} sayfadan {i}. sayfa…",
+        crawlDone: "Tarama tamamlandı! {n} sayfa tarandı.", colOverall: "Genel",
+      },
+      ru: {
+        navLearn: "Узнать больше", apiMcp: "API & MCP", apiBtnLabel: "Инструменты API и MCP", themeToggle: "Сменить цветовую тему", language: "Язык", navPrimary: "Основная",
+        heroBadge: "70+ проверок · 0 регистраций · 100% бесплатно",
+        heroTitle1: "Находят ли твой сайт Google и", heroTitle2: "ChatGPT, Perplexity и Claude", heroTitle3: "?",
+        heroSub: "Вставь URL. findable оценит страницу по SEO, AEO и GEO более чем 70 проверками и покажет исправления, которые дают больше всего баллов. Не знаком с терминами? Прочитай",
+        heroSubLink: "объяснение простыми словами",
+        modePage: "Сканировать страницу", modeSite: "Обойти сайт", urlLabel: "URL страницы для аудита", scanNow: "Сканировать",
+        keyphrase: "Ключевая фраза (необязательно)", scanFailed: "Сканирование не удалось", retry: "Повторить", recentScans: "Недавние сканирования", clear: "Очистить",
+        trust1: "70+ проверок страницы", trust2: "SEO, AEO и GEO", trust3: "Бесплатные API и MCP", crawlRegion: "Ход обхода",
+        agentTitle: "findable проверяет", overallScore: "Общая оценка",
+        copy: "Копировать", share: "Поделиться", more: "Ещё…", shareTextLabel: "Текст, который можно вставить куда угодно", copyText: "Копировать текст", copyLink: "Копировать ссылку",
+        cwvHeading: "Скорость страницы (мобильная)", watchHeading: "Следить за оценкой", watchLead: "Получай письмо, когда оценка меняется. Бесплатно, без аккаунта.",
+        email: "Эл. почта", watchBtn: "Следить", watchConsent: "Присылай мне письма об оценке этого сайта. Отписаться можно в любой момент. Мы никому не передаём твою почту.",
+        nextHeading: "Твои 3 следующих шага", famSEO: "Классическое SEO", famAEO: "Ответные системы (AEO)", famGEO: "Генеративные системы (GEO)",
+        weight50: "50% общей оценки", weight25: "25% общей оценки",
+        worstSEO: "Главные проваленные проверки SEO", worstAEO: "Главные проваленные проверки AEO", worstGEO: "Главные проваленные проверки GEO",
+        passingHeading: "Пройденные и неприменимые", footAbout: "О проекте", footContact: "Контакты", footIssues: "Задачи",
+        footLicense: "findable распространяется по лицензии MIT. Автор: Nadim Tuhin.",
+        faqHeading: "Частые вопросы",
+        faq1q: "findable бесплатный?", faq1a: "Да. Он стоит 0 $, не требует регистрации, а код открыт под лицензией MIT на GitHub.",
+        faq2q: "findable спрашивает ChatGPT, Perplexity, Claude или Google AI о моей странице?", faq2a: "Нет. Он проверяет сигналы на твоей странице, которые могут использовать ответные системы: структурированные данные, прямые ответы, понятное авторство и источники. Ни один ИИ-продукт он не опрашивает.",
+        faq3q: "Можно ли просканировать больше одной страницы?", faq3a: "Да. Режим «Обойти сайт» (бета) сканирует стартовую страницу и внутренние ссылки, до 20 страниц. CLI может больше, например findable -crawl -limit 100 просканирует 100 страниц.",
+        faq4q: "Как использовать в CI?", faq4a: "Запусти CLI с -format sarif, чтобы загрузить результаты в GitHub code scanning. GitHub Action findable также может провалить сборку, если оценка упадёт ниже выбранного числа.",
+        faq5q: "Что такое проверки сайта?", faq5a: "С опцией сайта findable дополнительно загружает robots.txt и llms.txt. Он сообщает, заблокированы ли GPTBot, ClaudeBot, PerplexityBot и Google-Extended. Эти данные показываются отдельно от оценки.",
+        faq6q: "Какие ограничения у сканирования?", faq6a: "Сканирование читает до 5 МБ страницы и сдаётся через 10 с. Оно обращается только к публичным хостам на портах 80 и 443.",
+        apiTitle: "Инструменты API и MCP", apiIntro: "Запускай findable из CI, терминала или ИИ-агента. Примеры для командной строки и API есть на главной странице.",
+        apiMcpHeading: "MCP в Claude, Cursor или Windsurf", closeDialog: "Закрыть диалог",
+        scanning: "Сканирование...", crawling: "Обход...",
+        stepFetch: "Загружаем страницу", stepSEO: "Проверяем SEO", stepAEO: "Проверяем AEO", stepGEO: "Проверяем GEO", stepRank: "Ранжируем исправления",
+        stepFor: "{step}: {host}", scanningHost: "Сканирование {host}", apiStatus: "API сканирования ответил статусом {n}", historyCleared: "История очищена",
+        gradeA: "A+ Отлично", gradeB: "A Хорошо", gradeC: "B Неплохо", gradeD: "C Нужна доработка", gradeF: "Критические проблемы",
+        head90: "Легко найти. Отличная работа.", head70: "В основном находится, остались быстрые победы", head50: "Находится частично. Три исправления изменят картину", head0: "Сейчас найти трудно. Начни с трёх исправлений",
+        allPass: "Все применимые проверки пройдены. Сканируй заново после каждого релиза, чтобы так и оставалось.",
+        nextOne: "Это исправление вернёт {got} из {all} недостающих баллов.", nextMany: "Эти {n} исправления вернут {got} из {all} недостающих баллов.",
+        pts: "{n} б.", answerEngines: "Ответные системы, которым это помогает",
+        cwvTesting: "Проверяем скорость через Google PageSpeed Insights (около 20 секунд)…", cwvScore: "Производительность {score}/100 · хороших показателей: {passed} из {total}", cwvFail: "Не удалось проверить скорость страницы",
+        docTitle: "{host}: {n}/100 · findable", audited: "Аудит от {date}", keyphraseLine: " · ключевая фраза: {kp}",
+        summaryLine: "Общая оценка: {n} из 100.", failingSummary: "Не пройдено проверок: {f} из {a}", famDetail: "Пройдено {p} / {t}",
+        issuesCount: "Проваленные проверки ({n})", noFailingAll: "Проваленных проверок нет. Все применимые проверки пройдены.", noPassing: "Пройденных проверок пока нет.", noFailingShort: "Проваленных проверок нет",
+        groupTitle: "{fam} · {n} · по {pts}", statusPass: "ОК", statusFail: "ОШИБКА", statusNA: "Н/Д", worth: "стоит {pts}", howToFix: "Как исправить: ",
+        showPassing: "Показать пройденные ({n})", hidePassing: "Скрыть пройденные ({n})",
+        scanComplete: "Сканирование {url} завершено: общая оценка {o} из 100, проваленных проверок: {f}.",
+        jsonExported: "Отчёт JSON экспортирован", csvExported: "Отчёт CSV экспортирован", mdExported: "Отчёт Markdown экспортирован", summaryCopied: "Сводка скопирована в буфер обмена",
+        copyReport: "Аудит findable для {url}:\nОбщая: {o}/100 | SEO: {s} | AEO: {a} | GEO: {g}\nСоздано в findable.page",
+        watchSaving: "Сохраняем…", watchOk: "Ты в списке. Напишем, когда оценка изменится.", watchFail: "Не удалось сохранить, попробуй ещё раз",
+        shareSummary: "{host}: {n}/100 в findable (SEO {s}, AEO {a}, GEO {g}).", shareAsk: "Насколько твой сайт находят Google и ИИ?",
+        shareFull: "Полный отчёт: {link}", shareTitle: "Отчёт findable", textCopied: "Текст скопирован", linkCopied: "Ссылка скопирована", copyFail: "Не удалось скопировать",
+        crawlStart: "Сканируем стартовую страницу...", crawlPage: "Обход страницы {i} из {n}: {url}", crawlWait: "Пауза из-за лимита запросов, затем страница {i} из {n}…",
+        crawlDone: "Обход завершён! Просканировано страниц: {n}.", colOverall: "Итого",
+      },
+    };
+    const LANG_STORAGE_KEY = "seoscore_lang";
+    function detectLang() {
+      let saved = null;
+      try { saved = localStorage.getItem(LANG_STORAGE_KEY); } catch {}
+      if (Object.prototype.hasOwnProperty.call(I18N, saved)) return saved;
+      const browser = (navigator.language || "").slice(0, 2).toLowerCase();
+      return Object.prototype.hasOwnProperty.call(I18N, browser) ? browser : "en";
+    }
+    let lang = detectLang();
+    const t = (key, vars = {}) => (I18N[lang][key] ?? I18N.en[key] ?? key).replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? "");
+    function applyStatic() {
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach(node => { node.textContent = t(node.dataset.i18n); });
+      document.querySelectorAll("[data-i18n-attr]").forEach(node => {
+        for (const pair of node.dataset.i18nAttr.split(",")) {
+          const [attr, key] = pair.split(":");
+          node.setAttribute(attr, t(key));
+        }
+      });
+    }
+    applyStatic();
 
     $("themeToggle").addEventListener("click", () => {
       const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -669,7 +951,7 @@ findable https://example.com</code></pre>
     $("btnClearHistory").addEventListener("click", () => {
       try { localStorage.removeItem("seoscore_recent"); } catch {}
       renderRecentScans();
-      showToast("History cleared");
+      showToast(t("historyCleared"));
     });
     renderRecentScans();
 
@@ -692,6 +974,8 @@ findable https://example.com</code></pre>
     let currentScan = null;
     let allChecks = [];
     let scannedUrl = "";
+    let auditedAt = new Date();
+    let auditedKeyphrase = "";
 
     const scanForm = $("scanForm");
     const scanBtn = $("scanBtn");
@@ -745,23 +1029,23 @@ findable https://example.com</code></pre>
       if (!names) return null;
       const box = el("span", "engines");
       box.setAttribute("role", "group");
-      box.setAttribute("aria-label", "Answer engines this helps");
+      box.setAttribute("aria-label", t("answerEngines"));
       names.forEach(n => box.append(el("span", "eng", n)));
       return box;
     }
 
-    const STEPS = ["Fetching the page", "Checking SEO", "Checking AEO", "Checking GEO", "Ranking your fixes"];
+    const STEP_KEYS = ["stepFetch", "stepSEO", "stepAEO", "stepGEO", "stepRank"];
     let stepTimer = 0;
     function paintSteps(active) {
       [...$("agentSteps").children].forEach((li, i) => { li.dataset.state = i < active ? "done" : i === active ? "run" : "wait"; });
     }
     function startAgent(host) {
       $("agentHost").textContent = host;
-      $("agentSteps").replaceChildren(...STEPS.map(text => {
+      $("agentSteps").replaceChildren(...STEP_KEYS.map(key => {
         const li = el("li");
         const mark = el("span", "mark");
         mark.setAttribute("aria-hidden", "true");
-        li.append(mark, el("span", "", text));
+        li.append(mark, el("span", "", t(key)));
         return li;
       }));
       $("agentRun").classList.remove("hidden");
@@ -770,9 +1054,9 @@ findable https://example.com</code></pre>
       if (reduceMotion()) return;
       let step = 0;
       stepTimer = setInterval(() => {
-        step = Math.min(step + 1, STEPS.length - 1);
+        step = Math.min(step + 1, STEP_KEYS.length - 1);
         paintSteps(step);
-        scanStatus.textContent = STEPS[step] + " for " + host;
+        scanStatus.textContent = t("stepFor", { step: t(STEP_KEYS[step]), host });
       }, 700);
     }
     function stopAgent() {
@@ -781,7 +1065,7 @@ findable https://example.com</code></pre>
     }
     async function finishAgent() {
       clearInterval(stepTimer);
-      paintSteps(STEPS.length);
+      paintSteps(STEP_KEYS.length);
       if (!reduceMotion()) await new Promise(resolve => setTimeout(resolve, 400));
     }
 
@@ -790,7 +1074,7 @@ findable https://example.com</code></pre>
       if (busy) {
         $("results").classList.add("hidden");
         const host = recentHost(urlInput.value.trim()) || urlInput.value.trim();
-        scanStatus.textContent = "Scanning " + host;
+        scanStatus.textContent = t("scanningHost", { host });
         startAgent(host);
       } else {
         stopAgent();
@@ -810,7 +1094,11 @@ findable https://example.com</code></pre>
         const body = JSON.parse(text);
         if (body && typeof body.error === "string" && body.error) return body.error;
       } catch {}
-      return text.trim() || "The scan API answered with status " + resp.status;
+      return text.trim() || t("apiStatus", { n: resp.status });
+    }
+
+    function paintScanBtn() {
+      scanBtn.querySelector("span").textContent = t(scanBtn.disabled ? (activeMode === "page" ? "scanning" : "crawling") : "scanNow");
     }
 
     scanForm.addEventListener("submit", async (e) => {
@@ -820,13 +1108,13 @@ findable https://example.com</code></pre>
       if (!targetUrl) return;
 
       scanBtn.disabled = true;
-      scanBtn.querySelector("span").textContent = activeMode === "page" ? "Scanning..." : "Crawling...";
+      paintScanBtn();
       errorPanel.classList.add("hidden");
 
       if (activeMode === "site") {
         await executeSiteCrawl(targetUrl, keyphrase);
         scanBtn.disabled = false;
-        scanBtn.querySelector("span").textContent = "Scan now";
+        paintScanBtn();
         return;
       }
 
@@ -849,13 +1137,13 @@ findable https://example.com</code></pre>
         showError(err.message);
       } finally {
         scanBtn.disabled = false;
-        scanBtn.querySelector("span").textContent = "Scan now";
+        paintScanBtn();
       }
     });
     $("btnRetry").addEventListener("click", () => scanForm.requestSubmit());
 
     const FAMILY_WEIGHTS = { SEO: 50, AEO: 25, GEO: 25 };
-    const FAMILY_NAMES = { SEO: "Traditional SEO", AEO: "Answer Engine (AEO)", GEO: "Generative (GEO)" };
+    const familyName = family => t("fam" + family);
 
     function overallScore(data) {
       if (typeof data.overall === "number") return data.overall;
@@ -868,7 +1156,7 @@ findable https://example.com</code></pre>
       return (fam.checks || []).map(c => ({ ...c, cat: family, worth }));
     }
 
-    const formatWorth = (worth) => worth.toFixed(1) + " pts";
+    const formatWorth = (worth) => t("pts", { n: worth.toFixed(1) });
 
     function setRing(id, score) {
       const ring = $(id);
@@ -876,18 +1164,18 @@ findable https://example.com</code></pre>
     }
 
     function grade(overall) {
-      if (overall >= 90) return ["grade-a", "A+ Excellent"];
-      if (overall >= 80) return ["grade-b", "A Good"];
-      if (overall >= 70) return ["grade-c", "B Fair"];
-      if (overall >= 60) return ["grade-c", "C Needs work"];
-      return ["grade-f", "Critical issues"];
+      if (overall >= 90) return ["grade-a", "gradeA"];
+      if (overall >= 80) return ["grade-b", "gradeB"];
+      if (overall >= 70) return ["grade-c", "gradeC"];
+      if (overall >= 60) return ["grade-c", "gradeD"];
+      return ["grade-f", "gradeF"];
     }
 
     function headline(overall) {
-      if (overall >= 90) return "Findable. Nicely done.";
-      if (overall >= 70) return "Mostly findable, with quick wins left";
-      if (overall >= 50) return "Findable in parts. Three fixes move the needle";
-      return "Hard to find right now. Start with three fixes";
+      if (overall >= 90) return t("head90");
+      if (overall >= 70) return t("head70");
+      if (overall >= 50) return t("head50");
+      return t("head0");
     }
 
     const isFailing = c => c.applicable !== false && !c.pass;
@@ -897,17 +1185,16 @@ findable https://example.com</code></pre>
       const list = $("topFixes");
       list.replaceChildren();
       if (top.length === 0) {
-        $("nextLine").textContent = "Every applicable check passes. Re-scan after each release to keep it that way.";
+        $("nextLine").textContent = t("allPass");
         return;
       }
-      const lead = top.length === 1 ? "This fix recovers" : `These ${top.length} fixes recover`;
-      $("nextLine").textContent = `${lead} ${sumWorth(top).toFixed(1)} of the ${sumWorth(failing).toFixed(1)} points you are missing.`;
+      $("nextLine").textContent = t(top.length === 1 ? "nextOne" : "nextMany", { n: top.length, got: sumWorth(top).toFixed(1), all: sumWorth(failing).toFixed(1) });
       top.forEach(c => {
         const card = el("li", "fix-card");
         const head = el("div", "fix-head");
         head.append(el("strong", "", c.label), el("span", "pts", "+" + formatWorth(c.worth)));
         const meta = el("div", "fix-meta");
-        meta.append(el("span", "", FAMILY_NAMES[c.cat]));
+        meta.append(el("span", "", familyName(c.cat)));
         const engines = engineBadges(c.cat);
         if (engines) meta.append(engines);
         card.append(head, meta, el("p", "fix-how", fixAdvice[c.id] || DEFAULT_ADVICE));
@@ -917,18 +1204,18 @@ findable https://example.com</code></pre>
 
     async function loadCwv(url) {
       $("cwvSection").hidden = false;
-      $("cwvLine").textContent = "Testing page speed with Google PageSpeed Insights (takes about 20 seconds)…";
+      $("cwvLine").textContent = t("cwvTesting");
       $("cwvList").replaceChildren();
       try {
         const resp = await fetch("/api/cwv", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
         const data = await resp.json();
         if (url !== scannedUrl) return;
         if (resp.status === 503) return void ($("cwvSection").hidden = true);
-        if (!resp.ok) return void ($("cwvLine").textContent = data.error || "Page speed test failed");
-        $("cwvLine").textContent = `Performance ${data.score}/100 · ${data.passed} of ${data.total} vitals good`;
+        if (!resp.ok) return void ($("cwvLine").textContent = data.error || t("cwvFail"));
+        $("cwvLine").textContent = t("cwvScore", { score: data.score, passed: data.passed, total: data.total });
         $("cwvList").replaceChildren(...data.checks.map(c => el("li", "", `${c.pass ? "✓" : "✗"} ${c.label}`)));
       } catch {
-        $("cwvLine").textContent = "Page speed test failed";
+        $("cwvLine").textContent = t("cwvFail");
       }
     }
 
@@ -940,26 +1227,36 @@ findable https://example.com</code></pre>
       if (onWorker) loadCwv(url);
       const resultsEl = $("results");
       resultsEl.classList.remove("hidden");
-      $("resultUrl").textContent = url;
-      document.title = `${recentHost(url) || url} scored ${overallScore(data)}/100 · findable`;
-      const keyphrase = keyphraseInput.value.trim();
-      $("resultDate").textContent = `Audited ${new Date().toLocaleString()}` + (keyphrase ? ` · keyphrase: ${keyphrase}` : "");
+      auditedAt = new Date();
+      auditedKeyphrase = keyphraseInput.value.trim();
       setMode("page");
+      setPassingVisible(false, 0);
+      paintResults(data, url);
+      scanStatus.textContent = t("scanComplete", { url, o: overallScore(data), f: allChecks.filter(isFailing).length });
+      resultsEl.style.scrollMarginTop = document.querySelector(".hero").offsetHeight + 12 + "px";
+      resultsEl.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
+      $("resultsHeading").focus({ preventScroll: true });
+    }
+
+    function paintResults(data, url) {
+      $("resultUrl").textContent = url;
+      document.title = t("docTitle", { host: recentHost(url) || url, n: overallScore(data) });
+      $("resultDate").textContent = t("audited", { date: auditedAt.toLocaleString() }) + (auditedKeyphrase ? t("keyphraseLine", { kp: auditedKeyphrase }) : "");
 
       const overall = overallScore(data);
       $("valOverall").textContent = overall;
       setRing("ringOverall", overall);
-      const [gradeClass, gradeText] = grade(overall);
+      const [gradeClass, gradeKey] = grade(overall);
       const gradeEl = $("gradeOverall");
       gradeEl.className = "grade-badge " + gradeClass;
-      gradeEl.textContent = gradeText;
+      gradeEl.textContent = t(gradeKey);
       $("resultsHeading").textContent = headline(overall);
-      $("summaryLine").textContent = `Overall score: ${overall} out of 100.`;
+      $("summaryLine").textContent = t("summaryLine", { n: overall });
 
       allChecks = [...familyChecks(data, "SEO"), ...familyChecks(data, "AEO"), ...familyChecks(data, "GEO")];
       const applicable = allChecks.filter(c => c.applicable !== false);
       const failing = allChecks.filter(isFailing);
-      $("failingSummary").textContent = `${failing.length} of ${applicable.length} checks failing`;
+      $("failingSummary").textContent = t("failingSummary", { f: failing.length, a: applicable.length });
       renderTopFixes([...failing].sort((a, b) => b.worth - a.worth).slice(0, 3), failing);
 
       for (const family of ["SEO", "AEO", "GEO"]) {
@@ -967,26 +1264,21 @@ findable https://example.com</code></pre>
         const score = fam.score || 0;
         $("val" + family).textContent = score;
         setRing("ring" + family, score);
-        $("detail" + family).textContent = `${fam.passed || 0} / ${fam.total || 0} passed`;
+        $("detail" + family).textContent = t("famDetail", { p: fam.passed || 0, t: fam.total || 0 });
         renderWorst($("worst" + family), failing.filter(c => c.cat === family));
       }
 
-      $("issuesHeading").textContent = `Failing checks (${failing.length})`;
-      renderGroups($("failingList"), failing, "No failing checks. Every applicable check passes.");
+      $("issuesHeading").textContent = t("issuesCount", { n: failing.length });
+      renderGroups($("failingList"), failing, t("noFailingAll"));
       const passing = allChecks.filter(c => !isFailing(c));
-      renderGroups($("passingList"), passing, "No passing checks yet.");
-      setPassingVisible(false, passing.length);
-
-      scanStatus.textContent = `Scan complete for ${url}: overall ${overall} of 100, ${failing.length} failing checks.`;
-      resultsEl.style.scrollMarginTop = document.querySelector(".hero").offsetHeight + 12 + "px";
-      resultsEl.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
-      $("resultsHeading").focus({ preventScroll: true });
+      renderGroups($("passingList"), passing, t("noPassing"));
+      setPassingVisible(btnTogglePassing.getAttribute("aria-expanded") === "true", passing.length);
     }
 
     function renderWorst(list, failing) {
       list.replaceChildren();
       if (failing.length === 0) {
-        list.append(el("li", "none", "No failing checks"));
+        list.append(el("li", "none", t("noFailingShort")));
         return;
       }
       failing.slice(0, 3).forEach(c => list.append(el("li", "", c.label)));
@@ -1005,23 +1297,24 @@ findable https://example.com</code></pre>
       for (const group of groups) {
         const list = el("div", "checks-container");
         group.forEach(c => list.append(checkRow(c)));
-        container.append(el("h3", "group-title", `${FAMILY_NAMES[group[0].cat]} · ${group.length} · ${formatWorth(group[0].worth)} each`), list);
+        container.append(el("h3", "group-title", t("groupTitle", { fam: familyName(group[0].cat), n: group.length, pts: formatWorth(group[0].worth) })), list);
       }
     }
 
     function checkRow(c) {
       const isNA = c.applicable === false;
       const details = el("details", "check-row");
+      details.dataset.id = c.id;
       const summary = el("summary", "check-summary");
-      summary.append(el("span", "status-badge " + (isNA ? "status-na" : c.pass ? "status-pass" : "status-fail"), isNA ? "N/A" : c.pass ? "PASS" : "FAIL"));
+      summary.append(el("span", "status-badge " + (isNA ? "status-na" : c.pass ? "status-pass" : "status-fail"), t(isNA ? "statusNA" : c.pass ? "statusPass" : "statusFail")));
       const content = el("div", "check-content");
-      const meta = el("div", "check-meta mono", isNA ? c.id : `${c.id} · worth ${formatWorth(c.worth)}`);
+      const meta = el("div", "check-meta mono", isNA ? c.id : `${c.id} · ${t("worth", { pts: formatWorth(c.worth) })}`);
       const engines = engineBadges(c.cat);
       if (engines) meta.append(engines);
       content.append(el("div", "check-label", c.label), meta);
       summary.append(content);
       const card = el("div", "fix-drawer-card");
-      card.append(el("strong", "", "How to fix: "), fixAdvice[c.id] || DEFAULT_ADVICE);
+      card.append(el("strong", "", t("howToFix")), fixAdvice[c.id] || DEFAULT_ADVICE);
       const drawer = el("div", "fix-drawer");
       drawer.append(card);
       details.append(summary, drawer);
@@ -1032,7 +1325,7 @@ findable https://example.com</code></pre>
     function setPassingVisible(visible, count) {
       $("passingWrap").hidden = !visible;
       btnTogglePassing.setAttribute("aria-expanded", String(visible));
-      btnTogglePassing.textContent = `${visible ? "Hide" : "Show"} passing (${count})`;
+      btnTogglePassing.textContent = t(visible ? "hidePassing" : "showPassing", { n: count });
     }
     btnTogglePassing.addEventListener("click", () => {
       setPassingVisible(btnTogglePassing.getAttribute("aria-expanded") !== "true", allChecks.filter(c => !isFailing(c)).length);
@@ -1052,7 +1345,7 @@ findable https://example.com</code></pre>
     $("btnExportJSON").addEventListener("click", () => {
       if (!currentScan) return;
       download(JSON.stringify(currentScan, null, 2), "application/json", reportFileName("json"));
-      showToast("JSON report exported");
+      showToast(t("jsonExported"));
     });
 
     $("btnExportCSV").addEventListener("click", () => {
@@ -1074,19 +1367,19 @@ findable https://example.com</code></pre>
         rows.push([c.id, c.cat, st, '"' + c.label.replace(/"/g, '""') + '"']);
       });
       download("﻿" + rows.map(r => r.join(",")).join("\n"), "text/csv;charset=utf-8;", reportFileName("csv"));
-      showToast("CSV report exported");
+      showToast(t("csvExported"));
     });
 
     $("btnCopyReport").addEventListener("click", () => {
       if (!currentScan) return;
-      const text = `findable audit for ${scannedUrl}:\nOverall: ${overallScore(currentScan)}/100 | SEO: ${currentScan.seo.score} | AEO: ${currentScan.aeo.score} | GEO: ${currentScan.geo.score}\nGenerated via findable.page`;
-      navigator.clipboard.writeText(text).then(() => showToast("Summary copied to clipboard"));
+      const text = t("copyReport", { url: scannedUrl, o: overallScore(currentScan), s: currentScan.seo.score, a: currentScan.aeo.score, g: currentScan.geo.score });
+      navigator.clipboard.writeText(text).then(() => showToast(t("summaryCopied")));
     });
 
     $("watchForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const status = $("watchStatus");
-      status.textContent = "Saving…";
+      status.textContent = t("watchSaving");
       try {
         const resp = await fetch("/api/watch", {
           method: "POST",
@@ -1094,9 +1387,9 @@ findable https://example.com</code></pre>
           body: JSON.stringify({ email: $("watchEmail").value, url: scannedUrl, consent: $("watchConsent").checked, hp: $("watchTrap").value }),
         });
         const data = await resp.json().catch(() => ({}));
-        status.textContent = resp.ok ? "You're on the list. We'll email you when the score moves." : data.error || "Could not save, try again";
+        status.textContent = resp.ok ? t("watchOk") : data.error || t("watchFail");
       } catch {
-        status.textContent = "Could not save, try again";
+        status.textContent = t("watchFail");
       }
     });
 
@@ -1185,16 +1478,16 @@ findable https://example.com</code></pre>
       const failing = allChecks.filter(isFailing);
       const overall = overallScore(currentScan);
       download(toMarkdown({
-        url: scannedUrl, link: shareLink(), date: today(), overall, grade: grade(overall)[1],
+        url: scannedUrl, link: shareLink(), date: today(), overall, grade: I18N.en[grade(overall)[1]],
         scores: { SEO: currentScan.seo.score, AEO: currentScan.aeo.score, GEO: currentScan.geo.score },
         top: [...failing].sort((a, b) => b.worth - a.worth).slice(0, 3), checks: allChecks, advice: fixAdvice,
       }), "text/markdown;charset=utf-8;", `findable-${recentHost(scannedUrl) || "page"}-${today()}.md`);
-      showToast("Markdown report exported");
+      showToast(t("mdExported"));
     });
 
     function shareSummary() {
       const host = recentHost(scannedUrl) || scannedUrl;
-      return `${host} scores ${overallScore(currentScan)}/100 on findable (SEO ${currentScan.seo.score}, AEO ${currentScan.aeo.score}, GEO ${currentScan.geo.score}).`;
+      return t("shareSummary", { host, n: overallScore(currentScan), s: currentScan.seo.score, a: currentScan.aeo.score, g: currentScan.geo.score });
     }
 
     function setSharePanel(open) {
@@ -1203,10 +1496,10 @@ findable https://example.com</code></pre>
       if (!open) return;
       const link = shareLink();
       const enc = encodeURIComponent;
-      $("shareX").href = `https://x.com/intent/post?text=${enc(shareSummary() + " How findable is your site by Google and AI?")}&url=${enc(link)}`;
+      $("shareX").href = `https://x.com/intent/post?text=${enc(`${shareSummary()} ${t("shareAsk")}`)}&url=${enc(link)}`;
       $("shareLinkedIn").href = `https://www.linkedin.com/sharing/share-offsite/?url=${enc(link)}`;
       $("shareFacebook").href = `https://www.facebook.com/sharer/sharer.php?u=${enc(link)}`;
-      $("shareText").value = `${shareSummary()}\nFull report: ${link}`;
+      $("shareText").value = `${shareSummary()}\n${t("shareFull", { link })}`;
       $("shareNative").hidden = !navigator.share;
     }
 
@@ -1215,7 +1508,7 @@ findable https://example.com</code></pre>
         await navigator.clipboard.writeText(text);
         $("shareStatus").textContent = done;
       } catch {
-        $("shareStatus").textContent = "Could not copy";
+        $("shareStatus").textContent = t("copyFail");
       }
     }
 
@@ -1223,10 +1516,10 @@ findable https://example.com</code></pre>
       if (!currentScan) return;
       setSharePanel($("sharePanel").hidden);
     });
-    $("shareCopyText").addEventListener("click", () => copyShare($("shareText").value, "Text copied"));
-    $("shareCopyLink").addEventListener("click", () => copyShare(shareLink(), "Link copied"));
+    $("shareCopyText").addEventListener("click", () => copyShare($("shareText").value, t("textCopied")));
+    $("shareCopyLink").addEventListener("click", () => copyShare(shareLink(), t("linkCopied")));
     $("shareNative").addEventListener("click", async () => {
-      try { await navigator.share({ title: "findable report", text: shareSummary(), url: shareLink() }); } catch {}
+      try { await navigator.share({ title: t("shareTitle"), text: shareSummary(), url: shareLink() }); } catch {}
     });
     document.addEventListener("keydown", e => {
       if (e.key !== "Escape" || $("sharePanel").hidden) return;
@@ -1261,7 +1554,7 @@ findable https://example.com</code></pre>
       const tableWrap = $("crawlTableWrap");
       $("crawlSection").classList.remove("hidden");
       $("crawlProgress").style.width = "10%";
-      crawlStatus.textContent = "Scanning start page...";
+      crawlStatus.textContent = t("crawlStart");
       try {
         const initial = await scanOnce(startUrl, keyphrase);
         const startHost = new URL(startUrl).hostname;
@@ -1274,15 +1567,15 @@ findable https://example.com</code></pre>
         const crawled = [{ url: startUrl, scan: initial }];
         renderCrawlTable(tableWrap, crawled);
         for (let i = 1; i < queue.length; i++) {
-          crawlStatus.textContent = `Crawling page ${i + 1} of ${queue.length}: ${queue[i]}`;
+          crawlStatus.textContent = t("crawlPage", { i: i + 1, n: queue.length, url: queue[i] });
           $("crawlProgress").style.width = `${Math.round(((i + 1) / queue.length) * 100)}%`;
           try {
-            const waiting = () => (crawlStatus.textContent = `Pausing for the rate limit, then page ${i + 1} of ${queue.length}…`);
+            const waiting = () => (crawlStatus.textContent = t("crawlWait", { i: i + 1, n: queue.length }));
             crawled.push({ url: queue[i], scan: await scanOnce(queue[i], keyphrase, waiting) });
             renderCrawlTable(tableWrap, crawled);
           } catch {}
         }
-        crawlStatus.textContent = `Crawl complete! Scanned ${crawled.length} pages.`;
+        crawlStatus.textContent = t("crawlDone", { n: crawled.length });
         currentScan = initial;
         renderScanResults(initial, startUrl);
       } catch (err) {
@@ -1294,7 +1587,7 @@ findable https://example.com</code></pre>
     function renderCrawlTable(wrap, pages) {
       const table = el("table", "crawl-table");
       const head = el("tr");
-      ["URL", "SEO", "AEO", "GEO", "Overall"].forEach(h => head.append(el("th", "", h)));
+      ["URL", "SEO", "AEO", "GEO", t("colOverall")].forEach(h => head.append(el("th", "", h)));
       const body = el("tbody");
       pages.forEach(p => {
         const row = el("tr");
@@ -1307,6 +1600,19 @@ findable https://example.com</code></pre>
       table.append(thead, body);
       wrap.replaceChildren(table);
     }
+
+    $("langSelect").value = lang;
+    $("langSelect").addEventListener("change", e => {
+      lang = e.target.value;
+      try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch {}
+      applyStatic();
+      paintScanBtn();
+      if (currentScan && !$("results").classList.contains("hidden")) {
+        const openIds = [...document.querySelectorAll("details.check-row[open]")].map(d => d.dataset.id);
+        paintResults(currentScan, scannedUrl);
+        document.querySelectorAll("details.check-row").forEach(d => { d.open = openIds.includes(d.dataset.id); });
+      }
+    });
 
     const urlParams = new URLSearchParams(window.location.search);
     const queryUrl = urlParams.get("url") || decodeURI(location.pathname.slice(1));
