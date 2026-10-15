@@ -3,6 +3,7 @@ import { pageSpeed } from "./cwv";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
+import { LEGAL_PAGES, renderLegalPage } from "./legal";
 import { aeoParityChecks, geoParityChecks, paragraphWordCounts, seoParityChecks } from "./page-checks";
 import { scoreQuip, shareDescription } from "./quips";
 import { fixedWindowLimiter } from "./ratelimit";
@@ -122,7 +123,7 @@ const LEARN_PAGES: PageEntry[] = [
   ...learnPosts.map((p) => ({ path: `/learn/${p.slug}`, title: p.title, description: p.description })),
 ];
 
-const SITE_PAGES = [HOME_PAGE, ...LEARN_PAGES];
+const SITE_PAGES = [HOME_PAGE, ...LEARN_PAGES, ...LEGAL_PAGES];
 
 const SITE_FILES: Record<string, (origin: string) => { type: string; body: string }> = {
   "/robots.txt": (o) => ({ type: "text/plain", body: robotsTxt(o) }),
@@ -154,8 +155,12 @@ async function buildLearnPolicy(): Promise<string> {
 async function learnResponse(pathname: string, origin: string): Promise<Response> {
   const slug = pathname.slice("/learn".length).replace(/^\/|\/$/g, "");
   const html = slug ? renderLearnPost(slug, origin) : renderLearnIndex(origin);
+  return staticHtmlResponse(html, renderLearnNotFound(origin));
+}
+
+async function staticHtmlResponse(html: string | null, notFound: string): Promise<Response> {
   learnPolicy ??= buildLearnPolicy();
-  return new Response(html ?? renderLearnNotFound(origin), {
+  return new Response(html ?? notFound, {
     status: html ? 200 : 404,
     headers: { "Content-Type": "text/html; charset=utf-8", ...securityHeaders(await learnPolicy) },
   });
@@ -184,6 +189,9 @@ const worker = {
     if (request.method === "GET" && (url.pathname === "/learn" || url.pathname.startsWith("/learn/"))) {
       return learnResponse(url.pathname, url.origin);
     }
+
+    const legalHtml = request.method === "GET" ? renderLegalPage(url.pathname, url.origin) : null;
+    if (legalHtml) return staticHtmlResponse(legalHtml, legalHtml);
 
     if (url.pathname === "/og/card.png" && request.method === "GET") {
       return shareCardResponse(url, request);

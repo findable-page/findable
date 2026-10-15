@@ -181,3 +181,45 @@ describe("learn-content commands", () => {
     expect(src).not.toContain("seoscore ");
   });
 });
+
+describe("about, privacy and terms pages", () => {
+  const pages = ["/about", "/privacy", "/terms"];
+
+  for (const path of pages) {
+    test(`GET ${path} serves html with the learn security headers, canonical and no em dashes`, async () => {
+      const resp = await get(path);
+      const html = await resp.text();
+      expect(resp.status).toBe(200);
+      expect(resp.headers.get("Content-Type")).toContain("text/html");
+      expect(resp.headers.get("Content-Security-Policy")).toContain("default-src 'none'");
+      expect(html).toContain(`<link rel="canonical" href="${ORIGIN}${path}">`);
+      expect(html.match(/<h1>/g)?.length).toBe(1);
+      expect(html).not.toMatch(/[–—]/);
+      expect(html).toContain("https://github.com/nadimtuhin/findable");
+    });
+
+    test(`${path} is in sitemap.xml and linked from the learn footer`, async () => {
+      const sitemap = await (await get("/sitemap.xml")).text();
+      expect(sitemap).toContain(`<loc>${ORIGIN}${path}</loc>`);
+      expect(await (await get("/learn")).text()).toContain(`href="${path}"`);
+    });
+  }
+
+  test("privacy states what is stored and that there are no trackers", async () => {
+    const html = await (await get("/privacy")).text();
+    expect(html).toContain("Cloudflare D1");
+    expect(html).toContain("no ads");
+    expect(html).toContain("GitHub issue");
+  });
+
+  test("terms say as-is and rate limits", async () => {
+    const html = await (await get("/terms")).text();
+    expect(html).toContain("as is");
+    expect(html).toContain("rate limits");
+  });
+
+  test("the home page footer links all three", async () => {
+    const html = await (await get("/")).text();
+    for (const path of pages) expect(html).toContain(`href="${path}"`);
+  });
+});

@@ -2,9 +2,9 @@ import { FETCH_TIMEOUT_MS, MAX_PAGE_BYTES } from "./guard";
 import { type LearnPost, learnPosts } from "./learn-content";
 import { MAX_SITE_FILE_BYTES } from "./site";
 
-const AUTHOR = "Nadim Tuhin";
-const AUTHOR_URL = "https://github.com/nadimtuhin";
-const REPO_URL = "https://github.com/nadimtuhin/findable";
+export const AUTHOR = "Nadim Tuhin";
+export const AUTHOR_URL = "https://github.com/nadimtuhin";
+export const REPO_URL = "https://github.com/nadimtuhin/findable";
 const SITE_NAME = "findable";
 const INDEX_TITLE = "Learn SEO, AEO and GEO with findable";
 const INDEX_DESCRIPTION =
@@ -37,7 +37,7 @@ interface PageInput {
   body: string;
 }
 
-function page(input: PageInput): string {
+export function page(input: PageInput): string {
   const url = input.origin + input.path;
   const title = escapeHtml(input.title);
   const description = escapeHtml(input.description);
@@ -72,7 +72,7 @@ ${input.structuredData.join("\n")}
 <main>
 ${input.body}
 </main>
-<footer><p><a href="/">Audit your own page with ${SITE_NAME}</a> &middot; <a href="${REPO_URL}" rel="noopener">Source on GitHub</a></p></footer>
+<footer><p><a href="/">Audit your own page with ${SITE_NAME}</a> &middot; <a href="/about">About</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; <a href="${REPO_URL}" rel="noopener">Source on GitHub</a></p></footer>
 </body>
 </html>
 `;

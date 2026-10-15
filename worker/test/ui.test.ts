@@ -127,3 +127,16 @@ test("the WebMCP scan_url tool reports a plain-text API error instead of throwin
   const out = JSON.parse((await execute?.({ url: "example.com" }))?.content[0]?.text ?? "{}");
   expect(out).toEqual({ error: "upstream fetch failed" });
 });
+
+test("the crawl report has a most-common-issues panel with its i18n keys in every language", async () => {
+  const html = await (await worker.fetch(new Request("https://w.test/", { headers: { Accept: "text/html" } }))).text();
+  expect(html).toContain('id="crawlCommon"');
+  const keys = ["footPrivacy", "footTerms", "commonIssuesHeading", "commonIssuesCount"];
+  for (const lang of ["en", "de", "es", "tr", "ru"]) {
+    const start = html.indexOf(`\n      ${lang}: {`, html.indexOf("const I18N"));
+    expect(start).toBeGreaterThan(0);
+    const block = html.slice(start, html.indexOf("\n      },", start));
+    for (const key of keys) expect(block).toContain(`${key}:`);
+  }
+  expect(html).toContain("{c} of {n} pages");
+});
