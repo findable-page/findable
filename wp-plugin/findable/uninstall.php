@@ -6,6 +6,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 function findable_uninstall_site() {
 	delete_post_meta_by_key( '_findable_scan' );
 	delete_post_meta_by_key( '_findable_keyphrase' );
+	delete_post_meta_by_key( '_findable_fixes' );
+	delete_post_meta_by_key( '_findable_fixes_backup' );
 }
 
 if ( is_multisite() ) {

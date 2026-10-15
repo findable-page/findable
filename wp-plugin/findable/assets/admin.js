@@ -67,4 +67,40 @@
 			bulk.disabled = false;
 		});
 	}
+
+	function fix(postId, mode) {
+		var body = new URLSearchParams({ action: 'findable_fix', nonce: d.fixNonce, post_id: postId, mode: mode });
+		return fetch(d.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body })
+			.then(function (r) { return r.json(); });
+	}
+
+	document.querySelectorAll('.findable-fix').forEach(function (b) {
+		b.addEventListener('click', function () {
+			var st = document.getElementById('findable-fix-status');
+			fix(b.dataset.post, b.dataset.mode)
+				.then(function (res) { st.textContent = res.success ? res.data.status : ((res.data && res.data.message) || d.i18n.failed); })
+				.catch(function () { st.textContent = d.i18n.failed; });
+		});
+	});
+
+	var fixAll = document.getElementById('findable-fixall');
+	if (fixAll) {
+		var fixStatus = document.getElementById('findable-fixall-status');
+		fixAll.addEventListener('click', async function () {
+			fixAll.disabled = true;
+			var rows = document.querySelectorAll('#findable-bulk-body tr');
+			for (var i = 0; i < rows.length; i++) {
+				if (!rows[i].querySelector('[data-f="report"]').textContent.trim()) { continue; }
+				fixStatus.textContent = d.i18n.fixing + ' ' + (i + 1) + '/' + rows.length;
+				try {
+					var res = await fix(rows[i].dataset.post, 'apply');
+					rows[i].querySelector('[data-f="fixes"]').textContent = res.success ? res.data.status : d.i18n.failed;
+				} catch (e) {
+					rows[i].querySelector('[data-f="fixes"]').textContent = d.i18n.failed;
+				}
+			}
+			fixStatus.textContent = d.i18n.done;
+			fixAll.disabled = false;
+		});
+	}
 })();

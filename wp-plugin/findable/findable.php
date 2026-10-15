@@ -135,6 +135,9 @@ function findable_meta_box( $post ) {
 	echo '<input type="text" class="widefat" id="findable-keyphrase" name="findable_keyphrase" value="' . esc_attr( $kp ) . '"></p>';
 		echo '<p><button type="button" class="button" id="findable-scan" data-post="' . esc_attr( $post->ID ) . '">' . esc_html__( 'Scan with findable', 'findable' ) . '</button> <span class="spinner" id="findable-spinner" style="float:none"></span></p>';
 	echo '<div id="findable-result">' . findable_render_summary( get_post_meta( $post->ID, '_findable_scan', true ) ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in renderer.
+	echo '<hr><p><button type="button" class="button findable-fix" data-mode="apply" data-post="' . esc_attr( $post->ID ) . '">' . esc_html__( 'Apply fixes', 'findable' ) . '</button> ';
+	echo '<button type="button" class="button findable-fix" data-mode="undo" data-post="' . esc_attr( $post->ID ) . '">' . esc_html__( 'Undo fixes', 'findable' ) . '</button></p>';
+	echo '<p class="description" id="findable-fix-status">' . esc_html( findable_fix_status( $post->ID ) ) . '</p>';
 }
 
 add_action(
@@ -204,12 +207,14 @@ add_action(
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'findable_scan' ),
+				'fixNonce' => wp_create_nonce( 'findable_fix' ),
 				'delayMs' => 7000,
 				'i18n'    => array(
 					'scanning' => __( 'Scanning...', 'findable' ),
 					'failed'   => __( 'Scan failed.', 'findable' ),
 					'report'   => __( 'Full report', 'findable' ),
 					'done'     => __( 'Done.', 'findable' ),
+					'fixing'   => __( 'Fixing...', 'findable' ),
 				),
 			)
 		);
@@ -271,8 +276,9 @@ function findable_tools_page() {
 	echo '<label>' . esc_html__( 'Latest posts to scan (max 20)', 'findable' ) . ' <input type="number" name="n" min="1" max="20" value="' . esc_attr( $n ) . '"></label> ';
 	echo '<button class="button">' . esc_html__( 'Set', 'findable' ) . '</button></form>';
 	echo '<p><button type="button" class="button button-primary" id="findable-bulk">' . esc_html__( 'Scan latest posts', 'findable' ) . '</button> <span id="findable-bulk-status"></span></p>';
+	echo '<p><button type="button" class="button" id="findable-fixall">' . esc_html__( 'Fix all scanned posts', 'findable' ) . '</button> <span id="findable-fixall-status"></span></p>';
 	echo '<p class="description">' . esc_html__( 'Scans run one at a time, 7 seconds apart, to respect the API rate limit.', 'findable' ) . '</p>';
-	echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Post', 'findable' ) . '</th><th>' . esc_html__( 'Overall', 'findable' ) . '</th><th>SEO</th><th>AEO</th><th>GEO</th><th>' . esc_html__( 'Failing', 'findable' ) . '</th><th></th></tr></thead><tbody id="findable-bulk-body">';
+	echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Post', 'findable' ) . '</th><th>' . esc_html__( 'Overall', 'findable' ) . '</th><th>SEO</th><th>AEO</th><th>GEO</th><th>' . esc_html__( 'Failing', 'findable' ) . '</th><th></th><th>' . esc_html__( 'Fixes', 'findable' ) . '</th></tr></thead><tbody id="findable-bulk-body">';
 	foreach ( $posts as $id ) {
 		$s = get_post_meta( $id, '_findable_scan', true );
 		$g = function ( $k ) use ( $s ) {
@@ -285,7 +291,177 @@ function findable_tools_page() {
 		if ( is_array( $s ) ) {
 			echo '<a href="' . esc_url( findable_report_url( $s['url'] ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Full report', 'findable' ) . '</a>';
 		}
-		echo '</td></tr>';
+		echo '</td><td data-f="fixes">' . esc_html( findable_fix_status( $id ) ) . '</td></tr>';
 	}
 	echo '</tbody></table></div>';
 }
+
+/* ---------- Fix All: tags printed in wp_head, post_content is never edited ---------- */
+
+function findable_fix_keys() {
+	return array( 'description', 'canonical', 'opengraph', 'twitter', 'article', 'breadcrumb', 'robots' );
+}
+
+function findable_fix_status( $post_id ) {
+	$fixes = get_post_meta( $post_id, '_findable_fixes', true );
+	return is_array( $fixes ) && $fixes ? __( 'Fixes on', 'findable' ) : __( 'Fixes off', 'findable' );
+}
+
+function findable_seo_plugin_active() {
+	return defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) || defined( 'SEOPRESS_VERSION' ) || defined( 'AIOSEO_VERSION' )
+		|| defined( 'THE_SEO_FRAMEWORK_VERSION' ) || defined( 'SLIM_SEO_VER' ) || defined( 'SMARTCRAWL_VERSION' ) || apply_filters( 'jetpack_enable_open_graph', false )
+		|| class_exists( 'WPSEO_Options' ) || class_exists( 'RankMath' ) || function_exists( 'seopress_init' ) || function_exists( 'aioseo' );
+}
+
+function findable_set_fixes( $post_id, $mode ) {
+	if ( 'undo' === $mode ) {
+		$backup = get_post_meta( $post_id, '_findable_fixes_backup', true );
+		if ( is_array( $backup ) && $backup ) {
+			update_post_meta( $post_id, '_findable_fixes', $backup );
+		} else {
+			delete_post_meta( $post_id, '_findable_fixes' );
+		}
+		delete_post_meta( $post_id, '_findable_fixes_backup' );
+		return;
+	}
+	$previous = get_post_meta( $post_id, '_findable_fixes', true );
+	if ( ! metadata_exists( 'post', $post_id, '_findable_fixes_backup' ) ) {
+		update_post_meta( $post_id, '_findable_fixes_backup', is_array( $previous ) ? $previous : array() );
+	}
+	update_post_meta( $post_id, '_findable_fixes', findable_fix_keys() );
+}
+
+add_action(
+	'wp_ajax_findable_fix',
+	function () {
+		check_ajax_referer( 'findable_fix', 'nonce' );
+		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+		$mode    = isset( $_POST['mode'] ) && 'undo' === sanitize_key( wp_unslash( $_POST['mode'] ) ) ? 'undo' : 'apply';
+		$post    = $post_id ? get_post( $post_id ) : null;
+		if ( ! $post || ! in_array( $post->post_type, array( 'post', 'page' ), true ) || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Not allowed.', 'findable' ) ), 403 );
+		}
+		if ( 'apply' === $mode && ( 'publish' !== $post->post_status || '' !== $post->post_password || ! is_post_publicly_viewable( $post ) ) ) {
+			wp_send_json_error( array( 'message' => __( 'Only published, public posts can be fixed.', 'findable' ) ), 403 );
+		}
+		findable_set_fixes( $post_id, $mode );
+		$status = 'apply' === $mode && findable_seo_plugin_active() ? __( 'Skipped: SEO plugin active', 'findable' ) : findable_fix_status( $post_id );
+		wp_send_json_success( array( 'status' => $status ) );
+	}
+);
+
+function findable_post_description( $post ) {
+	$text = has_excerpt( $post ) ? $post->post_excerpt : '';
+	if ( '' === trim( $text ) ) {
+		$paras = preg_split( '/\n\s*\n/', wp_strip_all_tags( strip_shortcodes( $post->post_content ) ) );
+		foreach ( (array) $paras as $para ) {
+			if ( '' !== trim( $para ) ) {
+				$text = $para;
+				break;
+			}
+		}
+	}
+	$text = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $text ) ) );
+	return mb_strlen( $text ) > 155 ? rtrim( mb_substr( $text, 0, 152 ) ) . '...' : $text;
+}
+
+function findable_json_ld( array $data ) {
+	return '<script type="application/ld+json">' . wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) . '</script>' . "\n";
+}
+
+function findable_head_tags( $post, array $fixes ) {
+	$url   = get_permalink( $post );
+	$title = wp_strip_all_tags( get_the_title( $post ) );
+	$desc  = findable_post_description( $post );
+	$img   = get_the_post_thumbnail_url( $post, 'full' );
+	$site  = get_bloginfo( 'name' );
+	$out   = '';
+
+	if ( in_array( 'description', $fixes, true ) && '' !== $desc ) {
+		$out .= '<meta name="description" content="' . esc_attr( $desc ) . '">' . "\n";
+	}
+	if ( in_array( 'canonical', $fixes, true ) && ! has_action( 'wp_head', 'rel_canonical' ) ) {
+		$out .= '<link rel="canonical" href="' . esc_url( $url ) . '">' . "\n";
+	}
+	if ( in_array( 'opengraph', $fixes, true ) ) {
+		$out .= '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+		if ( '' !== $desc ) {
+			$out .= '<meta property="og:description" content="' . esc_attr( $desc ) . '">' . "\n";
+		}
+		$out .= '<meta property="og:url" content="' . esc_url( $url ) . '">' . "\n";
+		$out .= '<meta property="og:type" content="' . ( 'post' === $post->post_type ? 'article' : 'website' ) . '">' . "\n";
+		if ( $img ) {
+			$out .= '<meta property="og:image" content="' . esc_url( $img ) . '">' . "\n";
+		}
+	}
+	if ( in_array( 'twitter', $fixes, true ) ) {
+		$out .= '<meta name="twitter:card" content="' . ( $img ? 'summary_large_image' : 'summary' ) . '">' . "\n";
+	}
+	if ( in_array( 'article', $fixes, true ) && 'post' === $post->post_type ) {
+		$data = array(
+			'@context'         => 'https://schema.org',
+			'@type'            => 'Article',
+			'headline'         => $title,
+			'datePublished'    => get_the_date( 'c', $post ),
+			'dateModified'     => get_the_modified_date( 'c', $post ),
+			'author'           => array( '@type' => 'Person', 'name' => get_the_author_meta( 'display_name', $post->post_author ) ),
+			'publisher'        => array( '@type' => 'Organization', 'name' => $site ),
+			'mainEntityOfPage' => $url,
+		);
+		if ( $img ) {
+			$data['image'] = $img;
+		}
+		$out .= findable_json_ld( $data );
+	}
+	if ( in_array( 'breadcrumb', $fixes, true ) ) {
+		$items = array( array( 'name' => $site, 'item' => home_url( '/' ) ) );
+		if ( 'post' === $post->post_type ) {
+			$cats = get_the_category( $post->ID );
+			if ( $cats ) {
+				$items[] = array( 'name' => $cats[0]->name, 'item' => get_category_link( $cats[0] ) );
+			}
+		}
+		$items[] = array( 'name' => $title, 'item' => $url );
+		$list    = array();
+		foreach ( $items as $i => $it ) {
+			$list[] = array( '@type' => 'ListItem', 'position' => $i + 1, 'name' => $it['name'], 'item' => $it['item'] );
+		}
+		$out .= findable_json_ld( array( '@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => $list ) );
+	}
+	return $out;
+}
+
+function findable_enabled_fixes() {
+	if ( ! is_singular( array( 'post', 'page' ) ) || findable_seo_plugin_active() ) {
+		return array();
+	}
+	$post = get_queried_object();
+	if ( ! $post instanceof WP_Post || '' !== $post->post_password || ! is_post_publicly_viewable( $post ) ) {
+		return array();
+	}
+	$fixes = get_post_meta( $post->ID, '_findable_fixes', true );
+	return is_array( $fixes ) ? array_intersect( $fixes, findable_fix_keys() ) : array();
+}
+
+add_filter(
+	'wp_robots',
+	function ( $robots ) {
+		if ( in_array( 'robots', findable_enabled_fixes(), true ) ) {
+			$robots['max-snippet']       = '-1';
+			$robots['max-image-preview'] = 'large';
+		}
+		return $robots;
+	}
+);
+
+add_action(
+	'wp_head',
+	function () {
+		$fixes = findable_enabled_fixes();
+		if ( ! $fixes ) {
+			return;
+		}
+		echo findable_head_tags( get_queried_object(), $fixes ); // phpcs:ignore WordPress.Security.EscapeOutput -- every value escaped in builder.
+	},
+	5
+);
