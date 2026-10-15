@@ -20,7 +20,7 @@ export const LEARN_STYLE =
 export const escapeHtml = (text: string): string =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-const jsonLd = (data: unknown): string =>
+export const jsonLd = (data: unknown): string =>
   `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 
 export function learnPaths(): string[] {
@@ -202,10 +202,10 @@ const identityEntities = (origin: string) => [
   { "@type": "Organization", "@id": orgId(origin), name: SITE_NAME, url: origin, sameAs: [REPO_URL] },
 ];
 
-const identityGraph = (origin: string): string =>
+export const identityGraph = (origin: string): string =>
   jsonLd({ "@context": "https://schema.org", "@graph": identityEntities(origin) });
 
-const faqLd = (faq: LearnPost["faq"]): string =>
+export const faqLd = (faq: LearnPost["faq"]): string =>
   jsonLd({
     "@context": "https://schema.org",
     "@type": "FAQPage",

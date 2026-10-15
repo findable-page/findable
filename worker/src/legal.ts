@@ -32,7 +32,8 @@ ${updated}
 <p>When you scan, our server fetches the public URL you submit, plus its robots.txt and llms.txt. Nothing else about you is needed to run a scan.</p>
 <h2>What we keep</h2>
 <ul>
-<li>Scan results and share previews are cached briefly (up to 24 hours) so repeat requests are fast.</li>
+<li>Scan results are not cached. Share previews are cached for 1 hour, and speed test results and share cards for up to 24 hours.</li>
+<li>The optional speed test sends the URL you scan to Google PageSpeed.</li>
 <li>Share links carry the score in the link itself. Anyone with the link can see it.</li>
 <li>If you opt in to watch a site, we store your email and the site host in Cloudflare D1. We do not send emails yet. To have your entry removed, open a <a href="${REPO_URL}/issues" rel="noopener">GitHub issue</a>.</li>
 </ul>

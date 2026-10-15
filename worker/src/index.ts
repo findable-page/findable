@@ -8,6 +8,7 @@ import { pageSpeed } from "./cwv";
 import { buildCtx, seoExtraChecks } from "./extra-checks";
 import { geoSignalChecks } from "./geo-signals-checks";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
+import { landingEntries, renderLanding } from "./landing";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
 import { LEGAL_PAGES, renderLegalPage } from "./legal";
@@ -140,7 +141,7 @@ const LEARN_PAGES: PageEntry[] = [
   ...learnPosts.map((p) => ({ path: `/learn/${p.slug}`, title: p.title, description: p.description })),
 ];
 
-const SITE_PAGES = [HOME_PAGE, ...LEARN_PAGES, ...LEGAL_PAGES];
+const SITE_PAGES = [HOME_PAGE, ...landingEntries, ...LEARN_PAGES, ...LEGAL_PAGES];
 
 const SITE_FILES: Record<string, (origin: string) => { type: string; body: string }> = {
   "/robots.txt": (o) => ({ type: "text/plain", body: robotsTxt(o) }),
@@ -206,6 +207,9 @@ const worker = {
     if (request.method === "GET" && (url.pathname === "/learn" || url.pathname.startsWith("/learn/"))) {
       return learnResponse(url.pathname, url.origin);
     }
+
+    const landingHtml = request.method === "GET" ? renderLanding(url.pathname, url.origin) : null;
+    if (landingHtml) return staticHtmlResponse(landingHtml, landingHtml);
 
     const legalHtml = request.method === "GET" ? renderLegalPage(url.pathname, url.origin) : null;
     if (legalHtml) return staticHtmlResponse(legalHtml, legalHtml);
