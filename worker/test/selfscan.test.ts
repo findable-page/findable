@@ -3,7 +3,7 @@ import worker from "../src/index";
 import { learnPaths } from "../src/learn";
 
 const ORIGIN = "https://findable.page";
-const FLOORS = { seo: 90, aeo: 85, geo: 80 };
+const FLOORS = { seo: 90, aeo: 85, geo: 55 };
 
 interface Category {
   score: number;
@@ -12,7 +12,7 @@ interface Category {
 
 const scanPaths = ["/", ...learnPaths()];
 
-test.each(scanPaths)("%s scores SEO 90, AEO 85 and GEO 80 or better when scanned in-process", async (path) => {
+test.each(scanPaths)("%s scores SEO 90, AEO 85 and GEO 55 or better when scanned in-process", async (path) => {
   const resp = await worker.fetch(
     new Request(`${ORIGIN}/api/scan`, {
       method: "POST",

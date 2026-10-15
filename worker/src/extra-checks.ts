@@ -97,6 +97,17 @@ export function metaTags(c: PageCtx, name: string): string[] {
     .map((t) => (t.attrs.content ?? "").trim());
 }
 
+export function metaProperty(c: PageCtx, prop: string): string {
+  for (const t of tagsNamed(c, "meta")) {
+    for (const key of ["property", "name"]) {
+      if ((t.attrs[key] ?? "").trim().toLowerCase() === prop && (t.attrs.content ?? "").trim()) {
+        return (t.attrs.content ?? "").trim();
+      }
+    }
+  }
+  return "";
+}
+
 function firstHref(tags: Tag[]): string {
   return tags.map((t) => (t.attrs.href ?? "").trim()).find(Boolean) ?? "";
 }

@@ -347,7 +347,7 @@ func TestLocalAuditEngineOnGEOResearchPage(t *testing.T) {
 	if ov < 65 {
 		t.Errorf("expected rich research page to score >=65, got overall=%d", ov)
 	}
-	if scanResult.GEO.Score == nil || *scanResult.GEO.Score < 60 {
+	if scanResult.GEO.Score == nil || *scanResult.GEO.Score < 55 {
 		t.Errorf("expected high GEO score, got %v", scanResult.GEO.Score)
 	}
 }

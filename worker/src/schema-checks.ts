@@ -1,10 +1,10 @@
-import { linkTags, ok, type PageCtx, skip, tagsNamed } from "./extra-checks";
+import { linkTags, metaProperty, ok, type PageCtx, skip, tagsNamed } from "./extra-checks";
 import type { Check } from "./index";
 
 type Json = unknown;
 export type Node = Record<string, Json>;
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+export const ISO_DATE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 const HTTP_URL = /^https?:\/\//i;
 const URL_KEYS = new Set(["url", "logo", "image", "sameas", "thumbnailurl", "contenturl", "embedurl"]);
 const ARTICLE_TYPES = ["article", "newsarticle", "blogposting", "techarticle", "scholarlyarticle"];
@@ -336,16 +336,7 @@ function samePage(c: PageCtx, a: string, b: string): boolean {
 }
 
 function socialCompletenessChecks(c: PageCtx): Check[] {
-  const meta = (prop: string): string => {
-    for (const t of tagsNamed(c, "meta")) {
-      for (const key of ["property", "name"]) {
-        if ((t.attrs[key] ?? "").trim().toLowerCase() === prop && (t.attrs.content ?? "").trim()) {
-          return (t.attrs.content ?? "").trim();
-        }
-      }
-    }
-    return "";
-  };
+  const meta = (prop: string): string => metaProperty(c, prop);
   const image = meta("og:image");
   const ogUrl = meta("og:url");
   const canonical = linkTags(c, "canonical")

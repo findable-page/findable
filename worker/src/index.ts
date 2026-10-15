@@ -2,6 +2,7 @@ import UI_HTML from "../../internal/server/web/index.html";
 import { aeoStructureChecks } from "./aeo-structure-checks";
 import { pageSpeed } from "./cwv";
 import { buildCtx, seoExtraChecks } from "./extra-checks";
+import { geoSignalChecks } from "./geo-signals-checks";
 import { BlockedTargetError, guardedFetch, type SelfRoute } from "./guard";
 import { escapeHtml, LEARN_STYLE, renderLearnIndex, renderLearnNotFound, renderLearnPost } from "./learn";
 import { learnPosts } from "./learn-content";
@@ -838,6 +839,7 @@ function analyzeHtml(targetUrl: string, rawHtml: string, headers: Headers, keyph
       robotsMeta,
       schemaTypeCount: schemaTypes.length,
     }),
+    ...geoSignalChecks(ctx),
   ];
 
   const calcCat = (checks: Check[]): CategoryResult => {

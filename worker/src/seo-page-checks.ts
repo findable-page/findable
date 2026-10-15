@@ -54,7 +54,7 @@ function imageQualityChecks(c: PageCtx): Check[] {
   ];
 }
 
-function resolveNavigable(c: PageCtx, href: string): URL | undefined {
+export function resolveNavigable(c: PageCtx, href: string): URL | undefined {
   const trimmed = href.trim();
   if (!trimmed || NON_NAVIGABLE.some((prefix) => trimmed.startsWith(prefix))) return undefined;
   try {

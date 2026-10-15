@@ -390,18 +390,7 @@ func schemaBusinessAndVideo(l *checkList, doc schemaDoc) {
 }
 
 func seoSocialCompleteness(l *checkList, s *PageSignals) {
-	meta := func(prop string) string {
-		for _, t := range s.Tags["meta"] {
-			for _, key := range []string{"property", "name"} {
-				if strings.ToLower(strings.TrimSpace(t.Attrs[key])) == prop {
-					if content := strings.TrimSpace(t.Attrs["content"]); content != "" {
-						return content
-					}
-				}
-			}
-		}
-		return ""
-	}
+	meta := func(prop string) string { return metaProperty(s, prop) }
 	l.add("og_type", "Open Graph og:type is set", meta("og:type") != "")
 	l.add("og_site_name", "Open Graph og:site_name is set", meta("og:site_name") != "")
 	if image := meta("og:image"); image == "" {
