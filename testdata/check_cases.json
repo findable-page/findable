@@ -50,25 +50,6 @@
     "pass": [{"head": "<link rel='icon' href='/f.png'>"}, {"head": "<link rel='shortcut icon' href='/favicon.ico'>"}],
     "fail": [{}, {"head": "<link rel='apple-touch-icon' href='/a.png'>"}, {"head": "<link rel='icon'>"}]
   },
-  "apple_touch_icon": {
-    "pass": [{"head": "<link rel='apple-touch-icon' href='/a.png'>"}],
-    "fail": [{}, {"head": "<link rel='icon' href='/f.png'>"}]
-  },
-  "theme_color": {
-    "pass": [{"head": "<meta name='theme-color' content='#fff'>"}],
-    "fail": [{}, {"head": "<meta name='theme-color' content=''>"}]
-  },
-  "web_manifest": {
-    "pass": [{"head": "<link rel='manifest' href='/site.webmanifest'>"}],
-    "fail": [{}]
-  },
-  "rss_feed": {
-    "pass": [
-      {"head": "<link rel='alternate' type='application/rss+xml' href='/feed.xml'>"},
-      {"head": "<link rel='alternate' type='application/atom+xml' href='/atom.xml'>"}
-    ],
-    "fail": [{}, {"head": "<link rel='alternate' hreflang='fr' href='/fr'>"}]
-  },
   "viewport_device_width": {
     "pass": [{}, {"head": "<meta name='viewport' content='width=device-width, initial-scale=1'>"}],
     "fail": [{"head": "<meta name='viewport' content='initial-scale=1'>"}]

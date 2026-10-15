@@ -1,8 +1,4 @@
 {
-  "aeo_question_coverage": {
-    "pass": [{"body": "<h2>What is it?</h2><h2>How does it work?</h2><h2>Why use it</h2>"}],
-    "fail": [{}, {"body": "<h2>What is it?</h2><h2>How does it work?</h2>"}]
-  },
   "aeo_answer_after_question": {
     "pass": [{}, {"body": "<h2>What is it?</h2><p>It is a tool.</p>"}],
     "fail": [
@@ -47,8 +43,8 @@
     "fail": [{}, {"body": "<h2>Steps</h2><p>x</p><ul><li>a</li></ul>"}]
   },
   "aeo_list_item_length": {
-    "pass": [{}, {"body": "<ul><li>short</li><li>also short</li></ul>"}],
-    "fail": [{"body": "<ul><li>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega one two three four five six</li></ul>"}]
+    "pass": [{}, {"body": "<ul><li>short</li><li>also short</li></ul>"}, {"body": "<ul><li>short<li>also short</ul><p>w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w</p>"}, {"body": "<ol><li>short</ol><p>w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w</p>"}],
+    "fail": [{"body": "<ul><li>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega one two three four five six</li></ul>"}, {"body": "<ul><li>short<li>w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w w</ul>"}]
   },
   "aeo_paragraph_length": {
     "pass": [{}, {"body": "<p>A short paragraph.</p>"}],
@@ -76,10 +72,6 @@
       {"body": "<a href='#a'>a</a><a href='#b'>b</a><a href='#c'>c</a><p>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega</p>", "repeat": 34}
     ],
     "fail": [{"body": "<p>alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega</p>", "repeat": 34}]
-  },
-  "aeo_tldr": {
-    "pass": [{"body": "<p>TL;DR: it works.</p>"}, {"body": "<p>In short, yes.</p>"}],
-    "fail": [{}, {"body": "<p>Nothing to see.</p>"}]
   },
   "aeo_definition_lead": {
     "pass": [{}, {"body": "<h2>Cache</h2><p>A cache is a small fast store. It helps.</p>"}],

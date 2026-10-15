@@ -160,14 +160,6 @@
     "pass": [{}, {"head": "<meta property='og:image' content='https://example.com/a.png'>"}],
     "fail": [{"head": "<meta property='og:image' content='/a.png'>"}]
   },
-  "twitter_image": {
-    "pass": [
-      {},
-      {"head": "<meta name='twitter:card' content='summary'><meta name='twitter:image' content='https://example.com/a.png'>"},
-      {"head": "<meta name='twitter:card' content='summary'><meta property='og:image' content='https://example.com/a.png'>"}
-    ],
-    "fail": [{"head": "<meta name='twitter:card' content='summary'>"}]
-  },
   "og_url_matches_canonical": {
     "pass": [
       {},

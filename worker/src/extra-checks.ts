@@ -268,15 +268,7 @@ function urlShapeChecks(c: PageCtx): Check[] {
 }
 
 function brandAssetChecks(c: PageCtx): Check[] {
-  const themeColors = metaTags(c, "theme-color");
-  const feed = linkTags(c, "alternate").some((t) => /rss|atom/i.test(t.attrs.type ?? ""));
-  return [
-    ok("favicon", "Favicon link found", firstHref(linkTags(c, "icon")) !== ""),
-    ok("apple_touch_icon", "Apple touch icon declared", firstHref(linkTags(c, "apple-touch-icon")) !== ""),
-    ok("theme_color", "theme-color meta tag found", themeColors.length > 0 && themeColors[0] !== ""),
-    ok("web_manifest", "Web app manifest linked", firstHref(linkTags(c, "manifest")) !== ""),
-    ok("rss_feed", "RSS or Atom feed advertised", feed),
-  ];
+  return [ok("favicon", "Favicon link found", firstHref(linkTags(c, "icon")) !== "")];
 }
 
 function blocksZoom(viewport: string): boolean {

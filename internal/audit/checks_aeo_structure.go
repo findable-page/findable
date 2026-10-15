@@ -10,7 +10,6 @@ import (
 var (
 	questionLeadRegex = regexp.MustCompile(`^(who|what|when|where|why|how|which|can|could|does|do|did|is|are|was|were|should|will|has|have)\b`)
 	definitionRegex   = regexp.MustCompile(`\b(is|are|refers to|means|stands for)\b`)
-	tldrPhrases       = []string{"tl;dr", "tldr", "in short", "short answer", "quick answer", "in a nutshell", "at a glance", "bottom line"}
 )
 
 type contentBlock struct {
@@ -72,7 +71,6 @@ func aeoQuestionAnswers(l *checkList, blocks []contentBlock) {
 			}
 		}
 	}
-	l.add("aeo_question_coverage", fmt.Sprintf("%d question-style headings (3 or more recommended)", questions), questions >= 3)
 	if questions == 0 {
 		l.skip("aeo_answer_after_question", "No question headings to check")
 		l.skip("aeo_answer_length_ideal", "No question headings to check")
@@ -215,13 +213,6 @@ func aeoNavigability(l *checkList, s *PageSignals, blocks []contentBlock) {
 }
 
 func aeoAnswerPhrasing(l *checkList, s *PageSignals, blocks []contentBlock) {
-	lower := strings.ToLower(s.TextContent)
-	tldr := false
-	for _, phrase := range tldrPhrases {
-		tldr = tldr || strings.Contains(lower, phrase)
-	}
-	l.add("aeo_tldr", "TL;DR or short-answer block present", tldr)
-
 	pairs, defined := 0, false
 	for i := 1; i < len(blocks); i++ {
 		if blocks[i].tag != "p" || !blocks[i-1].isHeading() {

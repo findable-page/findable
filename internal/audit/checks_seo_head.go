@@ -134,15 +134,6 @@ func seoURLShape(l *checkList, s *PageSignals) {
 
 func seoBrandAssets(l *checkList, s *PageSignals) {
 	l.add("favicon", "Favicon link found", firstHref(linkTags(s, "icon")) != "")
-	l.add("apple_touch_icon", "Apple touch icon declared", firstHref(linkTags(s, "apple-touch-icon")) != "")
-	themeColors := metaTags(s, "theme-color")
-	l.add("theme_color", "theme-color meta tag found", len(themeColors) > 0 && themeColors[0] != "")
-	l.add("web_manifest", "Web app manifest linked", firstHref(linkTags(s, "manifest")) != "")
-	feedType := false
-	for _, t := range linkTags(s, "alternate") {
-		feedType = feedType || lowerContainsAny(t.Attrs["type"], "rss", "atom")
-	}
-	l.add("rss_feed", "RSS or Atom feed advertised", feedType)
 }
 
 func seoViewportAndLang(l *checkList, s *PageSignals) {

@@ -17,6 +17,7 @@ const GENERIC_ANCHORS = new Set([
   "click",
 ]);
 const NON_NAVIGABLE = ["#", "javascript:", "mailto:", "tel:"];
+const EAGER_IMAGE_ALLOWANCE = 3;
 const byteLength = (text: string): number => new TextEncoder().encode(text).length;
 
 function imageQualityChecks(c: PageCtx): Check[] {
@@ -40,12 +41,18 @@ function imageQualityChecks(c: PageCtx): Check[] {
       recognised++;
       if (MODERN_IMAGE_EXT.test(src)) modern++;
     }
-    if (i > 0 && (img.attrs.loading ?? "").trim().toLowerCase() !== "lazy") eager++;
+    const lazy = (img.attrs.loading ?? "").trim().toLowerCase() === "lazy";
+    const prioritised = (img.attrs.fetchpriority ?? "").trim().toLowerCase() === "high";
+    if (i >= EAGER_IMAGE_ALLOWANCE && !lazy && !prioritised) eager++;
   }
   return [
     ok("img_alt_quality", `${placeholder} image alt text(s) look like filenames or placeholders`, placeholder === 0),
     ok("img_alt_length", `${long} image alt text(s) longer than 125 characters`, long === 0),
-    ok("img_lazy_loading", `${eager} image(s) after the first are not lazy-loaded`, eager === 0),
+    ok(
+      "img_lazy_loading",
+      `${eager} image(s) after the first ${EAGER_IMAGE_ALLOWANCE} are not lazy-loaded`,
+      eager === 0,
+    ),
     ok(
       "img_modern_format",
       `${modern} of ${recognised} images use WebP, AVIF or SVG`,
@@ -82,12 +89,14 @@ function linkQualityChecks(c: PageCtx): Check[] {
     const unlabeled = !(a.attrs["aria-label"] ?? "").trim() && !(a.attrs.title ?? "").trim();
     if (href !== "#" && !text && !a.media && unlabeled) empty++;
   }
+  const gated = (id: string, label: string, pass: boolean): Check =>
+    withHref === 0 ? skip(id, "No links on the page") : ok(id, label, pass);
   return [
-    ok("nofollow_internal", `${nofollowInternal} internal link(s) marked rel=nofollow`, nofollowInternal === 0),
-    ok("generic_anchor_text", `${generic} link(s) use generic anchor text like "click here"`, generic === 0),
-    ok("empty_anchor_text", `${empty} link(s) have no text, label or image`, empty === 0),
-    ok("javascript_hrefs", `${javascript} link(s) use javascript: hrefs`, javascript === 0),
-    ok("links_count", `${withHref} links on page (200 or fewer recommended)`, withHref <= 200),
+    gated("nofollow_internal", `${nofollowInternal} internal link(s) marked rel=nofollow`, nofollowInternal === 0),
+    gated("generic_anchor_text", `${generic} link(s) use generic anchor text like "click here"`, generic === 0),
+    gated("empty_anchor_text", `${empty} link(s) have no text, label or image`, empty === 0),
+    gated("javascript_hrefs", `${javascript} link(s) use javascript: hrefs`, javascript === 0),
+    gated("links_count", `${withHref} links on page (200 or fewer recommended)`, withHref <= 200),
     mixedContentCheck(c),
   ];
 }
@@ -130,14 +139,18 @@ function loadPerformanceChecks(c: PageCtx): Check[] {
   ).length;
   const stylesheets = linkTags(c, "stylesheet");
   const cssBytes = tagsNamed(c, "style").reduce((sum, t) => sum + byteLength(t.text), 0);
-  const styled = [...c.tags.values()].flat().filter((t) => "style" in t.attrs).length;
   const htmlBytes = byteLength(c.raw);
   return [
-    ok("render_blocking_scripts", `${blocking} render-blocking script(s) in head`, blocking === 0),
-    ok("script_count", `${scripts.length} external scripts (20 or fewer recommended)`, scripts.length <= 20),
-    ok("stylesheet_count", `${stylesheets.length} stylesheets (6 or fewer recommended)`, stylesheets.length <= 6),
+    scripts.length === 0
+      ? skip("render_blocking_scripts", "No external scripts")
+      : ok("render_blocking_scripts", `${blocking} render-blocking script(s) in head`, blocking === 0),
+    scripts.length === 0
+      ? skip("script_count", "No external scripts")
+      : ok("script_count", `${scripts.length} external scripts (20 or fewer recommended)`, scripts.length <= 20),
+    stylesheets.length === 0
+      ? skip("stylesheet_count", "No stylesheets")
+      : ok("stylesheet_count", `${stylesheets.length} stylesheets (6 or fewer recommended)`, stylesheets.length <= 6),
     ok("inline_css_size", `${cssBytes} bytes of inline CSS (20000 or fewer recommended)`, cssBytes <= 20000),
-    ok("inline_style_attrs", `${styled} elements with inline style attributes (30 or fewer recommended)`, styled <= 30),
     ok("resource_hints", "Preconnect or preload hints cover third-party resources", hasResourceHints(c, stylesheets)),
     ok("html_weight", `HTML is ${htmlBytes} bytes (500000 or fewer recommended)`, htmlBytes <= 500000),
   ];
@@ -145,17 +158,25 @@ function loadPerformanceChecks(c: PageCtx): Check[] {
 
 function accessibilityChecks(c: PageCtx): Check[] {
   const hasSkipLink = tagsNamed(c, "a").some((a) => a.text.toLowerCase().includes("skip to"));
-  const unnamed = tagsNamed(c, "button").filter(
+  const buttons = tagsNamed(c, "button");
+  const unnamed = buttons.filter(
     (b) => !b.text.trim() && !b.media && !(b.attrs["aria-label"] ?? "").trim() && !(b.attrs.title ?? "").trim(),
   ).length;
   const headers = tagsNamed(c, "th").length;
   const tables = tagsNamed(c, "table").length;
-  const untitled = tagsNamed(c, "iframe").filter((f) => !(f.attrs.title ?? "").trim()).length;
+  const iframes = tagsNamed(c, "iframe");
+  const untitled = iframes.filter((f) => !(f.attrs.title ?? "").trim()).length;
   return [
     ok("skip_link", "Skip-to-content link present", hasSkipLink),
-    ok("button_names", `${unnamed} button(s) have no accessible name`, unnamed === 0),
-    ok("table_headers", `${headers} header cell(s) for ${tables} table(s)`, headers >= tables),
-    ok("iframe_title", `${untitled} iframe(s) missing a title attribute`, untitled === 0),
+    buttons.length === 0
+      ? skip("button_names", "No buttons")
+      : ok("button_names", `${unnamed} button(s) have no accessible name`, unnamed === 0),
+    tables === 0
+      ? skip("table_headers", "No tables")
+      : ok("table_headers", `${headers} header cell(s) for ${tables} table(s)`, headers >= tables),
+    iframes.length === 0
+      ? skip("iframe_title", "No iframes")
+      : ok("iframe_title", `${untitled} iframe(s) missing a title attribute`, untitled === 0),
   ];
 }
 

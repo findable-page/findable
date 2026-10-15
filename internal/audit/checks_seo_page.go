@@ -14,6 +14,8 @@ var (
 	genericAnchors      = map[string]bool{"click here": true, "here": true, "read more": true, "more": true, "learn more": true, "link": true, "this": true, "this link": true, "click": true}
 )
 
+const eagerImageAllowance = 3
+
 func seoPage(l *checkList, s *PageSignals) {
 	seoImageQuality(l, s)
 	seoLinkQuality(l, s)
@@ -48,13 +50,13 @@ func seoImageQuality(l *checkList, s *PageSignals) {
 				modern++
 			}
 		}
-		if i > 0 && !strings.EqualFold(strings.TrimSpace(img.Attrs["loading"]), "lazy") {
+		if i >= eagerImageAllowance && !strings.EqualFold(strings.TrimSpace(img.Attrs["loading"]), "lazy") && !strings.EqualFold(strings.TrimSpace(img.Attrs["fetchpriority"]), "high") {
 			eager++
 		}
 	}
 	l.add("img_alt_quality", fmt.Sprintf("%d image alt text(s) look like filenames or placeholders", placeholder), placeholder == 0)
 	l.add("img_alt_length", fmt.Sprintf("%d image alt text(s) longer than 125 characters", long), long == 0)
-	l.add("img_lazy_loading", fmt.Sprintf("%d image(s) after the first are not lazy-loaded", eager), eager == 0)
+	l.add("img_lazy_loading", fmt.Sprintf("%d image(s) after the first %d are not lazy-loaded", eager, eagerImageAllowance), eager == 0)
 	l.add("img_modern_format", fmt.Sprintf("%d of %d images use WebP, AVIF or SVG", modern, recognised), recognised == 0 || modern*2 >= recognised)
 }
 
@@ -98,11 +100,12 @@ func seoLinkQuality(l *checkList, s *PageSignals) {
 			empty++
 		}
 	}
-	l.add("nofollow_internal", fmt.Sprintf("%d internal link(s) marked rel=nofollow", nofollowInternal), nofollowInternal == 0)
-	l.add("generic_anchor_text", fmt.Sprintf("%d link(s) use generic anchor text like \"click here\"", generic), generic == 0)
-	l.add("empty_anchor_text", fmt.Sprintf("%d link(s) have no text, label or image", empty), empty == 0)
-	l.add("javascript_hrefs", fmt.Sprintf("%d link(s) use javascript: hrefs", javascript), javascript == 0)
-	l.add("links_count", fmt.Sprintf("%d links on page (200 or fewer recommended)", withHref), withHref <= 200)
+	hasLinks, noLinks := withHref > 0, "No links on the page"
+	skipUnless(l, hasLinks, "nofollow_internal", fmt.Sprintf("%d internal link(s) marked rel=nofollow", nofollowInternal), noLinks, nofollowInternal == 0)
+	skipUnless(l, hasLinks, "generic_anchor_text", fmt.Sprintf("%d link(s) use generic anchor text like \"click here\"", generic), noLinks, generic == 0)
+	skipUnless(l, hasLinks, "empty_anchor_text", fmt.Sprintf("%d link(s) have no text, label or image", empty), noLinks, empty == 0)
+	skipUnless(l, hasLinks, "javascript_hrefs", fmt.Sprintf("%d link(s) use javascript: hrefs", javascript), noLinks, javascript == 0)
+	skipUnless(l, hasLinks, "links_count", fmt.Sprintf("%d links on page (200 or fewer recommended)", withHref), noLinks, withHref <= 200)
 	seoMixedContent(l, s)
 }
 
@@ -140,27 +143,18 @@ func seoLoadPerformance(l *checkList, s *PageSignals) {
 			blocking++
 		}
 	}
-	l.add("render_blocking_scripts", fmt.Sprintf("%d render-blocking script(s) in head", blocking), blocking == 0)
-	l.add("script_count", fmt.Sprintf("%d external scripts (20 or fewer recommended)", externalScripts), externalScripts <= 20)
+	noScripts := "No external scripts"
+	skipUnless(l, externalScripts > 0, "render_blocking_scripts", fmt.Sprintf("%d render-blocking script(s) in head", blocking), noScripts, blocking == 0)
+	skipUnless(l, externalScripts > 0, "script_count", fmt.Sprintf("%d external scripts (20 or fewer recommended)", externalScripts), noScripts, externalScripts <= 20)
 
 	stylesheets := linkTags(s, "stylesheet")
-	l.add("stylesheet_count", fmt.Sprintf("%d stylesheets (6 or fewer recommended)", len(stylesheets)), len(stylesheets) <= 6)
+	skipUnless(l, len(stylesheets) > 0, "stylesheet_count", fmt.Sprintf("%d stylesheets (6 or fewer recommended)", len(stylesheets)), "No stylesheets", len(stylesheets) <= 6)
 
 	cssBytes := 0
 	for _, t := range s.Tags["style"] {
 		cssBytes += len(t.Text)
 	}
 	l.add("inline_css_size", fmt.Sprintf("%d bytes of inline CSS (20000 or fewer recommended)", cssBytes), cssBytes <= 20000)
-
-	styled := 0
-	for _, list := range s.Tags {
-		for _, t := range list {
-			if _, ok := t.Attrs["style"]; ok {
-				styled++
-			}
-		}
-	}
-	l.add("inline_style_attrs", fmt.Sprintf("%d elements with inline style attributes (30 or fewer recommended)", styled), styled <= 30)
 
 	l.add("resource_hints", "Preconnect or preload hints cover third-party resources", hasResourceHints(s, stylesheets))
 	l.add("html_weight", fmt.Sprintf("HTML is %d bytes (500000 or fewer recommended)", len(s.RawHTML)), len(s.RawHTML) <= 500000)
@@ -199,10 +193,10 @@ func seoAccessibility(l *checkList, s *PageSignals) {
 			unnamed++
 		}
 	}
-	l.add("button_names", fmt.Sprintf("%d button(s) have no accessible name", unnamed), unnamed == 0)
+	skipUnless(l, len(s.Tags["button"]) > 0, "button_names", fmt.Sprintf("%d button(s) have no accessible name", unnamed), "No buttons", unnamed == 0)
 
 	headers := len(s.Tags["th"])
-	l.add("table_headers", fmt.Sprintf("%d header cell(s) for %d table(s)", headers, len(s.Tags["table"])), headers >= len(s.Tags["table"]))
+	skipUnless(l, len(s.Tags["table"]) > 0, "table_headers", fmt.Sprintf("%d header cell(s) for %d table(s)", headers, len(s.Tags["table"])), "No tables", headers >= len(s.Tags["table"]))
 
 	untitled := 0
 	for _, f := range s.Tags["iframe"] {
@@ -210,5 +204,5 @@ func seoAccessibility(l *checkList, s *PageSignals) {
 			untitled++
 		}
 	}
-	l.add("iframe_title", fmt.Sprintf("%d iframe(s) missing a title attribute", untitled), untitled == 0)
+	skipUnless(l, len(s.Tags["iframe"]) > 0, "iframe_title", fmt.Sprintf("%d iframe(s) missing a title attribute", untitled), "No iframes", untitled == 0)
 }

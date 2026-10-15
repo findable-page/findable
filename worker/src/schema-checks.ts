@@ -7,7 +7,7 @@ export type Node = Record<string, Json>;
 export const ISO_DATE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 const HTTP_URL = /^https?:\/\//i;
 const URL_KEYS = new Set(["url", "logo", "image", "sameas", "thumbnailurl", "contenturl", "embedurl"]);
-const ARTICLE_TYPES = ["article", "newsarticle", "blogposting", "techarticle", "scholarlyarticle"];
+export const ARTICLE_TYPES = ["article", "newsarticle", "blogposting", "techarticle", "scholarlyarticle"];
 const ORG_TYPES = [
   "organization",
   "corporation",
@@ -348,13 +348,6 @@ function socialCompletenessChecks(c: PageCtx): Check[] {
     image === ""
       ? skip("og_image_absolute", "No og:image to validate")
       : ok("og_image_absolute", "og:image is an absolute http(s) URL", HTTP_URL.test(image)),
-    meta("twitter:card") === ""
-      ? skip("twitter_image", "No twitter:card to complete")
-      : ok(
-          "twitter_image",
-          "Twitter card has an image (twitter:image or og:image)",
-          meta("twitter:image") !== "" || image !== "",
-        ),
     ogUrl === "" || !canonical
       ? skip("og_url_matches_canonical", "Needs both og:url and a canonical")
       : ok("og_url_matches_canonical", "og:url matches the canonical URL", samePage(c, ogUrl, canonical)),

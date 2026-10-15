@@ -324,7 +324,7 @@ func TestLocalAuditEngineOnThinPage(t *testing.T) {
 	if ov > 45 {
 		t.Errorf("expected thin page to score low, got overall=%d", ov)
 	}
-	if scanResult.SEO.Score == nil || *scanResult.SEO.Score > 65 {
+	if scanResult.SEO.Score == nil || *scanResult.SEO.Score > 50 {
 		t.Errorf("expected low SEO score, got %v", *scanResult.SEO.Score)
 	}
 }
@@ -347,7 +347,7 @@ func TestLocalAuditEngineOnGEOResearchPage(t *testing.T) {
 	if ov < 65 {
 		t.Errorf("expected rich research page to score >=65, got overall=%d", ov)
 	}
-	if scanResult.GEO.Score == nil || *scanResult.GEO.Score < 55 {
+	if scanResult.GEO.Score == nil || *scanResult.GEO.Score < 60 {
 		t.Errorf("expected high GEO score, got %v", scanResult.GEO.Score)
 	}
 }

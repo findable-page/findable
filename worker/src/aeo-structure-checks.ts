@@ -5,16 +5,6 @@ import { gated, isNode, items, type Node, ofType, parseSchemaDoc, present } from
 const QUESTION_LEAD =
   /^(who|what|when|where|why|how|which|can|could|does|do|did|is|are|was|were|should|will|has|have)\b/;
 const DEFINITION = /\b(is|are|refers to|means|stands for)\b/;
-const TLDR_PHRASES = [
-  "tl;dr",
-  "tldr",
-  "in short",
-  "short answer",
-  "quick answer",
-  "in a nutshell",
-  "at a glance",
-  "bottom line",
-];
 const BLOCK_TAGS = ["h1", "h2", "h3", "h4", "h5", "h6", "p", "li"];
 
 interface Block {
@@ -54,20 +44,13 @@ function questionAnswerChecks(blocks: Block[]): Check[] {
       if (next.words >= 20 && next.words <= 80) ideal++;
     }
   }
-  const coverage = ok(
-    "aeo_question_coverage",
-    `${questions} question-style headings (3 or more recommended)`,
-    questions >= 3,
-  );
   if (questions === 0) {
     return [
-      coverage,
       skip("aeo_answer_after_question", "No question headings to check"),
       skip("aeo_answer_length_ideal", "No question headings to check"),
     ];
   }
   return [
-    coverage,
     ok(
       "aeo_answer_after_question",
       `${followed} of ${questions} question headings are followed directly by a paragraph`,
@@ -199,8 +182,7 @@ function navigabilityChecks(c: PageCtx, blocks: Block[]): Check[] {
   ];
 }
 
-function answerPhrasingChecks(c: PageCtx, blocks: Block[]): Check[] {
-  const lower = c.text.toLowerCase();
+function answerPhrasingChecks(blocks: Block[]): Check[] {
   let pairs = 0;
   let defined = false;
   for (let i = 1; i < blocks.length; i++) {
@@ -212,11 +194,6 @@ function answerPhrasingChecks(c: PageCtx, blocks: Block[]): Check[] {
     if (wordCount(sentence) <= 40 && DEFINITION.test(sentence)) defined = true;
   }
   return [
-    ok(
-      "aeo_tldr",
-      "TL;DR or short-answer block present",
-      TLDR_PHRASES.some((phrase) => lower.includes(phrase)),
-    ),
     pairs === 0
       ? skip("aeo_definition_lead", "No heading-and-paragraph sections to check")
       : ok("aeo_definition_lead", "A section opens with a definition-style sentence", defined),
@@ -251,7 +228,7 @@ export function aeoStructureChecks(c: PageCtx): Check[] {
     ...schemaDepthChecks(c),
     ...passageShapeChecks(c, blocks),
     ...navigabilityChecks(c, blocks),
-    ...answerPhrasingChecks(c, blocks),
+    ...answerPhrasingChecks(blocks),
     ...mediaStructureChecks(c),
   ];
 }

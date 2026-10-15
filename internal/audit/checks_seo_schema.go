@@ -398,11 +398,6 @@ func seoSocialCompleteness(l *checkList, s *PageSignals) {
 	} else {
 		l.add("og_image_absolute", "og:image is an absolute http(s) URL", httpURLRegex.MatchString(image))
 	}
-	if meta("twitter:card") == "" {
-		l.skip("twitter_image", "No twitter:card to complete")
-	} else {
-		l.add("twitter_image", "Twitter card has an image (twitter:image or og:image)", meta("twitter:image") != "" || meta("og:image") != "")
-	}
 	ogURL, canonical := meta("og:url"), firstHref(linkTags(s, "canonical"))
 	if ogURL == "" || canonical == "" || s.URL == nil {
 		l.skip("og_url_matches_canonical", "Needs both og:url and a canonical")

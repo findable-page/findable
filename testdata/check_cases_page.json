@@ -12,8 +12,17 @@
     "fail": [{"body": "<img src='a.png' alt='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'>"}]
   },
   "img_lazy_loading": {
-    "pass": [{}, {"body": "<img src='a.png' alt='a'>"}, {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b' loading='lazy'>"}],
-    "fail": [{"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'>"}]
+    "pass": [
+      {},
+      {"body": "<img src='a.png' alt='a'>"},
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'>"},
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b' loading='lazy'>"},
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d' fetchpriority='high'>"}
+    ],
+    "fail": [
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d'>"},
+      {"body": "<img src='a.png' alt='a'><img src='b.png' alt='b'><img src='c.png' alt='c'><img src='d.png' alt='d' fetchpriority='low'>"}
+    ]
   },
   "img_modern_format": {
     "pass": [{}, {"body": "<img src='a.webp' alt='a'>"}, {"body": "<img src='a.svg' alt='a'><img src='b.png' alt='b'>"}],
@@ -64,7 +73,8 @@
       {"head": "<script src='/a.js' async></script>"},
       {"head": "<script type='module' src='/a.js'></script>"},
       {"head": "<script>var a = 1;</script>"},
-      {"body": "<script src='/a.js'></script>"}
+      {"body": "<script src='/a.js'></script>"},
+      {"doc": "<!DOCTYPE html><html><head><title>t</title><body><script src='/a.js'></script></body></html>"}
     ],
     "fail": [{"head": "<script src='/a.js'></script>"}]
   },
@@ -79,10 +89,6 @@
   "inline_css_size": {
     "pass": [{}, {"body": "<style>aaaaaaaaaa</style>", "repeat": 100}],
     "fail": [{"body": "<style>aaaaaaaaaa</style>", "repeat": 2001}]
-  },
-  "inline_style_attrs": {
-    "pass": [{}, {"body": "<p style='color:red'>x</p>", "repeat": 30}],
-    "fail": [{"body": "<p style='color:red'>x</p>", "repeat": 31}]
   },
   "resource_hints": {
     "pass": [
