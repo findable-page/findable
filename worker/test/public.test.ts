@@ -10,8 +10,17 @@ test("worker/public holds exactly the static assets the UI references", async ()
     (m) => m[1] ?? "",
   );
   const og = html.match(/property="og:image" content="https:\/\/[^/"]+\/([^"]+)"/)?.[1] ?? "";
-  const referenced = [...refs, og].sort();
-  expect(referenced).toEqual(["apple-touch-icon.png", "favicon.ico", "favicon.svg", "og.jpg", "site.webmanifest"]);
+  const demo = [...html.matchAll(/(?:src|poster)="\/(demo\.[a-z0-9]+)"/g)].map((m) => m[1] ?? "");
+  const referenced = [...refs, og, ...demo].sort();
+  expect(referenced).toEqual([
+    "apple-touch-icon.png",
+    "demo.jpg",
+    "demo.mp4",
+    "favicon.ico",
+    "favicon.svg",
+    "og.jpg",
+    "site.webmanifest",
+  ]);
   expect(readdirSync(PUBLIC_DIR.pathname).sort()).toEqual(
     [...referenced, "favicon-32.png", "icon-192.png", "icon-512.png", "og.png"].sort(),
   );

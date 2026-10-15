@@ -31,6 +31,7 @@ import { seoPageChecks } from "./seo-page-checks";
 import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
 import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
+import { countScan, scanCount } from "./stats";
 import { MAX_KEYPHRASE, parseSuggestion, SUGGEST_MAX_TOKENS, SUGGEST_MODEL, suggestPrompt } from "./suggest";
 import { parseWatch, saveWatch } from "./watch";
 
@@ -119,6 +120,7 @@ async function buildUiPolicy(): Promise<string> {
     "style-src-attr 'unsafe-inline'",
     "connect-src 'self' https://cloudflareinsights.com",
     "img-src 'self' data:",
+    "media-src 'self'",
     "manifest-src 'self'",
     "base-uri 'none'",
     "form-action 'self'",
@@ -197,7 +199,7 @@ async function staticHtmlResponse(html: string | null, notFound: string): Promis
 const OWN_HOSTS = ["findable.page", "seoscore.piply.xyz"];
 
 const worker = {
-  async fetch(request: Request, env: Env = {}): Promise<Response> {
+  async fetch(request: Request, env: Env = {}, ctx?: { waitUntil(p: Promise<unknown>): void }): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS") {
@@ -263,6 +265,12 @@ const worker = {
         const scanRes = await auditUrl(targetUrl, self, body.keyphrase?.trim());
         if (body.site === true) scanRes.site = await siteChecks(targetUrl, self);
 
+        if (env.WATCH_DB) {
+          const counted = countScan(env.WATCH_DB).catch(() => {});
+          if (ctx) ctx.waitUntil(counted);
+          else await counted;
+        }
+
         return new Response(JSON.stringify(scanRes), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
@@ -273,6 +281,15 @@ const worker = {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
       }
+    }
+
+    if (url.pathname === "/api/stats" && request.method === "GET") {
+      if (!env.WATCH_DB) return watchJson(503, { error: "stats are not available here" });
+      const scans = await scanCount(env.WATCH_DB).catch(() => null);
+      if (scans === null) return watchJson(503, { error: "stats are not available here" });
+      return new Response(JSON.stringify({ scans }), {
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json", "Cache-Control": "public, max-age=60" },
+      });
     }
 
     if (url.pathname === "/api/cwv" && request.method === "POST") {

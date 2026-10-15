@@ -246,6 +246,8 @@
     .has-results .error-panel { width: 100%; margin: 0.6rem 0 0; }
 
     .landing { width: min(100%, 820px); margin: 1.5rem 0 3rem; }
+    .demo { margin: 0 0 1.5rem; }
+    .demo video { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 12px; }
     .landing h2 { font-size: 1.45rem; letter-spacing: -0.02em; line-height: 1.25; margin: 2.25rem 0 0.6rem; }
     .landing h3 { font-size: 1.05rem; margin: 1.25rem 0 0.4rem; }
     .landing :is(p, li, dd) { color: var(--text-2); }
@@ -380,7 +382,7 @@
         <div id="recentList" class="recent-items"></div>
       </div>
 
-      <p class="trust-row"><span data-i18n="trust1">150+ page checks</span><span data-i18n="trust2">SEO, AEO and GEO</span><span data-i18n="trust3">Free API and MCP</span></p>
+      <p class="trust-row"><span data-i18n="trust1">150+ page checks</span><span data-i18n="trust2">SEO, AEO and GEO</span><span data-i18n="trust3">Free API and MCP</span><span id="scanCount" hidden></span></p>
     </section>
 
     <div id="crawlSection" class="crawl-box hidden" role="region" aria-label="Crawl progress" aria-live="polite" data-i18n-attr="aria-label:crawlRegion">
@@ -514,6 +516,7 @@
     </div>
 
     <article class="landing">
+      <figure id="demo" class="demo" hidden><video src="/demo.mp4" poster="/demo.jpg" width="1200" height="686" controls muted loop playsinline preload="none" aria-label="A scan of github.com in findable: score 68, the top three fixes and the failing checks"></video></figure>
       <p class="byline">By <span>Nadim Tuhin</span> · Published <time datetime="2026-10-14">14 October 2026</time> · Updated <time datetime="2026-10-14">14 October 2026</time></p>
 
       <h2 id="about">What is findable?</h2>
@@ -645,6 +648,7 @@ findable https://example.com</code></pre>
         heroSubLink: "plain-words guide",
         modePage: "Scan page", modeSite: "Crawl site", urlLabel: "Page URL to audit", scanNow: "Scan now",
         keyphrase: "Focus keyphrase (optional)", scanFailed: "Scan failed", retry: "Retry", recentScans: "Recent scans", clear: "Clear",
+        scanCount: "{n} pages scanned",
         trust1: "150+ page checks", trust2: "SEO, AEO and GEO", trust3: "Free API and MCP", crawlRegion: "Crawl progress",
         agentTitle: "findable is checking", overallScore: "Overall score",
         copy: "Copy", share: "Share", more: "More…", shareTextLabel: "Text to paste anywhere", copyText: "Copy text", copyLink: "Copy link",
@@ -699,6 +703,7 @@ findable https://example.com</code></pre>
         heroSubLink: "Klartext-Leitfaden",
         modePage: "Seite scannen", modeSite: "Website crawlen", urlLabel: "Zu prüfende Seiten-URL", scanNow: "Jetzt scannen",
         keyphrase: "Fokus-Keyphrase (optional)", scanFailed: "Scan fehlgeschlagen", retry: "Erneut versuchen", recentScans: "Letzte Scans", clear: "Löschen",
+        scanCount: "{n} Seiten gescannt",
         trust1: "150+ Seiten-Checks", trust2: "SEO, AEO und GEO", trust3: "Kostenlose API und MCP", crawlRegion: "Crawl-Fortschritt",
         agentTitle: "findable prüft", overallScore: "Gesamtwert",
         copy: "Kopieren", share: "Teilen", more: "Mehr…", shareTextLabel: "Text zum Einfügen überall", copyText: "Text kopieren", copyLink: "Link kopieren",
@@ -753,6 +758,7 @@ findable https://example.com</code></pre>
         heroSubLink: "guía en palabras sencillas",
         modePage: "Escanear página", modeSite: "Rastrear sitio", urlLabel: "URL de la página a auditar", scanNow: "Escanear ahora",
         keyphrase: "Frase clave principal (opcional)", scanFailed: "Falló el escaneo", retry: "Reintentar", recentScans: "Escaneos recientes", clear: "Borrar",
+        scanCount: "{n} páginas analizadas",
         trust1: "Más de 150 comprobaciones", trust2: "SEO, AEO y GEO", trust3: "API y MCP gratis", crawlRegion: "Progreso del rastreo",
         agentTitle: "findable está revisando", overallScore: "Puntuación global",
         copy: "Copiar", share: "Compartir", more: "Más…", shareTextLabel: "Texto para pegar donde quieras", copyText: "Copiar texto", copyLink: "Copiar enlace",
@@ -807,6 +813,7 @@ findable https://example.com</code></pre>
         heroSubLink: "sade dille rehber",
         modePage: "Sayfayı tara", modeSite: "Siteyi tara", urlLabel: "Denetlenecek sayfa URL'si", scanNow: "Şimdi tara",
         keyphrase: "Odak anahtar ifade (isteğe bağlı)", scanFailed: "Tarama başarısız", retry: "Yeniden dene", recentScans: "Son taramalar", clear: "Temizle",
+        scanCount: "{n} sayfa tarandı",
         trust1: "150+ sayfa kontrolü", trust2: "SEO, AEO ve GEO", trust3: "Ücretsiz API ve MCP", crawlRegion: "Tarama ilerlemesi",
         agentTitle: "findable şunu kontrol ediyor:", overallScore: "Genel puan",
         copy: "Kopyala", share: "Paylaş", more: "Daha fazla…", shareTextLabel: "Her yere yapıştırılacak metin", copyText: "Metni kopyala", copyLink: "Bağlantıyı kopyala",
@@ -861,6 +868,7 @@ findable https://example.com</code></pre>
         heroSubLink: "объяснение простыми словами",
         modePage: "Сканировать страницу", modeSite: "Обойти сайт", urlLabel: "URL страницы для аудита", scanNow: "Сканировать",
         keyphrase: "Ключевая фраза (необязательно)", scanFailed: "Сканирование не удалось", retry: "Повторить", recentScans: "Недавние сканирования", clear: "Очистить",
+        scanCount: "Проверено страниц: {n}",
         trust1: "150+ проверок страницы", trust2: "SEO, AEO и GEO", trust3: "Бесплатные API и MCP", crawlRegion: "Ход обхода",
         agentTitle: "findable проверяет", overallScore: "Общая оценка",
         copy: "Копировать", share: "Поделиться", more: "Ещё…", shareTextLabel: "Текст, который можно вставить куда угодно", copyText: "Копировать текст", copyLink: "Копировать ссылку",
@@ -927,6 +935,13 @@ findable https://example.com</code></pre>
           node.setAttribute(attr, t(key));
         }
       });
+      if (scanTotal !== null) paintScanCount();
+    }
+    var scanTotal = null;
+    function paintScanCount() {
+      const node = $("scanCount");
+      node.hidden = scanTotal === null;
+      if (scanTotal !== null) node.textContent = t("scanCount", { n: scanTotal.toLocaleString(lang) });
     }
     applyStatic();
 
@@ -1763,6 +1778,13 @@ findable https://example.com</code></pre>
       }
     }
     loadCheckText().then(repaintResults);
+
+    if (document.querySelector('meta[name="findable-reports"]')) {
+      $("demo").hidden = false;
+      fetch("/api/stats").then(r => r.ok ? r.json() : null).then(s => {
+        if (s && s.scans > 0) { scanTotal = s.scans; paintScanCount(); }
+      }).catch(() => {});
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const queryUrl = urlParams.get("url") || decodeURI(location.pathname.slice(1));
