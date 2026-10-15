@@ -9,6 +9,7 @@ import { fixedWindowLimiter } from "./ratelimit";
 import type { CardScores } from "./share-card";
 import { type SiteCategory, siteChecks } from "./site";
 import { headSlot, injectHead, llmsFullTxt, llmsTxt, type PageEntry, robotsTxt, sitemapXml } from "./site-files";
+import { MAX_KEYPHRASE, parseSuggestion, SUGGEST_MAX_TOKENS, SUGGEST_MODEL, suggestPrompt } from "./suggest";
 import { parseWatch, saveWatch } from "./watch";
 
 export interface Check {
@@ -49,6 +50,7 @@ export interface Env {
   SCAN_LIMITER?: RateLimit;
   WATCH_DB?: D1Database;
   PSI_KEY?: string;
+  AI?: Ai;
 }
 
 const MAX_ANALYZED_HTML_CHARS = 1024 * 1024;
@@ -226,6 +228,10 @@ const worker = {
       return cwvResponse(request, env);
     }
 
+    if (url.pathname === "/api/suggest" && request.method === "POST") {
+      return suggestResponse(request, url, env);
+    }
+
     if (url.pathname === "/api/watch" && request.method === "POST") {
       return watchResponse(request, url, env);
     }
@@ -398,15 +404,68 @@ async function cwvResponse(request: Request, env: Env): Promise<Response> {
   }
 }
 
+async function suggestResponse(request: Request, url: URL, env: Env): Promise<Response> {
+  const json = (status: number, body: object) =>
+    new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  if (foreignOrigin(request, url)) return json(403, { error: "suggestions only from findable.page" });
+  if (!env.AI) return json(503, { error: "AI suggestions are not set up" });
+  const body = await readScanBody(request);
+  if (typeof body === "string") return json(400, { error: body });
+  const target = withScheme(body.url);
+  if (!/^https?:\/\//i.test(target)) return json(400, { error: "url must be http or https" });
+  const keyphrase = body.keyphrase?.trim() ?? "";
+  if (keyphrase.length > MAX_KEYPHRASE)
+    return json(400, { error: `keyphrase must be at most ${MAX_KEYPHRASE} characters` });
+  try {
+    const cacheKey = new Request(
+      `https://findable.page/__suggest/v1/${encodeURIComponent(new URL(target).href)}/${encodeURIComponent(keyphrase)}`,
+    );
+    const cache = (globalThis as { caches?: { default?: Cache } }).caches?.default;
+    const hit = await cache?.match(cacheKey);
+    if (hit) return json(200, await hit.json());
+    const ip = rateLimitKey(request.headers.get("CF-Connecting-IP") ?? "unknown");
+    if (!(await allowScan(env, `suggest:${ip}`)))
+      return json(429, { error: "too many requests, try again in a minute" });
+    const self: SelfRoute = { hosts: [url.hostname, ...OWN_HOSTS], handle: (r) => worker.fetch(r, env) };
+    const page = await guardedFetch(
+      target,
+      {
+        "User-Agent": "Mozilla/5.0 (compatible; findable-worker/1.0; +https://findable.page)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      self,
+    );
+    if (page.status >= 400 || !/html/i.test(page.headers.get("content-type") ?? ""))
+      return json(422, { error: "that page is not an HTML page we can read" });
+    const out = (await env.AI.run(SUGGEST_MODEL, {
+      messages: suggestPrompt(page.body, keyphrase),
+      max_tokens: SUGGEST_MAX_TOKENS,
+    })) as { response?: string };
+    const suggestion = parseSuggestion(out.response ?? "");
+    if (!suggestion) return json(502, { error: "the AI returned an unusable answer, try again" });
+    await cache?.put(
+      cacheKey,
+      new Response(JSON.stringify(suggestion), { headers: { "Cache-Control": "max-age=86400" } }),
+    );
+    return json(200, suggestion);
+  } catch (err) {
+    if (err instanceof BlockedTargetError) return json(400, { error: err.message });
+    console.error("suggest: failed", err);
+    return json(502, { error: "could not generate suggestions, try again later" });
+  }
+}
+
+function foreignOrigin(request: Request, url: URL): boolean {
+  const origin = request.headers.get("Origin");
+  return !!origin && ![url.hostname, ...OWN_HOSTS].includes(new URL(origin).hostname);
+}
+
 function watchJson(status: number, body: object): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
 
 async function watchResponse(request: Request, url: URL, env: Env): Promise<Response> {
-  const origin = request.headers.get("Origin");
-  if (origin && ![url.hostname, ...OWN_HOSTS].includes(new URL(origin).hostname)) {
-    return watchJson(403, { error: "signups only from findable.page" });
-  }
+  if (foreignOrigin(request, url)) return watchJson(403, { error: "signups only from findable.page" });
   if (!request.headers.get("Content-Type")?.startsWith("application/json")) {
     return watchJson(415, { error: "send json" });
   }

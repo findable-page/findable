@@ -444,6 +444,13 @@
         <ul id="cwvList" role="list"></ul>
       </section>
 
+      <section class="next-actions" id="suggestSection" aria-labelledby="suggestHeading" hidden>
+        <h2 id="suggestHeading" data-i18n="suggestHeading">AI suggestions</h2>
+        <button type="button" class="btn-action" id="btnSuggest" data-i18n="suggestBtn">Suggest fixes with AI</button>
+        <p id="suggestLine" role="status" aria-live="polite"></p>
+        <div id="suggestOut"></div>
+      </section>
+
       <section class="next-actions" id="watchSection" aria-labelledby="watchHeading" hidden>
         <h2 id="watchHeading" data-i18n="watchHeading">Watch this score</h2>
         <p data-i18n="watchLead">Get an email when your score changes. Free, no account.</p>
@@ -647,6 +654,7 @@ findable https://example.com</code></pre>
         nextOne: "This fix recovers {got} of the {all} points you are missing.", nextMany: "These {n} fixes recover {got} of the {all} points you are missing.",
         pts: "{n} pts", answerEngines: "Answer engines this helps",
         cwvTesting: "Testing page speed with Google PageSpeed Insights (takes about 20 seconds)…", cwvScore: "Performance {score}/100 · {passed} of {total} vitals good", cwvFail: "Page speed test failed",
+        suggestHeading: "AI suggestions", suggestBtn: "Suggest fixes with AI", suggestWorking: "Writing suggestions…", suggestFail: "Could not get suggestions", suggestTitle: "Title", suggestDescription: "Meta description", suggestFaq: "FAQ",
         docTitle: "{host} scored {n}/100 · findable", audited: "Audited {date}", keyphraseLine: " · keyphrase: {kp}",
         summaryLine: "Overall score: {n} out of 100.", failingSummary: "{f} of {a} checks failing", famDetail: "{p} / {t} passed",
         issuesCount: "Failing checks ({n})", noFailingAll: "No failing checks. Every applicable check passes.", noPassing: "No passing checks yet.", noFailingShort: "No failing checks",
@@ -697,6 +705,7 @@ findable https://example.com</code></pre>
         nextOne: "Dieser Fix bringt {got} der {all} fehlenden Punkte zurück.", nextMany: "Diese {n} Fixes bringen {got} der {all} fehlenden Punkte zurück.",
         pts: "{n} Pkt.", answerEngines: "Antwortmaschinen, denen das hilft",
         cwvTesting: "Seitengeschwindigkeit wird mit Google PageSpeed Insights getestet (dauert etwa 20 Sekunden)…", cwvScore: "Leistung {score}/100 · {passed} von {total} Vitalwerten gut", cwvFail: "Geschwindigkeitstest fehlgeschlagen",
+        suggestHeading: "KI-Vorschläge", suggestBtn: "Fixes mit KI vorschlagen", suggestWorking: "Vorschläge werden geschrieben…", suggestFail: "Vorschläge konnten nicht geladen werden", suggestTitle: "Titel", suggestDescription: "Meta-Beschreibung", suggestFaq: "FAQ",
         docTitle: "{host} erreicht {n}/100 · findable", audited: "Geprüft am {date}", keyphraseLine: " · Keyphrase: {kp}",
         summaryLine: "Gesamtwert: {n} von 100.", failingSummary: "{f} von {a} Checks fehlgeschlagen", famDetail: "{p} / {t} bestanden",
         issuesCount: "Fehlgeschlagene Checks ({n})", noFailingAll: "Keine fehlgeschlagenen Checks. Alle anwendbaren Checks bestanden.", noPassing: "Noch keine bestandenen Checks.", noFailingShort: "Keine fehlgeschlagenen Checks",
@@ -747,6 +756,7 @@ findable https://example.com</code></pre>
         nextOne: "Esta corrección recupera {got} de los {all} puntos que te faltan.", nextMany: "Estas {n} correcciones recuperan {got} de los {all} puntos que te faltan.",
         pts: "{n} pts", answerEngines: "Motores de respuesta a los que ayuda",
         cwvTesting: "Probando la velocidad con Google PageSpeed Insights (tarda unos 20 segundos)…", cwvScore: "Rendimiento {score}/100 · {passed} de {total} métricas vitales buenas", cwvFail: "Falló la prueba de velocidad",
+        suggestHeading: "Sugerencias con IA", suggestBtn: "Sugerir arreglos con IA", suggestWorking: "Escribiendo sugerencias…", suggestFail: "No se pudieron obtener sugerencias", suggestTitle: "Título", suggestDescription: "Meta descripción", suggestFaq: "Preguntas frecuentes",
         docTitle: "{host} obtiene {n}/100 · findable", audited: "Auditado el {date}", keyphraseLine: " · frase clave: {kp}",
         summaryLine: "Puntuación global: {n} de 100.", failingSummary: "{f} de {a} comprobaciones fallan", famDetail: "{p} / {t} superadas",
         issuesCount: "Comprobaciones fallidas ({n})", noFailingAll: "Ninguna comprobación falla. Todas las aplicables se superan.", noPassing: "Aún no hay comprobaciones superadas.", noFailingShort: "Ninguna comprobación falla",
@@ -797,6 +807,7 @@ findable https://example.com</code></pre>
         nextOne: "Bu düzeltme eksik {all} puanın {got} kadarını geri kazandırır.", nextMany: "Bu {n} düzeltme eksik {all} puanın {got} kadarını geri kazandırır.",
         pts: "{n} puan", answerEngines: "Bunun yardımcı olduğu cevap motorları",
         cwvTesting: "Sayfa hızı Google PageSpeed Insights ile test ediliyor (yaklaşık 20 saniye sürer)…", cwvScore: "Performans {score}/100 · {total} temel metrikten {passed} tanesi iyi", cwvFail: "Sayfa hızı testi başarısız",
+        suggestHeading: "Yapay zeka önerileri", suggestBtn: "Yapay zeka ile düzeltme öner", suggestWorking: "Öneriler yazılıyor…", suggestFail: "Öneriler alınamadı", suggestTitle: "Başlık", suggestDescription: "Meta açıklama", suggestFaq: "SSS",
         docTitle: "{host} {n}/100 puan aldı · findable", audited: "Denetim: {date}", keyphraseLine: " · anahtar ifade: {kp}",
         summaryLine: "Genel puan: 100 üzerinden {n}.", failingSummary: "{a} kontrolün {f} tanesi başarısız", famDetail: "{p} / {t} geçti",
         issuesCount: "Başarısız kontroller ({n})", noFailingAll: "Başarısız kontrol yok. Uygulanabilir tüm kontroller geçti.", noPassing: "Henüz geçen kontrol yok.", noFailingShort: "Başarısız kontrol yok",
@@ -847,6 +858,7 @@ findable https://example.com</code></pre>
         nextOne: "Это исправление вернёт {got} из {all} недостающих баллов.", nextMany: "Эти {n} исправления вернут {got} из {all} недостающих баллов.",
         pts: "{n} б.", answerEngines: "Ответные системы, которым это помогает",
         cwvTesting: "Проверяем скорость через Google PageSpeed Insights (около 20 секунд)…", cwvScore: "Производительность {score}/100 · хороших показателей: {passed} из {total}", cwvFail: "Не удалось проверить скорость страницы",
+        suggestHeading: "Подсказки ИИ", suggestBtn: "Предложить исправления с ИИ", suggestWorking: "Пишем подсказки…", suggestFail: "Не удалось получить подсказки", suggestTitle: "Заголовок", suggestDescription: "Мета-описание", suggestFaq: "Частые вопросы",
         docTitle: "{host}: {n}/100 · findable", audited: "Аудит от {date}", keyphraseLine: " · ключевая фраза: {kp}",
         summaryLine: "Общая оценка: {n} из 100.", failingSummary: "Не пройдено проверок: {f} из {a}", famDetail: "Пройдено {p} / {t}",
         issuesCount: "Проваленные проверки ({n})", noFailingAll: "Проваленных проверок нет. Все применимые проверки пройдены.", noPassing: "Пройденных проверок пока нет.", noFailingShort: "Проваленных проверок нет",
@@ -1219,11 +1231,54 @@ findable https://example.com</code></pre>
       }
     }
 
+    function suggestBlock(label, text) {
+      const block = el("div", "");
+      const copy = el("button", "btn-action", t("copy"));
+      copy.type = "button";
+      copy.addEventListener("click", () => navigator.clipboard.writeText(text).then(() => showToast(t("textCopied")), () => showToast(t("copyFail"))));
+      const body = el("p", "", text);
+      body.style.whiteSpace = "pre-wrap";
+      block.append(el("h3", "", label), body, copy);
+      return block;
+    }
+
+    let suggestRequestId = 0;
+    async function loadSuggest() {
+      const url = scannedUrl;
+      const requestId = ++suggestRequestId;
+      $("btnSuggest").disabled = true;
+      $("suggestLine").textContent = t("suggestWorking");
+      $("suggestOut").replaceChildren();
+      try {
+        const resp = await fetch("/api/suggest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, keyphrase: auditedKeyphrase }) });
+        const data = await resp.json();
+        if (url !== scannedUrl || requestId !== suggestRequestId) return;
+        if (!resp.ok) return void ($("suggestLine").textContent = data.error || t("suggestFail"));
+        $("suggestLine").textContent = "";
+        $("suggestOut").replaceChildren(
+          suggestBlock(t("suggestTitle"), data.title),
+          suggestBlock(t("suggestDescription"), data.description),
+          suggestBlock(t("suggestFaq"), data.faq.map(f => `Q: ${f.q}\nA: ${f.a}`).join("\n\n")),
+        );
+      } catch {
+        if (requestId === suggestRequestId) $("suggestLine").textContent = t("suggestFail");
+      } finally {
+        if (requestId === suggestRequestId) $("btnSuggest").disabled = false;
+      }
+    }
+
+    $("btnSuggest").addEventListener("click", loadSuggest);
+
     function renderScanResults(data, url) {
       scannedUrl = url;
       document.body.classList.add("has-results");
       const onWorker = !!document.querySelector('meta[name="findable-watch"]');
       $("watchSection").hidden = !onWorker;
+      $("suggestSection").hidden = !onWorker;
+      suggestRequestId++;
+      $("btnSuggest").disabled = false;
+      $("suggestOut").replaceChildren();
+      $("suggestLine").textContent = "";
       if (onWorker) loadCwv(url);
       const resultsEl = $("results");
       resultsEl.classList.remove("hidden");
