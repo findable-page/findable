@@ -1,6 +1,6 @@
 ---
 title: "Every findable GEO Check ID, Plus AI Crawler Checks"
-description: "All 19 GEO checks in findable explained, plus the unscored Site checks for GPTBot, ClaudeBot and llms.txt. GEO is 25% of the score. Fixes included."
+description: "All 36 GEO checks in findable explained, plus the unscored Site checks for GPTBot, ClaudeBot and llms.txt. GEO is 25% of the score. Fixes included."
 slug: geo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -18,11 +18,11 @@ faq:
 
 # Every GEO check findable runs, and how to fix each one
 
-AI tools now write answers and cite pages. GEO is the work of making your page worth citing. findable runs 19 GEO checks, and a short set of unscored Site checks for AI crawlers. This guide covers both. Remember that these are heuristics. They test signals, not quality.
+AI tools now write answers and cite pages. GEO is the work of making your page worth citing. findable runs 36 GEO checks, and a short set of unscored Site checks for AI crawlers. This guide covers both. Remember that these are heuristics. They test signals, not quality.
 
 ## What does the GEO family test in findable?
 
-GEO is 25% of your findable score. It has 19 checks on citability: numbers, tables, quotes, outbound sources, clear definitions, author and organization markup, trust pages, fresh dates and content length. Each check is a pattern match, so a pass shows the signal exists, not that it is good.
+GEO is 25% of your findable score. It has 36 checks on citability: numbers, tables, quotes, outbound sources, clear definitions, author and organization markup, trust pages, fresh dates and content length. Each check is a pattern match, so a pass shows the signal exists, not that it is good.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -45,6 +45,23 @@ GEO is 25% of your findable score. It has 19 checks on citability: numbers, tabl
 | `geo_intent_clarity` | 2 or more title words (over 3 letters) in the first heading | Match h1 to title |
 | `geo_format_variety` | 3 or more of lists, tables, quotes, code, dl | Mix formats |
 | `geo_snippet_control` | No `nosnippet` in the robots meta | Remove `nosnippet` |
+| `geo_date_published` | A valid publish date in schema or meta | Add `datePublished` |
+| `geo_date_modified` | A valid modified date in schema or meta | Add `dateModified` |
+| `geo_modified_after_published` | Modified is not before published (N/A without both) | Fix the date order |
+| `geo_visible_date` | A visible "Updated" or "Published" date | Show the date in the text |
+| `geo_authoritative_links` | A link to a .gov, .edu or reference site | Cite primary sources |
+| `geo_source_diversity` | 3 or more distinct external domains | Cite more than one source |
+| `geo_cite_markup` | `cite` element or cite attribute | Mark up your sources |
+| `geo_quote_attribution` | Blockquotes are attributed (N/A without blockquotes) | Add `cite` or a `cite` element |
+| `geo_references_section` | A Sources or References heading | Add a references section |
+| `geo_experience_signals` | First-hand wording such as "we tested" | Show real experience, never fake it |
+| `geo_expertise_signals` | Credentials or years of experience | State real credentials |
+| `geo_editorial_review` | "Reviewed by" or "fact-checked" | Say who reviewed it |
+| `geo_author_byline` | A byline element or rel=author | Mark the author up |
+| `geo_policy_links` | A privacy or terms link | Link your policies |
+| `geo_llms_txt_link` | A link to llms.txt | Link `/llms.txt` |
+| `geo_contact_details` | mailto, tel, address or schema contact | Publish a contact point |
+| `geo_max_snippet` | No max-snippet under 50 (N/A without it) | Raise or remove the limit |
 
 ## How do I fix the evidence checks?
 
@@ -138,7 +155,7 @@ For `llms-txt`, add a plain Markdown file at `/llms.txt` that lists your key pag
 
 ## Key takeaways
 
-- GEO is 25% of the findable score and has 19 checks.
+- GEO is 25% of the findable score and has 36 checks.
 - Real sources, quotes, tables and numbers with units make a page easier to cite.
 - Never invent a statistic to pass `geo_statistics_density`.
 - Show a byline, add Person and Organization JSON-LD, and link about and contact pages.

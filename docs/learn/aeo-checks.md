@@ -1,6 +1,6 @@
 ---
 title: "Every findable AEO Check ID and How to Fix It"
-description: "All 18 AEO checks in findable explained, from aeo_faq to aeo_summary. See what each id tests, how loose the test is and how to fix it. AEO is 25% of the score."
+description: "All 37 AEO checks in findable explained, from aeo_faq to aeo_summary. See what each id tests, how loose the test is and how to fix it. AEO is 25% of the score."
 slug: aeo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -18,11 +18,11 @@ faq:
 
 # Every AEO check findable runs, and how to fix each one
 
-AEO is about making your page easy to answer from. People ask a question. A search feature or an assistant looks for a clean passage that answers it. These 17 checks test whether your page offers that. Most are simple pattern matches on your HTML or text.
+AEO is about making your page easy to answer from. People ask a question. A search feature or an assistant looks for a clean passage that answers it. These 37 checks test whether your page offers that. Most are simple pattern matches on your HTML or text.
 
 ## What does the AEO family test in findable?
 
-AEO is 25% of your findable score. It has 17 checks on answer shape: structured data, FAQ markup, short direct paragraphs, question headings, lists, tables, plain language and clean markup. Every check is a pattern test on your HTML and text, so each one is only a proxy.
+AEO is 25% of your findable score. It has 37 checks on answer shape: structured data, FAQ markup, short direct paragraphs, question headings, lists, tables, plain language and clean markup. Every check is a pattern test on your HTML and text, so each one is only a proxy.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -43,6 +43,26 @@ AEO is 25% of your findable score. It has 17 checks on answer shape: structured 
 | `aeo_clean_url` | Path is lowercase with no underscores | Use lowercase hyphen URLs |
 | `aeo_semantic_html` | 4 or more semantic HTML5 elements | Use header, main, article, nav |
 | `aeo_ai_robots` | No `noindex` in the robots meta | Remove `noindex` |
+| `aeo_speakable` | Speakable markup | Add `speakable` to Article schema |
+| `aeo_question_coverage` | 3 or more question headings | Phrase headings as questions |
+| `aeo_answer_after_question` | Question headings are followed by a paragraph | Answer right under the question |
+| `aeo_answer_length_ideal` | Answers of 20 to 80 words | Tighten or expand the answer |
+| `aeo_faq_count` | 3 or more FAQ questions (N/A without FAQPage) | Add more questions |
+| `aeo_howto_valid` | HowTo steps are complete (N/A without HowTo) | Name and describe every step |
+| `aeo_speakable_valid` | Speakable selectors are valid (N/A without speakable) | Add cssSelector or xpath |
+| `aeo_list_after_heading` | A heading is followed by a list | Lead a section with a list |
+| `aeo_list_item_length` | List items average 25 words or fewer | Shorten list items |
+| `aeo_paragraph_length` | No paragraph over 150 words | Split long paragraphs |
+| `aeo_section_length` | 350 or fewer words between headings | Add subheadings |
+| `aeo_unique_headings` | No duplicate heading text | Make each heading distinct |
+| `aeo_heading_length` | Headings of 100 characters or fewer | Shorten headings |
+| `aeo_heading_anchors` | h2 and h3 headings have an id | Add `id` for deep links |
+| `aeo_toc_links` | 3 or more in-page links on long pages | Add a table of contents |
+| `aeo_tldr` | A TL;DR or short-answer block | Open with a summary |
+| `aeo_definition_lead` | A section opens with a definition | Start with "X is ..." |
+| `aeo_table_captions` | Tables have a caption (N/A without tables) | Add `caption` |
+| `aeo_figure_captions` | Figures have a figcaption (N/A without figures) | Add `figcaption` |
+| `aeo_details_summary` | Each details has a summary (N/A without details) | Add `summary` |
 
 ## How do I fix the structured data and FAQ checks?
 
@@ -117,7 +137,7 @@ Despite the name, `aeo_ai_robots` only checks the robots meta tag for `noindex`.
 
 ## Key takeaways
 
-- AEO is 25% of the findable score and has 17 checks.
+- AEO is 25% of the findable score and has 37 checks.
 - Most checks only test that an element or phrase exists. They are proxies.
 - Put a 30 to 80 word answer right under a question heading.
 - Use lists, tables, steps and code blocks where the content calls for them.
