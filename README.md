@@ -88,7 +88,7 @@ Tools: `audit_page` (URL or file), `audit_html_content` (raw HTML, no network), 
 
 ## API
 
-Hosted at https://findable.page (source: [nadimtuhin/findable-page](https://github.com/nadimtuhin/findable-page)), or run your own local server with `findable -serve 127.0.0.1:8080`.
+Hosted at https://findable.page (source: [findable-page/findable-page](https://github.com/findable-page/findable-page)), or run your own local server with `findable -serve 127.0.0.1:8080`.
 
 ```bash
 curl -s -X POST https://findable.page/api/scan \
