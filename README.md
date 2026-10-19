@@ -88,7 +88,7 @@ Tools: `audit_page` (URL or file), `audit_html_content` (raw HTML, no network), 
 
 ## API
 
-Hosted at https://findable.page, or run your own with `findable -serve 127.0.0.1:8080` or `cd worker && npx wrangler deploy`.
+Hosted at https://findable.page (source: [nadimtuhin/findable-page](https://github.com/nadimtuhin/findable-page)), or run your own local server with `findable -serve 127.0.0.1:8080`.
 
 ```bash
 curl -s -X POST https://findable.page/api/scan \
@@ -117,8 +117,8 @@ The action builds the CLI, uploads failing checks to code scanning as SARIF, the
 
 ```bash
 git clone https://github.com/nadimtuhin/findable && cd findable
-(cd mcp && bun install) && (cd worker && bun install)
-make lint test
+(cd mcp && bun install)
+make test
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). `testdata/` holds sample pages.

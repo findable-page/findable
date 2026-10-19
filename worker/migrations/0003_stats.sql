@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS stats (
-  name TEXT PRIMARY KEY,
-  value INTEGER NOT NULL
-);

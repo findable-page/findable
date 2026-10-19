@@ -28,34 +28,12 @@ jobs:
 
   typescript:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        package: [mcp, worker]
     defaults:
       run:
-        working-directory: ${{ matrix.package }}
+        working-directory: mcp
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
-      - if: matrix.package == 'worker'
-        run: bun test
-
-  worker-bundle-size:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: worker
-    env:
-      MAX_GZIP_BYTES: 327680
-    steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bunx wrangler deploy --dry-run --outdir dist
-      - run: |
-          size=$(gzip -9c dist/index.js | wc -c)
-          echo "worker bundle gzip: $size bytes (limit $MAX_GZIP_BYTES)"
-          test "$size" -le "$MAX_GZIP_BYTES"
