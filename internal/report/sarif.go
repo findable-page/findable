@@ -3,7 +3,7 @@ package report
 import (
 	"strings"
 
-	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/findable-page/findable/internal/audit"
 )
 
 const (
@@ -11,7 +11,7 @@ const (
 	sarifVersion = "2.1.0"
 	sarifLevel   = "warning"
 	toolName     = "findable"
-	toolInfoURI  = "https://github.com/nadimtuhin/findable"
+	toolInfoURI  = "https://github.com/findable-page/findable"
 )
 
 type sarifText struct {

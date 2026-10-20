@@ -4,7 +4,7 @@ description: "All 35 AEO checks in findable explained, from aeo_faq to aeo_summa
 slug: aeo-checks
 date: 2026-10-14
 updated: 2026-10-14
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "What is AEO in findable?"
     a: "AEO means answer engine optimization. The checks test whether your page is easy to lift an answer from: clear questions, short answers, lists, tables, structured data and plain sentences."

@@ -4,7 +4,7 @@ description: "A plain guide to all 98 SEO checks in findable, from title_length 
 slug: seo-checks
 date: 2026-10-14
 updated: 2026-10-14
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "How much of the findable score is SEO?"
     a: "SEO is 50% of the score. AEO and GEO are 25% each. The SEO family has the most checks and covers metadata, headings, links, images, social tags, security headers and markup."

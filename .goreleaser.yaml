@@ -27,7 +27,7 @@ changelog:
 brews:
   - name: findable
     repository:
-      owner: nadimtuhin
+      owner: findable-page
       name: homebrew-tap
     homepage: https://findable.page
     description: "Offline SEO, AEO and GEO auditor for the AI search era"

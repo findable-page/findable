@@ -4,7 +4,7 @@ description: "Use one canonical link per page that points to its own absolute UR
 slug: canonical-and-duplicate-content
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "What is a canonical tag?"
     a: "It is a link in the head that names the preferred address for a page. Search engines use it to pick one URL when the same content is reachable at several."

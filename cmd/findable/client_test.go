@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nadimtuhin/findable/internal/fetch"
+	"github.com/findable-page/findable/internal/fetch"
 )
 
 func TestClientRefusesPrivateTargetsUnlessAllowed(t *testing.T) {

@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nadimtuhin/findable/internal/audit"
-	"github.com/nadimtuhin/findable/internal/fetch"
-	"github.com/nadimtuhin/findable/internal/report"
+	"github.com/findable-page/findable/internal/audit"
+	"github.com/findable-page/findable/internal/fetch"
+	"github.com/findable-page/findable/internal/report"
 )
 
 const (

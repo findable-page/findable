@@ -4,7 +4,7 @@ description: "llms.txt is a plain Markdown file at your site root that points AI
 slug: llms-txt
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Is llms.txt a standard?"
     a: "No. It is a proposal. Not every AI tool reads it, and findable does not claim it raises citations."

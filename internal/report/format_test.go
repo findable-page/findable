@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/findable-page/findable/internal/audit"
 )
 
 const (

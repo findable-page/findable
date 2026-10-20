@@ -4,7 +4,7 @@ description: "Write a meta description of 120 to 160 characters, one per page, t
 slug: meta-descriptions
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Does a meta description change my ranking?"
     a: "Not directly. It is a summary that search results and link previews often show. A clear one can earn more clicks, but findable only tests that it exists, has a sane length and appears once."

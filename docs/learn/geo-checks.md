@@ -4,7 +4,7 @@ description: "All 27 GEO checks in findable explained, plus the unscored Site ch
 slug: geo-checks
 date: 2026-10-14
 updated: 2026-10-14
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "What is GEO in findable?"
     a: "GEO means generative engine optimization. The checks look for things that make a page easy to cite in a generated answer: sources, numbers, quotes, authorship, entity markup and fresh dates."
@@ -79,14 +79,14 @@ A passage is citable when you can lift it out and it still makes sense. Name the
 Six checks cover who is behind the page: `geo_author_schema`, `geo_author_credentials`, `geo_org_schema`, `geo_knowledge_graph`, `geo_trust` and `geo_entity_markup`. Show a byline, add Person and Organization JSON-LD with `sameAs` links, link to your about and contact pages, and use at least 2 schema types.
 
 ```html
-<p>By Nadim Tuhin</p>
+<p>By Alex Morgan</p>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@graph": [
     {"@type": "Organization", "name": "Example", "url": "https://example.com",
      "sameAs": ["https://github.com/example"]},
-    {"@type": "Person", "name": "Nadim Tuhin"}
+    {"@type": "Person", "name": "Alex Morgan"}
   ]
 }
 </script>

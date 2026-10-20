@@ -4,7 +4,7 @@ description: "Fix img_alt, img_dimensions, img_alt_quality, img_lazy_loading and
 slug: image-alt-and-lazy-loading
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Should decorative images have alt text?"
     a: "Yes, for truly decorative images an empty alt is correct under WCAG and screen readers skip them. findable still counts an empty alt as missing, so img_alt fails. Prefer short real text, or move decoration to CSS."

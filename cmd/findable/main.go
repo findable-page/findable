@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/nadimtuhin/findable/internal/audit"
-	"github.com/nadimtuhin/findable/internal/fetch"
-	"github.com/nadimtuhin/findable/internal/mcpserver"
-	"github.com/nadimtuhin/findable/internal/report"
-	"github.com/nadimtuhin/findable/internal/server"
+	"github.com/findable-page/findable/internal/audit"
+	"github.com/findable-page/findable/internal/fetch"
+	"github.com/findable-page/findable/internal/mcpserver"
+	"github.com/findable-page/findable/internal/report"
+	"github.com/findable-page/findable/internal/server"
 )
 
 const (

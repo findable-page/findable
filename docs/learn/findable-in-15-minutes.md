@@ -4,7 +4,7 @@ description: "Install findable, audit a page and your site, fix the top failures
 slug: findable-in-15-minutes
 date: 2026-10-14
 updated: 2026-10-14
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Does findable need an API key?"
     a: "No. The CLI runs locally and audits any URL or local HTML file. You only need Go to install it."
@@ -25,7 +25,7 @@ You can go from nothing to a working audit, an editor integration and a CI gate 
 You install it with one Go command. It puts a binary called `findable` on your path. You need a recent Go toolchain, and this takes about one minute.
 
 ```bash
-go install github.com/nadimtuhin/findable/cmd/findable@latest
+go install github.com/findable-page/findable/cmd/findable@latest
 ```
 
 ## How do you run your first audit?
@@ -109,7 +109,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: nadimtuhin/findable@v0.2.0
+      - uses: findable-page/findable@v0.2.0
         with:
           url: https://example.com
           fail-under: 80
@@ -124,4 +124,4 @@ You can get the same gate locally with `findable -fail-under 80 https://example.
 - Run `findable -k "phrase" -site <url>` and read the failing check ids first.
 - Fix the top three failures, then re-run to confirm.
 - Use `-mcp` for editors, `-serve 127.0.0.1:8080` for a local UI, and POST `/api/scan` for scripts.
-- Gate CI with `-fail-under N` or the `nadimtuhin/findable@v0.2.0` action.
+- Gate CI with `-fail-under N` or the `findable-page/findable@v0.2.0` action.

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/findable-page/findable/internal/audit"
 )
 
 const pageHTML = `<!doctype html><html lang="en"><head><title>Page</title></head><body><h1>Hi</h1></body></html>`

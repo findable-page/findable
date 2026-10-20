@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nadimtuhin/findable/internal/audit"
-	"github.com/nadimtuhin/findable/internal/fetch"
-	"github.com/nadimtuhin/findable/internal/report"
+	"github.com/findable-page/findable/internal/audit"
+	"github.com/findable-page/findable/internal/fetch"
+	"github.com/findable-page/findable/internal/report"
 )
 
 type schemaProps map[string]map[string]any

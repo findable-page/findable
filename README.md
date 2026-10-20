@@ -4,9 +4,9 @@
 
 **findable: SEO + AEO + GEO auditor for the AI search era (CLI, MCP, edge API).** Scores summarise findable's own checks; they do not measure Google rankings or AI citations.
 
-[![CI](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml/badge.svg)](https://github.com/nadimtuhin/findable/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nadimtuhin/findable)](https://goreportcard.com/report/github.com/nadimtuhin/findable)
-[![Release](https://img.shields.io/github/v/release/nadimtuhin/findable?include_prereleases)](https://github.com/nadimtuhin/findable/releases)
+[![CI](https://github.com/findable-page/findable/actions/workflows/ci.yml/badge.svg)](https://github.com/findable-page/findable/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/findable-page/findable)](https://goreportcard.com/report/github.com/findable-page/findable)
+[![Release](https://img.shields.io/github/v/release/findable-page/findable?include_prereleases)](https://github.com/findable-page/findable/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **Live demo: https://findable.page** · **Learn: https://findable.page/learn** · [The build story](docs/STORY.md)
@@ -34,7 +34,7 @@ That is 160 page checks in the Go engine. The edge API runs a port with the same
 ## Quickstart
 
 ```bash
-go install github.com/nadimtuhin/findable/cmd/findable@latest   # Go 1.26+
+go install github.com/findable-page/findable/cmd/findable@latest   # Go 1.26+
 ```
 
 Homebrew: planned for first release; use go install.
@@ -104,7 +104,7 @@ curl -s -X POST https://findable.page/api/scan \
 permissions:
   security-events: write
 steps:
-  - uses: nadimtuhin/findable@v0.2.0
+  - uses: findable-page/findable@v0.2.0
     with:
       url: https://example.com
       fail-under: 70
@@ -116,7 +116,7 @@ The action builds the CLI, uploads failing checks to code scanning as SARIF, the
 ## Development
 
 ```bash
-git clone https://github.com/nadimtuhin/findable && cd findable
+git clone https://github.com/findable-page/findable && cd findable
 (cd mcp && bun install)
 make test
 ```

@@ -1,6 +1,6 @@
 # Security Policy
 
-Report vulnerabilities privately through [GitHub security advisories](https://github.com/nadimtuhin/findable/security/advisories/new). Do not open a public issue.
+Report vulnerabilities privately through [GitHub security advisories](https://github.com/findable-page/findable/security/advisories/new). Do not open a public issue.
 
 Expect a first reply within 7 days. Only the latest release gets fixes.
 

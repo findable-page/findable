@@ -4,7 +4,7 @@ description: "ChatGPT, Perplexity and Claude may ignore your pages for five fixa
 slug: why-ai-answer-engines-skip-your-site
 date: 2026-10-14
 updated: 2026-10-14
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Does blocking GPTBot hide my site from ChatGPT?"
     a: "It stops the GPTBot crawler from fetching your pages. OpenAI documents separate bots for training and for search, so read their bot page and decide each one on purpose."

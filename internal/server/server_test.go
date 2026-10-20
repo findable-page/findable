@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/findable-page/findable/internal/audit"
 )
 
 func newTestMux() *http.ServeMux {

@@ -1,4 +1,4 @@
-module github.com/nadimtuhin/findable
+module github.com/findable-page/findable
 
 go 1.26.0
 

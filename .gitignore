@@ -26,3 +26,4 @@ testdata/reports/
 
 # Local agent state
 .claude/
+.omh

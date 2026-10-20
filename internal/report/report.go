@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/findable-page/findable/internal/audit"
 )
 
 const DateLayout = "2006-01-02"

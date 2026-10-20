@@ -4,7 +4,7 @@ description: "Learn what JSON-LD is, which schema.org types findable validates, 
 slug: json-ld-schema-basics
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "What is JSON-LD?"
     a: "JSON-LD is a block of JSON in a script tag that describes the page using schema.org terms. Machines read it so they do not have to guess what the page is about."
@@ -18,7 +18,7 @@ faq:
 
 # JSON-LD schema basics: what findable checks and why
 
-JSON-LD tells machines what a page is. The text says "Nadim Tuhin wrote this on 15 October". JSON-LD says it in a form a program can read without guessing.
+JSON-LD tells machines what a page is. The text says "Alex Morgan wrote this on 15 October". JSON-LD says it in a form a program can read without guessing.
 
 ## What does a JSON-LD block look like?
 
@@ -30,7 +30,7 @@ It is a script tag with a JSON object inside. The object needs a `@context` and 
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "JSON-LD schema basics",
-  "author": { "@type": "Person", "name": "Nadim Tuhin" },
+  "author": { "@type": "Person", "name": "Alex Morgan" },
   "datePublished": "2026-10-15",
   "image": "https://example.com/cover.jpg"
 }

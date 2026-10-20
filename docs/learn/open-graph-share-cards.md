@@ -4,7 +4,7 @@ description: "Add og:title, og:description, og:image, og:url and twitter:card so
 slug: open-graph-share-cards
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "What is Open Graph?"
     a: "Open Graph is a set of meta tags that tell chat apps and social networks which title, summary and image to show when someone shares your link."

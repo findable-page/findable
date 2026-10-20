@@ -4,7 +4,7 @@ description: "SEO, AEO and GEO each target a different reader: a search crawler,
 slug: seo-vs-aeo-vs-geo
 date: 2026-10-14
 updated: 2026-10-14
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Is GEO a replacement for SEO?"
     a: "No. GEO builds on SEO. A page that crawlers cannot fetch or index will not be cited by anyone. Fix the SEO basics first, then add answer and citation signals on top."
@@ -55,7 +55,7 @@ Notice the overlap. A `jsonld` block helps SEO, and `aeo_structured_data` reads 
 findable runs every check on a page and groups the results into the three families. You install it, point it at a URL and read the failures. Each check has a stable id, so you can search for it, track it and fix it.
 
 ```bash
-go install github.com/nadimtuhin/findable/cmd/findable@latest
+go install github.com/findable-page/findable/cmd/findable@latest
 findable -k "your keyphrase" https://example.com
 ```
 

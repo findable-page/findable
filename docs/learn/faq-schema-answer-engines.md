@@ -4,7 +4,7 @@ description: "How to add FAQPage JSON-LD that answer engines can lift, and how f
 slug: faq-schema-answer-engines
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Do I need FAQ markup if I have a visible Q&A section?"
     a: "No. The aeo_faq check passes only on FAQPage schema, so a visible Q&A section alone does not pass it. Add the markup, and keep the same questions visible on the page."

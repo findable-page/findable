@@ -4,7 +4,7 @@ description: "How robots.txt rules decide whether GPTBot, ClaudeBot, PerplexityB
 slug: robots-txt-ai-crawlers
 date: 2026-10-15
 updated: 2026-10-15
-author: "Nadim Tuhin"
+author: "findable team"
 faq:
   - q: "Do I need to name AI bots in robots.txt?"
     a: "No. A bot with no group of its own follows the User-agent: * rules. Name a bot only when you want it to behave differently from everyone else."

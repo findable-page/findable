@@ -6,7 +6,7 @@
 - [Bun](https://bun.sh) for `mcp/` and `worker/`
 
 ```bash
-git clone https://github.com/nadimtuhin/findable
+git clone https://github.com/findable-page/findable
 cd findable
 (cd mcp && bun install) && (cd worker && bun install)
 ```

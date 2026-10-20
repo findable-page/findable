@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/findable-page/findable/internal/audit"
 )
 
 const (
-	userAgent         = "Mozilla/5.0 (compatible; findable/1.0; +https://github.com/nadimtuhin/findable)"
+	userAgent         = "Mozilla/5.0 (compatible; findable/1.0; +https://github.com/findable-page/findable)"
 	localFileStatus   = http.StatusOK
 	fileSchemePrefix  = "file://"
 	httpSchemePrefix  = "http://"

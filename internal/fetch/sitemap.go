@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nadimtuhin/findable/internal/audit"
+	"github.com/findable-page/findable/internal/audit"
 )
 
 const (
