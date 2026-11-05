@@ -11,7 +11,7 @@ faq:
   - q: "Is llms.txt required?"
     a: "No. It is a proposal, not a standard that every engine reads. It is cheap to add, and findable reports it as the llms-txt site check."
   - q: "How do I see which bots my robots.txt blocks?"
-    a: "Run findable with -site. It reports robots-gptbot, robots-claudebot, robots-perplexitybot and robots-google-extended as separate results."
+    a: "Run findable with -site. It reports the AI search crawlers (OAI-SearchBot, PerplexityBot, Claude-SearchBot, Googlebot) and the AI training crawlers (GPTBot, ClaudeBot, Google-Extended, Applebot-Extended, meta-externalagent) as separate results."
 ---
 
 # Why AI Answer Engines Skip Your Site and How to Fix It
@@ -43,7 +43,7 @@ User-agent: *
 Allow: /
 ```
 
-If you do want to block one of them, that is your call. Just make it a choice. With `-site`, findable reports `robots-txt`, `robots-page`, `robots-gptbot`, `robots-claudebot`, `robots-perplexitybot` and `robots-google-extended`.
+If you do want to block one of them, that is your call. Just make it a choice. With `-site`, findable reports `robots-txt`, `robots-page`, the four AI search crawlers (`robots-oai-searchbot`, `robots-perplexitybot`, `robots-claude-searchbot`, `robots-googlebot`), the five AI training crawlers (`robots-gptbot`, `robots-claudebot`, `robots-google-extended`, `robots-applebot-extended`, `robots-meta-externalagent`) and `llms-txt`. Blocking a training bot does not remove you from AI search citations while the search crawlers stay allowed; Google-Extended governs Gemini training, not AI Overviews.
 
 ## Why does a missing llms.txt matter?
 

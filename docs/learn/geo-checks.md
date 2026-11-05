@@ -116,10 +116,15 @@ findable -site https://example.com
 | --- | --- |
 | `robots-txt` | `/robots.txt` exists |
 | `robots-page` | robots.txt allows `*` to fetch the page |
-| `robots-gptbot` | robots.txt allows GPTBot |
-| `robots-claudebot` | robots.txt allows ClaudeBot |
-| `robots-perplexitybot` | robots.txt allows PerplexityBot |
-| `robots-google-extended` | robots.txt allows Google-Extended |
+| `robots-oai-searchbot` | robots.txt allows OAI-SearchBot (AI search) |
+| `robots-perplexitybot` | robots.txt allows PerplexityBot (AI search) |
+| `robots-claude-searchbot` | robots.txt allows Claude-SearchBot (AI search) |
+| `robots-googlebot` | robots.txt allows Googlebot (search and AI Overviews) |
+| `robots-gptbot` | robots.txt allows GPTBot (training) |
+| `robots-claudebot` | robots.txt allows ClaudeBot (training) |
+| `robots-google-extended` | robots.txt allows Google-Extended (Gemini training) |
+| `robots-applebot-extended` | robots.txt allows Applebot-Extended (training) |
+| `robots-meta-externalagent` | robots.txt allows meta-externalagent (training) |
 | `llms-txt` | `/llms.txt` exists |
 
 ## How do I let AI bots in, or keep them out?
@@ -151,5 +156,5 @@ For `llms-txt`, add a plain Markdown file at `/llms.txt` that lists your key pag
 - Never invent a statistic to pass `geo_statistics_density`.
 - Show a byline, add Person and Organization JSON-LD, and link about and contact pages.
 - Site checks are unscored. Run them with `-site`.
-- Check `robots-gptbot`, `robots-claudebot`, `robots-perplexitybot` and `robots-google-extended`, then decide who you want in.
+- Check the AI search crawlers and the AI training crawlers separately, then decide who you want in. Blocking a training bot does not remove you from AI search citations.
 - Add `/llms.txt` if you want to, knowing it is only a proposal.

@@ -71,13 +71,18 @@ func TestSiteCategoryReportsRobotsAndLLMSChecks(t *testing.T) {
 	llms := "# Example\n"
 	cat := SiteCategory("/blog", &robots, &llms)
 	want := map[string]string{
-		"robots-txt":             StatusPass,
-		"robots-page":            StatusPass,
-		"robots-gptbot":          StatusFail,
-		"robots-claudebot":       StatusFail,
-		"robots-perplexitybot":   StatusPass,
-		"robots-google-extended": StatusPass,
-		"llms-txt":               StatusPass,
+		"robots-txt":                StatusPass,
+		"robots-page":               StatusPass,
+		"robots-oai-searchbot":      StatusPass,
+		"robots-perplexitybot":      StatusPass,
+		"robots-claude-searchbot":   StatusPass,
+		"robots-googlebot":          StatusPass,
+		"robots-gptbot":             StatusFail,
+		"robots-claudebot":          StatusFail,
+		"robots-google-extended":    StatusPass,
+		"robots-applebot-extended":  StatusPass,
+		"robots-meta-externalagent": StatusPass,
+		"llms-txt":                  StatusPass,
 	}
 	got := siteStatuses(cat)
 	for id, status := range want {
@@ -85,8 +90,52 @@ func TestSiteCategoryReportsRobotsAndLLMSChecks(t *testing.T) {
 			t.Errorf("%s = %q, want %q", id, got[id], status)
 		}
 	}
-	if cat.Score != nil || cat.Passed != 5 || cat.Total != 7 {
-		t.Errorf("site category score/passed/total = %v/%d/%d, want unscored 5/7", cat.Score, cat.Passed, cat.Total)
+	if len(cat.Checks) != len(want) {
+		t.Errorf("site category has %d checks, want %d", len(cat.Checks), len(want))
+	}
+	if cat.Score != nil || cat.Passed != 10 || cat.Total != 12 {
+		t.Errorf("site category score/passed/total = %v/%d/%d, want unscored 10/12", cat.Score, cat.Passed, cat.Total)
+	}
+}
+
+func TestSiteCategoryExplainsSearchVsTrainingCrawlers(t *testing.T) {
+	// Blocks every training bot but keeps the search bots on the * rules: the
+	// page must stay citable by AI search engines.
+	robots := `User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+Disallow: /
+`
+	llms := "# Example\n"
+	cat := SiteCategory("/", &robots, &llms)
+	got := siteStatuses(cat)
+	for _, id := range []string{"robots-oai-searchbot", "robots-perplexitybot", "robots-claude-searchbot", "robots-googlebot"} {
+		if got[id] != StatusPass {
+			t.Errorf("%s = %q, want PASS: blocking training bots must not block AI search", id, got[id])
+		}
+	}
+	for _, id := range []string{"robots-gptbot", "robots-claudebot", "robots-google-extended", "robots-applebot-extended", "robots-meta-externalagent"} {
+		if got[id] != StatusFail {
+			t.Errorf("%s = %q, want FAIL", id, got[id])
+		}
+	}
+}
+
+func TestSiteCategoryLabelsCarryCrawlerAdvice(t *testing.T) {
+	labels := map[string]string{}
+	for _, c := range SiteCategory("/", nil, nil).Checks {
+		labels[c.ID] = c.Label
+	}
+	if want := "Gemini training only"; !strings.Contains(labels["robots-google-extended"], want) {
+		t.Errorf("google-extended label %q must say %q", labels["robots-google-extended"], want)
+	}
+	if want := "does not affect AI search citations"; !strings.Contains(labels["robots-gptbot"], want) {
+		t.Errorf("gptbot label %q must say %q", labels["robots-gptbot"], want)
+	}
+	if want := "AI search retrieval"; !strings.Contains(labels["robots-oai-searchbot"], want) {
+		t.Errorf("oai-searchbot label %q must say %q", labels["robots-oai-searchbot"], want)
 	}
 }
 
@@ -108,6 +157,16 @@ func TestReportedAddsSiteOnlyWhenPresent(t *testing.T) {
 	s.Site = &Category{}
 	if r := s.Reported(); len(r) != 4 || r[3].Name != "Site" {
 		t.Errorf("Reported with site = %+v", r)
+	}
+}
+
+func TestRobotsRecognizesTheSearchCrawlers(t *testing.T) {
+	robots := "User-agent: OAI-SearchBot\nDisallow: /\n"
+	if RobotsAllows(robots, "OAI-SearchBot", "/") {
+		t.Error("OAI-SearchBot must match its own group")
+	}
+	if !RobotsAllows(robots, "Claude-SearchBot", "/") {
+		t.Error("Claude-SearchBot must not inherit OAI-SearchBot's group")
 	}
 }
 

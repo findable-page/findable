@@ -5,7 +5,35 @@ import (
 	"strings"
 )
 
-var aiCrawlers = []string{"GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"}
+// aiSearchCrawlers retrieve page content to cite it in AI answers
+// (ChatGPT Search, Perplexity, Claude, Google AI Overviews).
+var aiSearchCrawlers = []string{"OAI-SearchBot", "PerplexityBot", "Claude-SearchBot", "Googlebot"}
+
+// trainingCrawlers fetch page content to train AI models. Blocking them does
+// not remove a site from AI search answers while the search crawlers above
+// stay allowed.
+var trainingCrawlers = []string{"GPTBot", "ClaudeBot", "Google-Extended", "Applebot-Extended", "meta-externalagent"}
+
+func crawlerCheck(robotsText, pagePath, bot string) Check {
+	return Check{
+		ID:    "robots-" + strings.ToLower(bot),
+		Label: crawlerLabel(bot),
+		Pass:  RobotsAllows(robotsText, bot, pagePath),
+	}
+}
+
+func crawlerLabel(bot string) string {
+	switch bot {
+	case "Googlebot":
+		return "robots.txt lets Googlebot fetch this page (Google Search and AI Overviews)"
+	case "Google-Extended":
+		return "robots.txt lets Google-Extended fetch this page (Gemini training only; it does not control AI Overviews)"
+	case "GPTBot", "ClaudeBot", "Applebot-Extended", "meta-externalagent":
+		return "robots.txt lets " + bot + " fetch this page (model training; blocking it does not affect AI search citations)"
+	default:
+		return "robots.txt lets " + bot + " fetch this page (AI search retrieval)"
+	}
+}
 
 const (
 	pageCrawler       = "*"
@@ -106,17 +134,16 @@ func SiteCategory(pagePath string, robots, llms *string) Category {
 	if robots != nil {
 		robotsText = *robots
 	}
-	checks := make([]Check, 0, len(aiCrawlers)+3)
+	checks := make([]Check, 0, len(aiSearchCrawlers)+len(trainingCrawlers)+3)
 	checks = append(checks,
 		Check{ID: "robots-txt", Label: "robots.txt is present", Pass: robots != nil},
 		Check{ID: "robots-page", Label: "robots.txt lets crawlers fetch this page", Pass: RobotsAllows(robotsText, pageCrawler, pagePath)},
 	)
-	for _, bot := range aiCrawlers {
-		checks = append(checks, Check{
-			ID:    "robots-" + strings.ToLower(bot),
-			Label: "robots.txt lets " + bot + " fetch this page",
-			Pass:  RobotsAllows(robotsText, bot, pagePath),
-		})
+	for _, bot := range aiSearchCrawlers {
+		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
+	}
+	for _, bot := range trainingCrawlers {
+		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
 	}
 	checks = append(checks, Check{ID: "llms-txt", Label: "/llms.txt is present", Pass: llms != nil})
 	passed := 0

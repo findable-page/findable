@@ -22,14 +22,19 @@ Whether an AI tool can read your page starts with robots.txt. findable tests thi
 
 ## What does findable test?
 
-| Check id | What it tests |
+| Check id | What it checks |
 | --- | --- |
 | `robots-txt` | `/robots.txt` exists and returns 200 |
 | `robots-page` | The `*` group lets crawlers fetch the page you scanned |
-| `robots-gptbot` | GPTBot may fetch the page |
-| `robots-claudebot` | ClaudeBot may fetch the page |
-| `robots-perplexitybot` | PerplexityBot may fetch the page |
-| `robots-google-extended` | Google-Extended may fetch the page |
+| `robots-oai-searchbot` | OAI-SearchBot may fetch the page (ChatGPT Search retrieval) |
+| `robots-perplexitybot` | PerplexityBot may fetch the page (Perplexity search retrieval) |
+| `robots-claude-searchbot` | Claude-SearchBot may fetch the page (Claude search retrieval) |
+| `robots-googlebot` | Googlebot may fetch the page (Google Search and AI Overviews) |
+| `robots-gptbot` | GPTBot may fetch the page (OpenAI model training) |
+| `robots-claudebot` | ClaudeBot may fetch the page (Anthropic model training) |
+| `robots-google-extended` | Google-Extended may fetch the page (Gemini training; it does not control AI Overviews) |
+| `robots-applebot-extended` | Applebot-Extended may fetch the page (Apple model training) |
+| `robots-meta-externalagent` | meta-externalagent may fetch the page (Meta model training) |
 
 Run them with `findable -site https://example.com`, or send `"site": true` to `/api/scan`. The check tests the exact path you scanned, so a rule that blocks `/blog/` fails for a blog URL and passes for the home page.
 
@@ -67,6 +72,10 @@ Disallow: /
 ```
 
 Do this on purpose. If you want to be cited by AI answers, a block works against you. See [why AI answer engines skip your site](/learn/why-ai-answer-engines-skip-your-site).
+
+## Does blocking a training bot remove me from AI answers?
+
+No. Vendors run separate bots for training and for search retrieval. GPTBot trains OpenAI models, while OAI-SearchBot fetches pages for ChatGPT Search; ClaudeBot trains Anthropic models, while Claude-SearchBot fetches pages for Claude answers. Blocking the training bots while leaving the search bots allowed still lets those engines cite you. Google-Extended only governs Gemini training and Vertex AI grounding; Google AI Overviews use Googlebot, so Google-Extended has no effect on them.
 
 ## What are the common mistakes?
 
