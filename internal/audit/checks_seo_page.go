@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 var (
@@ -37,7 +38,7 @@ func seoImageQuality(l *checkList, s *PageSignals) {
 		if alt != "" && altFilenameRegex.MatchString(alt) {
 			placeholder++
 		}
-		if len(alt) > 125 {
+		if utf8.RuneCountInString(alt) > 125 {
 			long++
 		}
 		src := img.Attrs["src"]

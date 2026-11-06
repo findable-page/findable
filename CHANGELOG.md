@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+- `title_length`, `desc_length` and `img_alt_length` now count characters instead of bytes, so titles, meta descriptions and alt text containing non-ASCII text (CJK, Arabic, accented Latin, emoji) are no longer penalized as too long.
+
 ### Added
 - Site checks now distinguish AI search retrieval crawlers (`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, `Googlebot`) from AI model training crawlers (`GPTBot`, `ClaudeBot`, `Google-Extended`, `Applebot-Extended`, `meta-externalagent`), with labels explaining that blocking training bots does not affect AI search citations and that `Google-Extended` governs Gemini training, not AI Overviews.
 
