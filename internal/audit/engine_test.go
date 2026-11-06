@@ -98,6 +98,32 @@ func TestSEOMetaDescBoundaries(t *testing.T) {
 	}
 }
 
+func TestSEOTextLengthsCountCharactersNotBytes(t *testing.T) {
+	// Non-ASCII text multiplies byte length: these titles/descriptions/alts are
+	// optimal in characters but exceed the limits when counted in bytes.
+	titleHTML := fmt.Sprintf(
+		"<!DOCTYPE html><html><head><title>%s</title><meta name='description' content='%s'></head></html>",
+		strings.Repeat("ビ", 40), // 40 chars, 120 bytes
+		strings.Repeat("é", 130), // 130 chars, 260 bytes
+	)
+	res := Analyze("https://example.com", titleHTML, "", make(http.Header), 200)
+	if c := findCheck(res.SEO.Checks, "title_length"); !c.Pass {
+		t.Errorf("40-character CJK title (120 bytes) should pass title_length, got: %s", c.Label)
+	}
+	if c := findCheck(res.SEO.Checks, "desc_length"); !c.Pass {
+		t.Errorf("130-character accented description (260 bytes) should pass desc_length, got: %s", c.Label)
+	}
+
+	imgHTML := fmt.Sprintf(
+		"<!DOCTYPE html><html><body><img src='p' alt='%s' width='1' height='1'></body></html>",
+		strings.Repeat("日", 100), // 100 chars, 300 bytes
+	)
+	resImg := Analyze("https://example.com", imgHTML, "", make(http.Header), 200)
+	if c := findCheck(resImg.SEO.Checks, "img_alt_length"); !c.Pass {
+		t.Errorf("100-character CJK alt (300 bytes) should pass img_alt_length, got: %s", c.Label)
+	}
+}
+
 func TestSEOHeadingHierarchyRules(t *testing.T) {
 	// Normal: H1 -> H2 -> H3
 	validHTML := `<!DOCTYPE html><html><body><h1>Title</h1><h2>Section</h2><h3>Sub</h3></body></html>`

@@ -3,6 +3,7 @@ package audit
 import (
 	"fmt"
 	"strings"
+	"unicode/utf8"
 )
 
 func evalSEO(s *PageSignals) []Check {
@@ -30,7 +31,7 @@ func seoTitle(l *checkList, s *PageSignals) {
 		return
 	}
 	l.add("title_exists", fmt.Sprintf("Title tag found: %q", s.Title), true)
-	n := len(s.Title)
+	n := utf8.RuneCountInString(s.Title)
 	if n >= 30 && n <= 60 {
 		l.add("title_length", fmt.Sprintf("Title length: %d characters (optimal: 30-60)", n), true)
 	} else {
@@ -44,7 +45,7 @@ func seoDescription(l *checkList, s *PageSignals) {
 		l.add("desc_length", "Meta description is missing", false)
 		return
 	}
-	n := len(s.MetaDesc)
+	n := utf8.RuneCountInString(s.MetaDesc)
 	l.add("desc_exists", fmt.Sprintf("Meta description found (%d chars)", n), true)
 	if n >= 120 && n <= 160 {
 		l.add("desc_length", fmt.Sprintf("Description length: %d chars (optimal: 120-160)", n), true)
