@@ -1,0 +1,27 @@
+{
+  "id": "be59ff390",
+  "name": "install golangci-lint",
+  "command": "brew install golangci-lint 2>&1 | tail -3; which golangci-lint || echo NO-LINT",
+  "status": "completed",
+  "outputPath": ".pi/tasks/01a1b75d-172e-772c-8387-1309f833e46a-84313/be59ff390.output",
+  "cwd": "/Users/nadimtuhin/code/findable-page/findable",
+  "startTime": 1794078825659,
+  "endTime": 1794078834995,
+  "exitCode": 0,
+  "signal": null,
+  "pid": 30004,
+  "bytesWritten": 125,
+  "isAgent": false,
+  "surviveReload": false,
+  "notified": true,
+  "notifyOnCompletion": true,
+  "triggerOnCompletion": true,
+  "shellPolicy": {
+    "policy": "inherit",
+    "executable": "/bin/zsh",
+    "argvPrefix": [
+      "-c"
+    ],
+    "dialect": "posix"
+  }
+}

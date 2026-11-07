@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/findable-page/findable/internal/audit"
 	"github.com/findable-page/findable/internal/report"
 )
 
@@ -24,6 +25,7 @@ type options struct {
 	allowPrivate bool
 	format       report.Format
 	failUnder    int
+	scoreModel   string
 }
 
 // registerAuditFlags registers the shared audit flag set on fs, so the legacy
@@ -40,6 +42,7 @@ func registerAuditFlags(fs *flag.FlagSet, o *options) *string {
 	fs.BoolVar(&o.mcp, "mcp", false, "run Model Context Protocol (MCP) server over stdio")
 	fs.BoolVar(&o.allowPrivate, "allow-private", false, "allow scanning localhost and private-network targets")
 	fs.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when the overall score of any page is below N")
+	fs.StringVar(&o.scoreModel, "score-model", audit.ScoreModelWeighted, "scoring model: weighted (severity x evidence tier) or flat (legacy)")
 	return fs.String("format", string(report.FormatCSV), "report format: csv, json or sarif")
 }
 
@@ -50,6 +53,13 @@ func finishOptions(o *options, format string) {
 		os.Exit(exitUsage)
 	}
 	o.format = f
+	switch o.scoreModel {
+	case audit.ScoreModelWeighted, audit.ScoreModelFlat:
+		audit.ScoreModel = o.scoreModel
+	default:
+		fmt.Fprintf(os.Stderr, "findable: unknown score model %q (want weighted or flat)\n", o.scoreModel)
+		os.Exit(exitUsage)
+	}
 }
 
 func legacyMain(args []string) {

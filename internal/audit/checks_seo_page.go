@@ -32,13 +32,20 @@ func seoImageQuality(l *checkList, s *PageSignals) {
 		return
 	}
 	placeholder, long, modern, recognised, eager := 0, 0, 0, 0, 0
-	for _, img := range images {
+	var placeholderEv, longEv, eagerEv, formatEv []Evidence
+	for i, img := range images {
+		sel := img.Selector
+		if sel == "" {
+			sel = fmt.Sprintf("img:nth-of-type(%d)", i+1)
+		}
 		alt := strings.TrimSpace(img.Attrs["alt"])
 		if alt != "" && altFilenameRegex.MatchString(alt) {
 			placeholder++
+			placeholderEv = append(placeholderEv, evidence(sel, alt))
 		}
 		if len(alt) > 125 {
 			long++
+			longEv = append(longEv, evidence(sel, alt))
 		}
 		src := img.Attrs["src"]
 		if cut := strings.IndexAny(src, "?#"); cut >= 0 {
@@ -48,16 +55,19 @@ func seoImageQuality(l *checkList, s *PageSignals) {
 			recognised++
 			if modernImageExtRegex.MatchString(src) {
 				modern++
+			} else {
+				formatEv = append(formatEv, evidence(sel, img.Attrs["src"]))
 			}
 		}
 		if !strings.EqualFold(strings.TrimSpace(img.Attrs["loading"]), "lazy") && !strings.EqualFold(strings.TrimSpace(img.Attrs["fetchpriority"]), "high") {
 			eager++
+			eagerEv = append(eagerEv, evidence(sel, img.Attrs["src"]))
 		}
 	}
-	l.add("img_alt_quality", fmt.Sprintf("%d image alt text(s) look like filenames or placeholders", placeholder), placeholder == 0)
-	l.add("img_alt_length", fmt.Sprintf("%d image alt text(s) longer than 125 characters", long), long == 0)
-	l.add("img_lazy_loading", fmt.Sprintf("%d image(s) load eagerly (limit %d)", eager, maxEagerImages), eager <= maxEagerImages)
-	l.add("img_modern_format", fmt.Sprintf("%d of %d images use WebP, AVIF or SVG", modern, recognised), recognised == 0 || modern*2 >= recognised)
+	l.addEv("img_alt_quality", fmt.Sprintf("%d image alt text(s) look like filenames or placeholders", placeholder), placeholder == 0, placeholderEv...)
+	l.addEv("img_alt_length", fmt.Sprintf("%d image alt text(s) longer than 125 characters", long), long == 0, longEv...)
+	l.addEv("img_lazy_loading", fmt.Sprintf("%d image(s) load eagerly (limit %d)", eager, maxEagerImages), eager <= maxEagerImages, eagerEv...)
+	l.addEv("img_modern_format", fmt.Sprintf("%d of %d images use WebP, AVIF or SVG", modern, recognised), recognised == 0 || modern*2 >= recognised, formatEv...)
 }
 
 func resolveNavigable(s *PageSignals, href string) *url.URL {
@@ -115,19 +125,22 @@ func seoMixedContent(l *checkList, s *PageSignals) {
 		return
 	}
 	insecure := 0
+	var insecureEv []Evidence
 	for _, name := range []string{"img", tagScript, "iframe", "video", "audio", "source"} {
 		for _, t := range s.Tags[name] {
 			if strings.HasPrefix(strings.ToLower(strings.TrimSpace(t.Attrs["src"])), "http://") {
 				insecure++
+				insecureEv = append(insecureEv, evidence(t.Selector, t.Attrs["src"]))
 			}
 		}
 	}
 	for _, t := range linkTags(s, "stylesheet") {
 		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(t.Attrs["href"])), "http://") {
 			insecure++
+			insecureEv = append(insecureEv, evidence(t.Selector, t.Attrs["href"]))
 		}
 	}
-	l.add("mixed_content", fmt.Sprintf("%d insecure http:// resource(s) on an HTTPS page", insecure), insecure == 0)
+	l.addEv("mixed_content", fmt.Sprintf("%d insecure http:// resource(s) on an HTTPS page", insecure), insecure == 0, insecureEv...)
 }
 
 func seoLoadPerformance(l *checkList, s *PageSignals) {

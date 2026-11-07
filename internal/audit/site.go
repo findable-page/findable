@@ -146,6 +146,7 @@ func SiteCategory(pagePath string, robots, llms *string) Category {
 		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
 	}
 	checks = append(checks, Check{ID: "llms-txt", Label: "/llms.txt is present", Pass: llms != nil})
+	attachMeta(checks)
 	passed := 0
 	for _, c := range checks {
 		if c.Pass {

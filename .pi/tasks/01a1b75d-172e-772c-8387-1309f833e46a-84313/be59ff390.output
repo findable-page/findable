@@ -1,0 +1,4 @@
+==> Caveats
+zsh completions have been installed to:
+  /opt/homebrew/share/zsh/site-functions
+/opt/homebrew/bin/golangci-lint
