@@ -2,8 +2,8 @@ package report
 
 import (
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/findable-page/findable/internal/audit"
@@ -11,9 +11,7 @@ import (
 
 func page(url string, checks ...audit.Check) audit.Page {
 	scan := audit.Scan{}
-	for _, k := range checks {
-		scan.SEO.Checks = append(scan.SEO.Checks, k)
-	}
+	scan.SEO.Checks = append(scan.SEO.Checks, checks...)
 	return audit.Page{URL: url, Scan: scan}
 }
 
@@ -107,4 +105,3 @@ func TestFormatFixListTopAndSeverityFilters(t *testing.T) {
 		t.Fatalf("min-severity filter failed:\n%s", got)
 	}
 }
-

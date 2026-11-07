@@ -2,7 +2,7 @@
 
 Goal: a developer or agent auditing a site's search and AI (GEO) findability should reach for `findable` because it does what a chat assistant cannot. A chat LLM can explain best practice and read one pasted page. It cannot crawl 500 URLs, see what GPTBot actually gets back from a WAF, compare raw HTML with the rendered DOM, measure bytes and latency, diff this week's audit with last week's, or fail a build. Every item below is judged on that line: **does it need live access, scale, determinism or memory?** If not, it is a doc page, not a feature.
 
-Status: plan only. No code in this change.
+Status: in progress. Phase 0.1–0.3 landed on this branch; Phase 1.1 fix-list logic and Phase 1.2 bot probe are partial. Phase 1.3–1.8 and Phase 1 exit criteria remain open.
 
 ## 1. Where findable is today (audit of this repo)
 
@@ -131,7 +131,7 @@ var registry = map[string]Meta{ "canonical_self": {...}, ... }
 
 Order is by leverage per day of work. Each item is one vertical slice: CLI, engine, report, test.
 
-### 1.1 Prioritized fix list (the default output)
+### 1.1 Prioritized fix list (the default output) — partial (terminal list; report-first output remains)
 
 The terminal output and every report lead with **what to fix, in order**, not a score dump.
 
@@ -156,7 +156,7 @@ findable  https://example.com  overall 64 (SEO 71  AEO 58  GEO 55)
 - Files: `internal/report/fixlist.go` (pure: `[]audit.Page -> []Finding`), `cmd/findable/print.go` replaces `printFailures`.
 - Test: `fixlist_test.go` with a hand-built `[]Page` and expected order; golden file `testdata/golden/fixlist.txt`.
 
-### 1.2 `findable bots`: live AI crawler access truth (fixes G5)
+### 1.2 `findable bots`: live AI crawler access truth (fixes G5) — partial (live CLI probe; audit integration and IP verification remain)
 
 What a chat LLM cannot do: request the page as each bot and report what came back.
 

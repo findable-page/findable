@@ -91,6 +91,7 @@ func FilterFindings(fs []Finding, drop func(checkID, pageURL string) bool) []Fin
 	}
 	return out
 }
+
 // FormatFixList renders the ranked list for the terminal: severity, tier,
 // label, page count, fix line and first evidence item.
 func FormatFixList(findings []Finding, top int, minSeverity audit.Severity) string {

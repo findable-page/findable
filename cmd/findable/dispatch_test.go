@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,7 +25,7 @@ func findableBinary(t *testing.T) string {
 			t.Fatalf("temp dir: %v", err)
 		}
 		binaryPath = filepath.Join(dir, "findable")
-		out, err := exec.Command("go", "build", "-o", binaryPath, ".").CombinedOutput()
+		out, err := exec.CommandContext(context.Background(), "go", "build", "-o", binaryPath, ".").CombinedOutput() //nolint:gosec // binaryPath is generated in a temporary directory
 		if err != nil {
 			t.Fatalf("go build: %v\n%s", err, out)
 		}
@@ -33,10 +35,11 @@ func findableBinary(t *testing.T) string {
 
 func runFindable(t *testing.T, workDir string, args ...string) (stdout string, exitCode int) {
 	t.Helper()
-	cmd := exec.Command(findableBinary(t), args...)
+	cmd := exec.CommandContext(context.Background(), findableBinary(t), args...) //nolint:gosec // test invokes its own built binary with test-controlled arguments
 	cmd.Dir = workDir
 	out, err := cmd.Output()
-	if ee, ok := err.(*exec.ExitError); ok {
+	var ee *exec.ExitError
+	if errors.As(err, &ee) {
 		return string(out), ee.ExitCode()
 	}
 	if err != nil {
@@ -48,7 +51,7 @@ func runFindable(t *testing.T, workDir string, args ...string) (stdout string, e
 func TestAuditSubcommandMatchesLegacyFlags(t *testing.T) {
 	workDir := t.TempDir()
 	page := filepath.Join(workDir, "page.html")
-	if err := os.WriteFile(page, []byte("<html><head><title>Dispatch test</title></head><body><h1>x</h1></body></html>"), 0o644); err != nil {
+	if err := os.WriteFile(page, []byte("<html><head><title>Dispatch test</title></head><body><h1>x</h1></body></html>"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	outDir := filepath.Join(workDir, "reports")
@@ -73,9 +76,9 @@ func TestAuditSubcommandMatchesLegacyFlags(t *testing.T) {
 		t.Fatalf("report count = %d, want %d", len(got), len(legacyReport))
 	}
 	for i, f := range legacyReport {
-		want, _ := os.ReadFile(f)
+		want, _ := os.ReadFile(f) //nolint:gosec // f comes from os.ReadDir of test-owned output directory
 		got := reportFiles(t, outDir)[i]
-		have, _ := os.ReadFile(got)
+		have, _ := os.ReadFile(got) //nolint:gosec // got comes from os.ReadDir of test-owned output directory
 		if string(want) != string(have) {
 			t.Fatalf("report %s differs from %s", got, f)
 		}
@@ -88,7 +91,7 @@ func reportFiles(t *testing.T, dir string) []string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var out []string
+	out := make([]string, 0, len(entries))
 	for _, e := range entries {
 		out = append(out, filepath.Join(dir, e.Name()))
 	}

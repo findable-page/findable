@@ -46,22 +46,27 @@ func TestEveryEmittedCheckHasRegistryMeta(t *testing.T) {
 	}
 	sort.Strings(ids)
 	for _, id := range ids {
-		if _, ok := registry[id]; !ok && !strings.HasPrefix(id, "robots-") {
-			t.Errorf("check %s is emitted but missing from the meta registry", id)
-			continue
-		}
-		m := MetaFor(id)
-		if strings.TrimSpace(m.Fix) == "" {
-			t.Errorf("check %s has no fix text", id)
-		}
-		if m.Severity.Weight() < 0 || m.Severity.Weight() > 8 {
-			t.Errorf("check %s has invalid severity %q", id, m.Severity)
-		}
-		switch m.Tier {
-		case TierDocumented, TierReported, TierHeuristic:
-		default:
-			t.Errorf("check %s has invalid tier %q", id, m.Tier)
-		}
+		assertRegistryMeta(t, id)
+	}
+}
+
+func assertRegistryMeta(t *testing.T, id string) {
+	t.Helper()
+	if _, ok := registry[id]; !ok && !strings.HasPrefix(id, "robots-") {
+		t.Errorf("check %s is emitted but missing from the meta registry", id)
+		return
+	}
+	m := MetaFor(id)
+	if strings.TrimSpace(m.Fix) == "" {
+		t.Errorf("check %s has no fix text", id)
+	}
+	if m.Severity.Weight() < 0 || m.Severity.Weight() > 8 {
+		t.Errorf("check %s has invalid severity %q", id, m.Severity)
+	}
+	switch m.Tier {
+	case TierDocumented, TierReported, TierHeuristic:
+	default:
+		t.Errorf("check %s has invalid tier %q", id, m.Tier)
 	}
 }
 

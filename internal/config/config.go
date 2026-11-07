@@ -5,6 +5,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -66,7 +67,10 @@ func Load(path string) (Config, error) {
 // a missing file is not an error.
 func LoadDefault() (Config, error) {
 	if _, err := os.Stat(DefaultPath); err != nil {
-		return Config{}, nil
+		if errors.Is(err, os.ErrNotExist) {
+			return Config{}, nil
+		}
+		return Config{}, fmt.Errorf("stat config: %w", err)
 	}
 	return Load(DefaultPath)
 }
