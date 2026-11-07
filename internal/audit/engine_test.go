@@ -312,6 +312,33 @@ func TestGEOKnowledgeGraphAndTrustSignals(t *testing.T) {
 	}
 }
 
+func TestGEOIntentClarityComparesTitleWithH1(t *testing.T) {
+	// A nav h2 appears before the h1; the check must compare the title with
+	// the h1, not with the first heading on the page.
+	page := func(title string) string {
+		return "<!DOCTYPE html><html><head><title>" + title + "</title></head><body>" +
+			"<nav><h2>Products</h2></nav><h1>Artisan Bakery in Dhaka</h1></body></html>"
+	}
+
+	matching := Analyze("https://example.com", page("Best Artisan Bakery Dhaka"), "", make(http.Header), 200)
+	if c := findCheck(matching.GEO.Checks, "geo_intent_clarity"); !c.Pass {
+		t.Errorf("title matching the h1 should pass geo_intent_clarity, got label=%q", c.Label)
+	}
+
+	// Title shares words with the nav h2 but not with the h1: must fail.
+	mismatch := Analyze("https://example.com", page("Products Catalog"), "", make(http.Header), 200)
+	if c := findCheck(mismatch.GEO.Checks, "geo_intent_clarity"); c.Pass {
+		t.Error("title matching only a non-h1 heading should fail geo_intent_clarity")
+	}
+
+	// Without an h1 there is nothing to compare; the check is not applicable.
+	noH1 := Analyze("https://example.com", "<!DOCTYPE html><html><head><title>Best Artisan Bakery Dhaka</title></head><body><h2>Products</h2></body></html>", "", make(http.Header), 200)
+	c := findCheck(noH1.GEO.Checks, "geo_intent_clarity")
+	if c.Applicable == nil || *c.Applicable {
+		t.Error("missing h1 should make geo_intent_clarity not applicable")
+	}
+}
+
 func TestLocalAuditEngineOnThinPage(t *testing.T) {
 	htmlBytes, err := os.ReadFile("../../testdata/site/01-thin-poor.html")
 	if err != nil {

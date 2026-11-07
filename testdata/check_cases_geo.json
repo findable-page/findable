@@ -87,5 +87,14 @@
       {"body": "<a href='/legal'>Terms of Service</a>"}
     ],
     "fail": [{}, {"body": "<a href='/about'>About</a><a href='/contact'>Contact</a>"}]
+  },
+  "geo_intent_clarity": {
+    "pass": [
+      {"head": "<title>Best Artisan Bakery Dhaka</title>", "body": "<nav><h2>Products</h2></nav><h1>Artisan Bakery in Dhaka</h1>"},
+      {"head": "<title>Best Artisan Bakery Dhaka</title>", "body": "<h1>Artisan Bakery in Dhaka</h1><h2>Products</h2>"}
+    ],
+    "fail": [
+      {"head": "<title>Products Catalog</title>", "body": "<h2>Products Catalog</h2><h1>Artisan Bakery in Dhaka</h1>"}
+    ]
   }
 }
