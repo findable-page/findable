@@ -176,3 +176,12 @@ func fail(f string, a ...any) {
 	fmt.Fprintf(os.Stderr, "findable: "+f+"\n", a...)
 	os.Exit(1)
 }
+
+const exitRuntime = 3
+
+// failRuntime reports a runtime/network error with exit code 3 so CI can
+// tell "the site is bad" (1) from "the run broke" (3).
+func failRuntime(f string, a ...any) {
+	fmt.Fprintf(os.Stderr, "findable: "+f+"\n", a...)
+	os.Exit(exitRuntime)
+}

@@ -25,6 +25,7 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 // Entries are added as each Phase 1 slice lands.
 var subcommands = map[string]func([]string){
 	"audit": auditCmd,
+	"bots":  botsCmd,
 	"mcp":   mcpCmd,
 	"serve": serveCmd,
 }

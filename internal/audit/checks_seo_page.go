@@ -24,7 +24,7 @@ func seoPage(l *checkList, s *PageSignals) {
 }
 
 func seoImageQuality(l *checkList, s *PageSignals) {
-	images := s.Tags["img"]
+	images := s.Tags[tagImg]
 	if len(images) == 0 {
 		for _, id := range []string{"img_alt_quality", "img_alt_length", "img_lazy_loading", "img_modern_format"} {
 			l.skip(id, "No images to check")
@@ -126,7 +126,7 @@ func seoMixedContent(l *checkList, s *PageSignals) {
 	}
 	insecure := 0
 	var insecureEv []Evidence
-	for _, name := range []string{"img", tagScript, "iframe", "video", "audio", "source"} {
+	for _, name := range []string{tagImg, tagScript, "iframe", "video", "audio", "source"} {
 		for _, t := range s.Tags[name] {
 			if strings.HasPrefix(strings.ToLower(strings.TrimSpace(t.Attrs["src"])), "http://") {
 				insecure++

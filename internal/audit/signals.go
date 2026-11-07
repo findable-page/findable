@@ -179,7 +179,7 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	"h5":         collectHeading,
 	"h6":         collectHeading,
 	"p":          collectParagraph,
-	"img":        collectImage,
+	tagImg:       collectImage,
 	"a":          collectAnchor,
 	"article":    countSemantic,
 	"section":    countSemantic,
@@ -212,7 +212,7 @@ func recordTag(sig *PageSignals, n *html.Node, inHead bool, selector string) {
 	}
 	if tagsWithText[name] {
 		info.Text = collectText(n)
-		info.HasMedia = containsElement(n, "img", "svg", "picture")
+		info.HasMedia = containsElement(n, tagImg, "svg", "picture")
 	}
 	sig.Tags[name] = append(sig.Tags[name], info)
 }
@@ -306,7 +306,7 @@ func collectMeta(sig *PageSignals, n *html.Node) {
 		sig.MetaDesc = content
 	case "viewport":
 		sig.Viewport = content
-	case "robots":
+	case robotsMetaName:
 		sig.RobotsMeta = content
 	case "theme-color":
 		sig.ThemeColor = content
@@ -592,3 +592,13 @@ const (
 	schemeHTTPS = "https"
 	tagScript   = "script"
 )
+
+// VisibleText returns the rendered text content of an HTML document with
+// script/style/noscript/svg stripped.
+func VisibleText(rawHTML string) string {
+	doc, err := html.Parse(strings.NewReader(rawHTML))
+	if err != nil {
+		return ""
+	}
+	return extractVisibleText(doc)
+}

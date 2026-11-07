@@ -24,8 +24,11 @@ func evalSEO(s *PageSignals) []Check {
 	)
 }
 
-const titleSelector = "head > title"
-const descSelector = `head > meta[name=description]`
+const (
+	titleSelector = "head > title"
+	tagImg        = "img"
+	descSelector  = `head > meta[name=description]`
+)
 
 func seoTitle(l *checkList, s *PageSignals) {
 	if s.Title == "" {
@@ -64,6 +67,13 @@ func seoTechnicalMeta(l *checkList, s *PageSignals) {
 	l.add("html_doctype", "<!DOCTYPE html> declared", s.HTMLDoctype)
 	l.add("meta_refresh", "No meta refresh redirect (good)", s.MetaRefresh == "")
 	l.addEv("robots_meta", "No robots meta tag blocking crawling", !lowerContainsAny(s.RobotsMeta, "noindex"), evidence(`head > meta[name=robots]`, s.RobotsMeta))
+	xTagHeaders := s.Headers.Values("X-Robots-Tag")
+	if len(xTagHeaders) == 0 {
+		l.skip("x_robots_tag_noindex", "No X-Robots-Tag header to check")
+	} else {
+		xTag := strings.Join(xTagHeaders, ", ")
+		l.addEv("x_robots_tag_noindex", "X-Robots-Tag header does not noindex this page", !ParseXRobotsTag(xTagHeaders).NoIndexFor(pageCrawler), evidence("X-Robots-Tag", xTag))
+	}
 }
 
 func seoHeadings(l *checkList, s *PageSignals) {
@@ -73,7 +83,7 @@ func seoHeadings(l *checkList, s *PageSignals) {
 	case 0:
 		l.addEv("h1_exists", "No H1 tag found", false, evidence("body h1", ""))
 	default:
-		var evs []Evidence
+		evs := make([]Evidence, 0, len(s.Tags["h1"]))
 		for _, t := range s.Tags["h1"] {
 			evs = append(evs, evidence(t.Selector, t.Text))
 		}
@@ -160,12 +170,12 @@ func seoImages(l *checkList, s *PageSignals) {
 		l.add("img_dimensions", "No images to check for dimensions", true)
 		return
 	}
-	imgTags := s.Tags["img"]
+	imgTags := s.Tags[tagImg]
 	imgSelector := func(i int) string {
 		if i < len(imgTags) {
 			return imgTags[i].Selector
 		}
-		return "img"
+		return tagImg
 	}
 	var missingAlt, missingDims []Evidence
 	for i, img := range s.Images {
