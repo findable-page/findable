@@ -212,13 +212,17 @@ func skipUnless(l *checkList, present bool, id, label, absent string, pass bool)
 	l.add(id, label, pass)
 }
 
-// jsonldBlockEvidence returns selectors for every JSON-LD script block so a
-// failed jsonld_valid check points at the offending block(s).
+// jsonldBlockEvidence points only at invalid JSON-LD blocks.
 func jsonldBlockEvidence(s *PageSignals) []Evidence {
 	var out []Evidence
-	for i, t := range s.Tags[tagScript] {
-		if strings.EqualFold(strings.TrimSpace(t.Attrs["type"]), "application/ld+json") {
-			out = append(out, evidence(t.Selector, fmt.Sprintf("block %d", i+1)))
+	block := 0
+	for _, t := range s.Tags[tagScript] {
+		if !strings.EqualFold(strings.TrimSpace(t.Attrs["type"]), "application/ld+json") {
+			continue
+		}
+		block++
+		if err := json.Unmarshal([]byte(strings.TrimSpace(t.Text)), new(any)); err != nil {
+			out = append(out, evidence(t.Selector, fmt.Sprintf("block %d: %v", block, err)))
 		}
 	}
 	return out

@@ -73,7 +73,7 @@ func Findings(pages []audit.Page) []Finding {
 	return out
 }
 
-// FilterFindings drops pages a predicate wants ignored (per-check, per-URL);
+// FilterFindings mutates the input slices while dropping pages a predicate wants ignored (per-check, per-URL);
 // findings left with no pages disappear entirely.
 func FilterFindings(fs []Finding, drop func(checkID, pageURL string) bool) []Finding {
 	out := fs[:0]
@@ -100,6 +100,7 @@ func FormatFixList(findings []Finding, top int, minSeverity audit.Severity) stri
 	}
 	var b strings.Builder
 	shown := 0
+	hidden := 0
 	var rest map[audit.Severity]int
 	for _, f := range findings {
 		if f.Severity.Weight() < minSeverity.Weight() {
@@ -110,6 +111,7 @@ func FormatFixList(findings []Finding, top int, minSeverity audit.Severity) stri
 				rest = map[audit.Severity]int{}
 			}
 			rest[f.Severity]++
+			hidden++
 			continue
 		}
 		shown++
@@ -122,8 +124,8 @@ func FormatFixList(findings []Finding, top int, minSeverity audit.Severity) stri
 		if len(f.Evidence) > 0 {
 			ev := f.Evidence[0]
 			value := ev.Value
-			if len(value) > 60 {
-				value = value[:60] + "..."
+			if runes := []rune(value); len(runes) > 60 {
+				value = string(runes[:60]) + "..."
 			}
 			if value != "" {
 				fmt.Fprintf(&b, "   evidence: %s  (%s)\n", ev.Selector, value)
@@ -139,7 +141,7 @@ func FormatFixList(findings []Finding, top int, minSeverity audit.Severity) stri
 				parts = append(parts, fmt.Sprintf("%s %d", sev, n))
 			}
 		}
-		fmt.Fprintf(&b, "%d more (%s)\n", len(findings)-shown, strings.Join(parts, ", "))
+		fmt.Fprintf(&b, "%d more (%s)\n", hidden, strings.Join(parts, ", "))
 	}
 	return b.String()
 }

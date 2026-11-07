@@ -36,14 +36,14 @@ func runMCP(client *http.Client) {
 func serveHTTP(addr string) {
 	fmt.Printf("findable API server listening on %s\n", addr)
 	if err := server.NewServer(addr).ListenAndServe(); err != nil {
-		fail("server error: %v", err)
+		failRuntime("server error: %v", err)
 	}
 }
 
 func runAudit(client *http.Client, target string, opts options) {
 	hostName := reportHostName(target)
 	if err := os.MkdirAll(opts.outDir, reportDirMode); err != nil { //nolint:gosec // reports are shareable output, not secrets
-		fail("create %s: %v", opts.outDir, err)
+		failRuntime("create %s: %v", opts.outDir, err)
 	}
 	if opts.site && !fetch.IsHTTPURL(target) {
 		fail("-site requires an http(s) URL, not a local file")
@@ -58,7 +58,7 @@ func runAudit(client *http.Client, target string, opts options) {
 
 	s, err := fetch.Scan(client, target, opts.keyphrase)
 	if err != nil {
-		fail("%v", err)
+		failRuntime("%v", err)
 	}
 	if opts.site {
 		s.Site = fetch.SiteChecks(client, target)
@@ -85,7 +85,7 @@ func reportHostName(target string) string {
 func runCrawl(client *http.Client, start, hostName string, opts options) {
 	pages, err := fetch.Crawl(client, start, crawlOptions(opts))
 	if err != nil {
-		fail("%v", err)
+		failRuntime("%v", err)
 	}
 	saveSiteReport(pages, hostName, opts)
 }
@@ -96,18 +96,18 @@ func runSitemap(client *http.Client, opts options) {
 	}
 	hostName := reportHostName(opts.sitemap)
 	if err := os.MkdirAll(opts.outDir, reportDirMode); err != nil { //nolint:gosec // reports are shareable output, not secrets
-		fail("create %s: %v", opts.outDir, err)
+		failRuntime("create %s: %v", opts.outDir, err)
 	}
 	urls, err := fetch.SitemapURLs(client, opts.sitemap, opts.limit)
 	if err != nil {
-		fail("%v", err)
+		failRuntime("%v", err)
 	}
 	if len(urls) == 0 {
-		fail("sitemap %s lists no pages", opts.sitemap)
+		failRuntime("sitemap %s lists no pages", opts.sitemap)
 	}
 	pages, err := fetch.ScanAll(client, urls, crawlOptions(opts))
 	if err != nil {
-		fail("%v", err)
+		failRuntime("%v", err)
 	}
 	saveSiteReport(pages, hostName, opts)
 }
@@ -118,7 +118,7 @@ func crawlOptions(opts options) fetch.CrawlOptions {
 		Limit:     opts.limit,
 		Site:      opts.site,
 		OnPage: func(done, limit int, p audit.Page) {
-			printCrawlProgress(done, limit, p, opts.quiet)
+			printCrawlProgress(done, limit, p)
 		},
 	}
 }
@@ -143,23 +143,10 @@ func exitIfBelow(pages []audit.Page, minimum int) {
 	}
 }
 
-func printCrawlProgress(done, limit int, p audit.Page, quiet bool) {
+func printCrawlProgress(done, limit int, p audit.Page) {
 	s := p.Scan
 	fmt.Printf("[%d/%d] %s  overall %d  SEO %s  AEO %s  GEO %s  failed %d\n",
 		done, limit, p.URL, audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO), audit.FailedCount(s))
-	if !quiet {
-		printFailures("  ", s)
-	}
-}
-
-func printFailures(indent string, s audit.Scan) {
-	for _, c := range s.Reported() {
-		for _, k := range c.Cat.Checks {
-			if audit.Status(k) == audit.StatusFail {
-				fmt.Printf("%sFAIL %s %s: %s\n", indent, c.Name, k.ID, k.Label)
-			}
-		}
-	}
 }
 
 func reportPath(outDir, prefix, hostName string, f report.Format) string {
@@ -168,7 +155,7 @@ func reportPath(outDir, prefix, hostName string, f report.Format) string {
 
 func writeReport(path, content string) {
 	if err := os.WriteFile(path, []byte(content), reportMode); err != nil { //nolint:gosec // reports are shareable output, not secrets
-		fail("write %s: %v", path, err)
+		failRuntime("write %s: %v", path, err)
 	}
 }
 

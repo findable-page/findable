@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/findable-page/findable/internal/audit"
 )
@@ -65,8 +66,8 @@ func TestFindingsTieBreaksByCheckID(t *testing.T) {
 func TestFindingsSkipsPassAndNAAndInfo(t *testing.T) {
 	notApplicable := false
 	pages := []audit.Page{page("https://x.com/a",
-		audit.Check{ID: "passing", Pass: true, Severity: audit.SeverityHigh, Tier: TierDoc()},
-		audit.Check{ID: "na", Pass: false, Applicable: &notApplicable, Severity: audit.SeverityHigh, Tier: TierDoc()},
+		audit.Check{ID: "passing", Pass: true, Severity: audit.SeverityHigh, Tier: audit.TierDocumented},
+		audit.Check{ID: "na", Pass: false, Applicable: &notApplicable, Severity: audit.SeverityHigh, Tier: audit.TierDocumented},
 		check("info_one", audit.SeverityInfo, audit.TierHeuristic),
 		check("real", audit.SeverityLow, audit.TierHeuristic),
 	)}
@@ -75,8 +76,6 @@ func TestFindingsSkipsPassAndNAAndInfo(t *testing.T) {
 		t.Fatalf("findings = %+v", fs)
 	}
 }
-
-func TierDoc() audit.Tier { return audit.TierDocumented }
 
 func TestFormatFixListGolden(t *testing.T) {
 	pages := samplePages()
@@ -91,6 +90,17 @@ func TestFormatFixListGolden(t *testing.T) {
 	}
 }
 
+func TestFormatFixListUnicodeEvidence(t *testing.T) {
+	f := Finding{
+		Label: "unicode", Severity: audit.SeverityHigh, Tier: audit.TierDocumented,
+		Evidence: []audit.Evidence{{Selector: "title", Value: strings.Repeat("界", 61)}},
+	}
+	got := FormatFixList([]Finding{f}, 1, audit.SeverityLow)
+	if !strings.Contains(got, strings.Repeat("界", 60)+"...") || !utf8.ValidString(got) {
+		t.Fatalf("invalid rune truncation: %q", got)
+	}
+}
+
 func TestFormatFixListTopAndSeverityFilters(t *testing.T) {
 	findings := Findings(samplePages())
 	got := FormatFixList(findings, 1, audit.SeverityLow)
@@ -99,6 +109,10 @@ func TestFormatFixListTopAndSeverityFilters(t *testing.T) {
 	}
 	if !strings.Contains(got, "2 more (medium 1, low 1)") {
 		t.Fatalf("missing summary line:\n%s", got)
+	}
+	got = FormatFixList(findings, 1, audit.SeverityMedium)
+	if !strings.Contains(got, "1 more (medium 1)") {
+		t.Fatalf("filtered summary counts wrong:\n%s", got)
 	}
 	got = FormatFixList(findings, 10, audit.SeverityHigh)
 	if strings.Contains(got, "title_length") || strings.Contains(got, "img_alt") {

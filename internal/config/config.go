@@ -60,6 +60,9 @@ func Load(path string) (Config, error) {
 	if err := dec.Decode(&c); err != nil {
 		return Config{}, fmt.Errorf("parse %s: %w", path, err)
 	}
+	if c.Baseline != "" || c.Gate != (Gate{}) || c.Crawl.Limit != 0 || c.Crawl.Concurrency != 0 || len(c.Crawl.Include) != 0 || len(c.Crawl.Exclude) != 0 || len(c.Bots) != 0 || len(c.Ignore) != 0 {
+		return Config{}, fmt.Errorf("config %s: baseline, gate, crawl, bots and ignore are not supported yet", path)
+	}
 	return c, nil
 }
 
@@ -75,8 +78,8 @@ func LoadDefault() (Config, error) {
 	return Load(DefaultPath)
 }
 
-// Ignores reports whether a failing check on a URL should be ignored by
-// reports and gates. A rule with no URL pattern ignores the check anywhere.
+// Ignores reports whether a rule matches a check on a URL. Config loading
+// rejects ignore rules until reports and gates both honor them.
 func (c Config) Ignores(checkID, pageURL string) bool {
 	for _, rule := range c.Ignore {
 		if rule.Check != checkID {

@@ -12,15 +12,38 @@ func TestParseXRobotsTagForms(t *testing.T) {
 		agent string
 		want  bool
 	}{
-		{"*", true},          // wildcard noindex
-		{"Googlebot", true},  // inherits wildcard
-		{"GPTBot", true},     // explicit
-		{"ClaudeBot", false}, // own group exists, no noindex token
+		{"*", true},         // wildcard noindex
+		{"Googlebot", true}, // inherits wildcard
+		{"GPTBot", true},    // explicit
+		{"ClaudeBot", true}, // wildcard noindex still applies
 	}
 	for _, tc := range cases {
 		if got := rules.NoIndexFor(tc.agent); got != tc.want {
 			t.Errorf("NoIndexFor(%s) = %v, want %v; rules %+v", tc.agent, got, tc.want, rules)
 		}
+	}
+}
+
+func TestParseXRobotsTagDirectiveBeforeNoindex(t *testing.T) {
+	for _, header := range []string{"max-snippet:20, noindex", "max-image-preview:large, noindex", "unavailable_after: 2026-01-01, noindex"} {
+		rules := ParseXRobotsTag([]string{header})
+		if !rules.NoIndexFor("Googlebot") {
+			t.Errorf("%q lost generic noindex: %+v", header, rules)
+		}
+	}
+}
+
+func TestParseXRobotsTagDirectiveBetweenGroups(t *testing.T) {
+	rules := ParseXRobotsTag([]string{"GPTBot: index, max-snippet:20, noindex"})
+	if !rules.NoIndexFor("Googlebot") {
+		t.Fatalf("generic noindex lost after agent and directive: %+v", rules)
+	}
+}
+
+func TestParseXRobotsTagMultipleHeaders(t *testing.T) {
+	rules := ParseXRobotsTag([]string{"GPTBot: index", "max-video-preview:10, noindex"})
+	if !rules.NoIndexFor("GPTBot") || !rules.NoIndexFor("Googlebot") {
+		t.Fatalf("header values must combine: %+v", rules)
 	}
 }
 
@@ -54,6 +77,13 @@ func TestParseMetaRobotsPerAgent(t *testing.T) {
 	}
 }
 
+func TestParseMetaRobotsGenericAndSpecific(t *testing.T) {
+	rules := ParseMetaRobots(`<meta name="robots" content="noindex"><meta name="googlebot" content="max-snippet:20">`)
+	if !rules.NoIndexFor("googlebot") {
+		t.Fatalf("agent-specific directive must not cancel generic noindex: %+v", rules)
+	}
+}
+
 func TestParseMetaRobotsIgnoresNonAgents(t *testing.T) {
 	rules := ParseMetaRobots(`<meta name="viewport" content="noindex">`)
 	if len(rules) != 0 {
@@ -61,13 +91,13 @@ func TestParseMetaRobotsIgnoresNonAgents(t *testing.T) {
 	}
 }
 
-func TestXRobotsNoIndexOverrides(t *testing.T) {
-	// A bot-specific group overrides the wildcard, mirroring robots.txt.
+func TestXRobotsNoIndexCombines(t *testing.T) {
+	// A bot-specific index cannot cancel generic noindex.
 	rules := ParseXRobotsTag([]string{"noindex, GPTBot: index"})
 	if rules.NoIndexFor("*") != true {
 		t.Error("wildcard noindex lost")
 	}
-	if rules.NoIndexFor("GPTBot") != false {
-		t.Error("GPTBot: index must override the wildcard noindex")
+	if !rules.NoIndexFor("GPTBot") {
+		t.Error("GPTBot: index must not override wildcard noindex")
 	}
 }

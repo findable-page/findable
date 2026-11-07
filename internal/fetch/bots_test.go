@@ -10,7 +10,10 @@ import (
 	"github.com/findable-page/findable/internal/audit"
 )
 
-const googlebotName = "Googlebot"
+const (
+	googlebotName = "Googlebot"
+	robotsPath    = "/robots.txt"
+)
 
 var browserPage = `<html><head><title>Real page</title></head><body>
 <main>` + strings.Repeat("lorem ipsum dolor ", 100) + `</main></body></html>`
@@ -23,7 +26,7 @@ var challengePage = `<html><body>Just a moment... Checking your browser before y
 func botProbeServer(t *testing.T) *httptest.Server {
 	t.Helper()
 	mux := http.NewServeMux()
-	mux.HandleFunc("/robots.txt", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc(robotsPath, func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n"))
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -95,8 +98,11 @@ func TestProbeBotsVerdicts(t *testing.T) {
 func TestProbeBotsSequentialPoliteness(t *testing.T) {
 	srv := botProbeServer(t)
 	start := time.Now()
-	verdicts := probe(t, srv, []string{"Googlebot", "Bingbot"})
-	if elapsed := time.Since(start); elapsed < 2*50*time.Millisecond {
+	verdicts, err := ProbeBots(&http.Client{Timeout: 5 * time.Second}, srv.URL, ProbeOptions{Bots: []string{"Googlebot", "Bingbot"}, Delay: 60 * time.Millisecond})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if elapsed := time.Since(start); elapsed < 50*time.Millisecond {
 		t.Errorf("probe of 2 bots took %v; delay between requests not honored", elapsed)
 	}
 	if len(verdicts) != 2 {
@@ -126,9 +132,61 @@ func TestProbeBotsPathUsesOrigin(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, path := range paths {
-		if path != "/robots.txt" && path != "/pricing" {
+		if path != robotsPath && path != "/pricing" {
 			t.Fatalf("requested %q instead of /pricing; all paths %v", path, paths)
 		}
+	}
+}
+
+func TestProbeBotsBaselineAndBotErrors(t *testing.T) {
+	for _, baselineStatus := range []int{http.StatusNotFound, http.StatusOK} {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == robotsPath {
+				return
+			}
+			if r.UserAgent() == userAgent {
+				w.WriteHeader(baselineStatus)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
+			_, _ = w.Write([]byte(browserPage))
+		}))
+		verdicts, err := ProbeBots(srv.Client(), srv.URL, ProbeOptions{Bots: []string{googlebotName}})
+		srv.Close()
+		if baselineStatus != http.StatusOK {
+			if err == nil {
+				t.Fatal("bad baseline accepted")
+			}
+		} else if err != nil || verdicts[0].Verdict != VerdictUnverifiable {
+			t.Fatalf("bot 404: %+v, %v", verdicts, err)
+		}
+	}
+}
+
+func TestProbeBotsSharedChallengeMarker(t *testing.T) {
+	page := `<html><body>` + strings.Repeat("ordinary page words ", 120) + `Captcha is available on our contact form.</body></html>`
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(page))
+	}))
+	defer srv.Close()
+	verdicts, err := ProbeBots(srv.Client(), srv.URL, ProbeOptions{Bots: []string{googlebotName}})
+	if err != nil || verdicts[0].Verdict != VerdictAllowed {
+		t.Fatalf("shared marker must not block: %+v, %v", verdicts, err)
+	}
+}
+
+func TestProbeBotsExtendedRobotsOnly(t *testing.T) {
+	requests := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != robotsPath {
+			requests++
+		}
+		_, _ = w.Write([]byte(browserPage))
+	}))
+	defer srv.Close()
+	verdicts, err := ProbeBots(srv.Client(), srv.URL, ProbeOptions{Bots: []string{"Google-Extended", "Applebot-Extended"}})
+	if err != nil || len(verdicts) != 2 || requests != 1 || verdicts[0].Verdict != VerdictUnverifiable {
+		t.Fatalf("extended probe: %+v, requests %d, err %v", verdicts, requests, err)
 	}
 }
 

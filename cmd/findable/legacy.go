@@ -44,8 +44,6 @@ func registerAuditFlags(fs *flag.FlagSet, o *options) (*string, string) {
 	fs.BoolVar(&o.site, "site", false, "also check robots.txt (search and AI crawlers) and /llms.txt")
 	fs.StringVar(&o.sitemap, "sitemap", "", "audit the pages listed in this sitemap.xml, up to limit pages")
 	fs.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl or -sitemap is enabled")
-	fs.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port (e.g. 127.0.0.1:8080)")
-	fs.BoolVar(&o.mcp, "mcp", false, "run Model Context Protocol (MCP) server over stdio")
 	fs.BoolVar(&o.allowPrivate, "allow-private", false, "allow scanning localhost and private-network targets")
 	fs.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when the overall score of any page is below N")
 	fs.StringVar(&o.scoreModel, "score-model", audit.ScoreModelWeighted, "scoring model: weighted (severity x evidence tier) or flat (legacy)")
@@ -96,6 +94,8 @@ func legacyMain(args []string) {
 	var o options
 	fs := flag.CommandLine
 	format, minSeverity := registerAuditFlags(fs, &o)
+	fs.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port")
+	fs.BoolVar(&o.mcp, "mcp", false, "run MCP server over stdio")
 	fs.Usage = func() { fmt.Fprintln(os.Stderr, usageLine) }
 	_ = fs.Parse(args)
 	finishOptions(&o, *format, minSeverity)

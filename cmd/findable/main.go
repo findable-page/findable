@@ -2,7 +2,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
 )
 
 const usageLine = "findable: is your site findable by Google and by AI answer engines?\n" +
@@ -10,11 +12,7 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 	"\n" +
 	"commands:\n" +
 	"  audit    (default) audit one page, a crawl or a sitemap\n" +
-	"  crawl    crawl the site and run cross-page checks\n" +
 	"  bots     probe how AI crawlers are actually treated by the server\n" +
-	"  render   compare raw HTML with the JS-rendered DOM\n" +
-	"  fix      generate fix files (robots.txt, llms.txt, JSON-LD, head snippets)\n" +
-	"  compare  diff two JSON reports\n" +
 	"  mcp      run MCP server over stdio\n" +
 	"  serve    run HTTP API server\n" +
 	"\n" +
@@ -36,6 +34,10 @@ func main() {
 			run(os.Args[2:])
 			return
 		}
+	}
+	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") && !strings.ContainsAny(os.Args[1], "/.:") && (len(os.Args) == 2 || strings.HasPrefix(os.Args[2], "-")) {
+		fmt.Fprintf(os.Stderr, "findable: unknown command %q\n", os.Args[1])
+		os.Exit(exitUsage)
 	}
 	legacyMain(os.Args[1:])
 }

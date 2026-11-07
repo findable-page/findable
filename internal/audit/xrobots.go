@@ -35,8 +35,13 @@ func ParseXRobotsTag(values []string) XRobotsRules {
 			if part == "" {
 				continue
 			}
-			// tokens are plain words; "agent: token" starts a new agent group
+			// Known colon-valued directives are generic, not agent groups.
 			if name, tokens, ok := strings.Cut(part, ":"); ok && strings.TrimSpace(tokens) != "" && !strings.ContainsAny(name, " /=") {
+				if isRobotsDirective(strings.ToLower(name)) {
+					agent = pageCrawler
+					add(agent, part)
+					continue
+				}
 				agent = strings.ToLower(strings.TrimSpace(name))
 				part = tokens
 			}
@@ -44,6 +49,14 @@ func ParseXRobotsTag(values []string) XRobotsRules {
 		}
 	}
 	return rules
+}
+
+func isRobotsDirective(name string) bool {
+	switch name {
+	case "max-snippet", "max-image-preview", "max-video-preview", "unavailable_after", "noindex", "nofollow", "none", "index", "follow", "noarchive", "nosnippet", "noimageindex", "notranslate", "indexifembedded":
+		return true
+	}
+	return false
 }
 
 // ParseMetaRobots extracts per-agent robots meta directives from HTML:
@@ -105,15 +118,8 @@ func isRobotsAgentName(name string) bool {
 	return strings.Contains(name, "bot") || strings.Contains(name, "agent") || strings.Contains(name, "user") || strings.Contains(name, "extended")
 }
 
-// NoIndexFor reports whether the rules noindex content for the agent. A
-// bot-specific group overrides the wildcard group, mirroring robots.txt
-// semantics.
+// NoIndexFor combines generic and agent-specific directives: index cannot
+// cancel a noindex directive from either source.
 func (r XRobotsRules) NoIndexFor(agent string) bool {
-	if set, ok := r[strings.ToLower(agent)]; ok {
-		return set["noindex"]
-	}
-	if set, ok := r[pageCrawler]; ok {
-		return set["noindex"]
-	}
-	return false
+	return r[pageCrawler]["noindex"] || r[strings.ToLower(agent)]["noindex"]
 }

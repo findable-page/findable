@@ -26,25 +26,11 @@ func writeConfig(t *testing.T, content string) string {
 	return path
 }
 
-func TestLoadParsesAllSections(t *testing.T) {
-	c, err := Load(writeConfig(t, fixture))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if c.Baseline != ".findable/baseline.json" {
-		t.Errorf("baseline = %q", c.Baseline)
-	}
-	if c.Gate.Overall != 70 || c.Gate.SEO != 80 || c.Gate.GEO != 60 || !c.Gate.NoNewFailures || c.Gate.MaxSeverity != "high" {
-		t.Errorf("gate = %+v", c.Gate)
-	}
-	if len(c.Ignore) != 2 || c.Ignore[1].URL != "/legacy/*" {
-		t.Errorf("ignore = %+v", c.Ignore)
-	}
-	if c.Crawl.Limit != 200 || c.Crawl.Concurrency != 4 || len(c.Crawl.Include) != 1 || len(c.Crawl.Exclude) != 1 {
-		t.Errorf("crawl = %+v", c.Crawl)
-	}
-	if len(c.Bots) != 2 {
-		t.Errorf("bots = %+v", c.Bots)
+func TestLoadRejectsUnsupportedSections(t *testing.T) {
+	for _, content := range []string{fixture, `{"gate":{"overall":70}}`, `{"bots":["GPTBot"]}`, `{"ignore":[{"check":"title_length"}]}`} {
+		if _, err := Load(writeConfig(t, content)); err == nil {
+			t.Fatalf("unsupported config accepted: %s", content)
+		}
 	}
 }
 
@@ -69,11 +55,7 @@ func TestLoadMissingFileIsError(t *testing.T) {
 
 func TestLoadDefaultMissingFileIsEmpty(t *testing.T) {
 	dir := t.TempDir()
-	wd, _ := os.Getwd()
-	if err := os.Chdir(dir); err != nil {
-		t.Skip("cannot chdir")
-	}
-	t.Cleanup(func() { _ = os.Chdir(wd) })
+	t.Chdir(dir)
 
 	c, err := LoadDefault()
 	if err != nil || c.Gate.Overall != 0 {
@@ -82,17 +64,15 @@ func TestLoadDefaultMissingFileIsEmpty(t *testing.T) {
 }
 
 func TestIgnores(t *testing.T) {
-	c, err := Load(writeConfig(t, fixture))
-	if err != nil {
-		t.Fatal(err)
-	}
+	const imageCheck = "img_modern_format"
+	c := Config{Ignore: []Rule{{Check: "aeo_conversational"}, {Check: imageCheck, URL: "/legacy/*"}}}
 	cases := []struct {
 		check, url string
 		want       bool
 	}{
 		{"aeo_conversational", "https://x.com/any", true},
-		{"img_modern_format", "https://x.com/legacy/page", true},
-		{"img_modern_format", "https://x.com/docs/page", false},
+		{imageCheck, "https://x.com/legacy/page", true},
+		{imageCheck, "https://x.com/docs/page", false},
 		{"title_length", "https://x.com/legacy/page", false},
 	}
 	for _, tc := range cases {

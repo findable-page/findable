@@ -106,9 +106,12 @@ func removeAll(t *testing.T, path string) {
 }
 
 func TestUnknownSubcommandExitsUsage(t *testing.T) {
-	_, code := runFindable(t, t.TempDir(), "frobnicate", "-q", "x.html")
-	if code != exitUsage {
-		t.Fatalf("exit = %d, want %d", code, exitUsage)
+	const missingPage = "x.html"
+	for _, args := range [][]string{{"frobnicate"}, {"frobnicate", "-q", missingPage}, {"audit", "-mcp", missingPage}, {"audit", "-serve", missingPage}} {
+		_, code := runFindable(t, t.TempDir(), args...)
+		if code != exitUsage {
+			t.Fatalf("%v exit = %d, want %d", args, code, exitUsage)
+		}
 	}
 }
 

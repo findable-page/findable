@@ -2,7 +2,7 @@
 
 Goal: a developer or agent auditing a site's search and AI (GEO) findability should reach for `findable` because it does what a chat assistant cannot. A chat LLM can explain best practice and read one pasted page. It cannot crawl 500 URLs, see what GPTBot actually gets back from a WAF, compare raw HTML with the rendered DOM, measure bytes and latency, diff this week's audit with last week's, or fail a build. Every item below is judged on that line: **does it need live access, scale, determinism or memory?** If not, it is a doc page, not a feature.
 
-Status: in progress. Phase 0.1–0.3 landed on this branch; Phase 1.1 fix-list logic and Phase 1.2 bot probe are partial. Phase 1.3–1.8 and Phase 1 exit criteria remain open.
+Status: in progress. Phases 0.1–0.3 are partial: audit/bots/mcp/serve dispatch, metadata, fix-list output and strict config loading exist, but remaining subcommands, full evidence and config-backed gates/crawl/bots/ignore semantics do not. Phase 1.1 fix-list logic and Phase 1.2 bot probe are partial. Phase 1.3–1.8 and Phase 1 exit criteria remain open.
 
 ## 1. Where findable is today (audit of this repo)
 

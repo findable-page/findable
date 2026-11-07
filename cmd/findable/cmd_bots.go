@@ -43,11 +43,6 @@ func botsCmd(args []string) {
 	if err != nil {
 		failRuntime("%v", err)
 	}
-	for _, v := range verdicts {
-		if v.Verdict == fetch.VerdictError {
-			failRuntime("probe %s: %s", v.Bot, v.Error)
-		}
-	}
 	switch strings.ToLower(*format) {
 	case "text":
 		printBotVerdicts(verdicts)
@@ -56,6 +51,11 @@ func botsCmd(args []string) {
 	default:
 		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n", *format)
 		os.Exit(exitUsage)
+	}
+	for _, v := range verdicts {
+		if v.Verdict == fetch.VerdictError {
+			failRuntime("probe %s: %s", v.Bot, v.Error)
+		}
 	}
 }
 

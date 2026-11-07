@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -61,7 +62,7 @@ var challengeMarkers = []string{
 // per bot, sequential, delay apart) plus one browser-UA baseline, and turns
 // the responses into verdicts. Only a live probe can tell "robots.txt allows
 // it" from "the WAF blocks it anyway".
-func ProbeBots(client *http.Client, pageURL string, opts ProbeOptions) ([]BotVerdict, error) {
+func ProbeBots(client *http.Client, pageURL string, opts ProbeOptions) ([]BotVerdict, error) { //nolint:gocyclo // validation and bot-specific verdicts stay at probe seam
 	base, err := url.Parse(pageURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse %s: %w", pageURL, err)
@@ -75,8 +76,8 @@ func ProbeBots(client *http.Client, pageURL string, opts ProbeOptions) ([]BotVer
 	if !strings.HasPrefix(opts.Path, "/") || strings.HasPrefix(opts.Path, "//") {
 		return nil, fmt.Errorf("path must start with a single /: %q", opts.Path)
 	}
-	if opts.Delay == 0 {
-		opts.Delay = 250 * time.Millisecond
+	if opts.Delay < 0 {
+		return nil, errors.New("delay must not be negative")
 	}
 	probeURL := base.Scheme + "://" + base.Host + opts.Path
 
@@ -96,7 +97,9 @@ func ProbeBots(client *http.Client, pageURL string, opts ProbeOptions) ([]BotVer
 	if err != nil {
 		return nil, fmt.Errorf("baseline fetch %s: %w", probeURL, err)
 	}
-	time.Sleep(opts.Delay)
+	if baseline.status != http.StatusOK {
+		return nil, fmt.Errorf("baseline fetch %s: HTTP %d%s", probeURL, baseline.status, baseline.challenge)
+	}
 
 	verdicts := make([]BotVerdict, 0, len(names))
 	for _, name := range names {
@@ -105,8 +108,19 @@ func ProbeBots(client *http.Client, pageURL string, opts ProbeOptions) ([]BotVer
 			verdicts = append(verdicts, BotVerdict{Bot: name, Verdict: VerdictError, Error: "unknown bot"})
 			continue
 		}
+		if len(verdicts) > 0 && opts.Delay > 0 {
+			time.Sleep(opts.Delay)
+		}
+		if bot.Name == "Google-Extended" || bot.Name == "Applebot-Extended" {
+			allowed := audit.RobotsAllows(robotsText, bot.Name, opts.Path)
+			verdict := VerdictBlockedRobots
+			if allowed {
+				verdict = VerdictUnverifiable
+			}
+			verdicts = append(verdicts, BotVerdict{Bot: bot.Name, Purpose: bot.Purpose, Consequence: bot.Consequence, RobotsAllowed: allowed, Verdict: verdict, Challenge: "robots-only token; no distinct user agent"})
+			continue
+		}
 		verdicts = append(verdicts, probeOne(client, probeURL, opts.Path, robotsText, bot, baseline))
-		time.Sleep(opts.Delay)
 	}
 	return verdicts, nil
 }
@@ -124,11 +138,13 @@ func probeOne(client *http.Client, probeURL, path, robotsText string, bot audit.
 		v.Verdict = VerdictError
 		v.Error = err.Error()
 		return v
-	case strings.Contains(res.challenge, "bot ip verification"):
+	case strings.Contains(res.challenge, "bot ip verification") && baseline.challenge == "":
 		v.Verdict = VerdictUnverifiable
-	case res.challenge != "" || res.status == http.StatusForbidden || res.status == http.StatusTooManyRequests || res.status == http.StatusServiceUnavailable:
+	case (res.challenge != "" && res.challenge != baseline.challenge) || res.status == http.StatusForbidden || res.status == http.StatusTooManyRequests || res.status >= http.StatusInternalServerError:
 		v.Blocked = true
 		v.Verdict = VerdictBlockedServer
+	case res.status != http.StatusOK:
+		v.Verdict = VerdictUnverifiable
 	case !v.RobotsAllowed:
 		v.Verdict = VerdictBlockedRobots
 	case res.xRules.NoIndexFor(bot.Name) || res.metaRules.NoIndexFor(bot.Name):
@@ -198,7 +214,7 @@ func countWords(body []byte) int {
 func detectChallenge(resp *http.Response, body []byte) string {
 	lower := strings.ToLower(string(body))
 	for _, marker := range challengeMarkers {
-		if strings.Contains(lower, marker) {
+		if (resp.StatusCode != http.StatusOK || len(body) < 2048) && strings.Contains(lower, marker) {
 			return fmt.Sprintf("status %d, body contains %q", resp.StatusCode, marker)
 		}
 	}
