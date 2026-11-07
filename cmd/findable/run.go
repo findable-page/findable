@@ -68,7 +68,7 @@ func runAudit(client *http.Client, target string, opts options) {
 
 	fmt.Printf("overall %d  SEO %s  AEO %s  GEO %s\n", audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO))
 	if !opts.quiet {
-		printFailures("", s)
+		printFixList([]audit.Page{{URL: target, Scan: s}}, opts.cfg, opts.top, opts.minSeverity)
 	}
 	fmt.Println("saved", path)
 	exitIfBelow([]audit.Page{{URL: target, Scan: s}}, opts.failUnder)
@@ -126,6 +126,9 @@ func crawlOptions(opts options) fetch.CrawlOptions {
 func saveSiteReport(pages []audit.Page, hostName string, opts options) {
 	path := reportPath(opts.outDir, "findable-site-report", hostName, opts.format)
 	writeReport(path, report.SiteReport(opts.format, hostName, pages))
+	if !opts.quiet {
+		printFixList(pages, opts.cfg, opts.top, opts.minSeverity)
+	}
 	fmt.Printf("saved %s (%d pages)\n", path, len(pages))
 	exitIfBelow(pages, opts.failUnder)
 }
