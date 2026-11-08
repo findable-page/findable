@@ -12,6 +12,15 @@ func analyzeLD(t *testing.T, ld, keyphrase string) Scan {
 	return Analyze("https://example.com", page, keyphrase, make(http.Header), 200)
 }
 
+func TestJSONLDEvidenceOnlyInvalidBlock(t *testing.T) {
+	page := `<html><head><script>ignored</script><script type="application/ld+json">{"@type":"WebPage"}</script><script type="application/ld+json">{bad</script></head></html>`
+	scan := Analyze("https://example.com", page, "", make(http.Header), 200)
+	check := findCheck(scan.SEO.Checks, "jsonld_valid")
+	if check == nil || check.Pass || len(check.Evidence) != 1 || !strings.HasPrefix(check.Evidence[0].Value, "block 2:") {
+		t.Fatalf("invalid JSON-LD evidence: %+v", check)
+	}
+}
+
 func TestJSONLDTypeArrayAndTopLevelArray(t *testing.T) {
 	cases := map[string]string{
 		"type array":      `{"@type":["FAQPage","WebPage"]}`,

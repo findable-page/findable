@@ -55,3 +55,6 @@ func encodeJSON(v any) string {
 	}
 	return string(b) + "\n"
 }
+
+// EncodeJSON marshals any value the way report files are written.
+func EncodeJSON(v any) string { return encodeJSON(v) }

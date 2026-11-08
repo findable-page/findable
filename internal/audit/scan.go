@@ -6,10 +6,22 @@ import (
 )
 
 type Check struct {
-	ID         string `json:"id"`
-	Label      string `json:"label"`
-	Pass       bool   `json:"pass"`
-	Applicable *bool  `json:"applicable"`
+	ID         string     `json:"id"`
+	Label      string     `json:"label"`
+	Pass       bool       `json:"pass"`
+	Applicable *bool      `json:"applicable"`
+	Severity   Severity   `json:"severity,omitempty"`
+	Tier       Tier       `json:"tier,omitempty"`
+	Fix        string     `json:"fix,omitempty"`
+	Evidence   []Evidence `json:"evidence,omitempty"`
+}
+
+// Evidence points at where a check failed: a CSS-ish selector, the
+// offending value, and optionally the page URL for cross-page findings.
+type Evidence struct {
+	Selector string `json:"selector,omitempty"`
+	Value    string `json:"value,omitempty"`
+	URL      string `json:"url,omitempty"`
 }
 
 type Category struct {

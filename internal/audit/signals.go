@@ -2,6 +2,7 @@ package audit
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -87,6 +88,7 @@ type TagInfo struct {
 	HasMedia bool
 	InHead   bool
 	Pos      int
+	Selector string
 }
 
 func containsElement(n *html.Node, names ...string) bool {
@@ -136,22 +138,28 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 	}
 
 	seenIDs := make(map[string]int)
-	var walk func(*html.Node, bool)
-	walk = func(n *html.Node, inHead bool) {
+	var walk func(*html.Node, string)
+	walk = func(n *html.Node, sel string) {
 		if n.Type == html.ElementNode {
 			sig.DOMSize++
 			countDuplicateIDs(&sig, n, seenIDs)
-			recordTag(&sig, n, inHead)
-			inHead = inHead || n.Data == "head"
+			recordTag(&sig, n, inHead(sel), sel)
 			if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
 				collect(&sig, n)
 			}
 		}
+		var counts map[string]int
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c, inHead)
+			if c.Type == html.ElementNode {
+				if counts == nil {
+					counts = make(map[string]int)
+				}
+				counts[strings.ToLower(c.Data)]++
+			}
+			walk(c, childSelector(sel, c, counts))
 		}
 	}
-	walk(doc, false)
+	walk(doc, "")
 
 	sig.TextContent = extractVisibleText(doc)
 	sig.Words = strings.Fields(sig.TextContent)
@@ -171,7 +179,7 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	"h5":         collectHeading,
 	"h6":         collectHeading,
 	"p":          collectParagraph,
-	"img":        collectImage,
+	tagImg:       collectImage,
 	"a":          collectAnchor,
 	"article":    countSemantic,
 	"section":    countSemantic,
@@ -196,17 +204,46 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	tagScript:    collectScript,
 }
 
-func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
+func recordTag(sig *PageSignals, n *html.Node, inHead bool, selector string) {
 	name := strings.ToLower(n.Data)
-	info := TagInfo{Attrs: attrs(n), InHead: inHead, Pos: sig.DOMSize}
+	info := TagInfo{Attrs: attrs(n), InHead: inHead, Pos: sig.DOMSize, Selector: selector}
 	if name == tagScript && strings.EqualFold(trimmedAttr(info.Attrs, "type"), "application/ld+json") {
 		info.Text = collectRawText(n)
 	}
 	if tagsWithText[name] {
 		info.Text = collectText(n)
-		info.HasMedia = containsElement(n, "img", "svg", "picture")
+		info.HasMedia = containsElement(n, tagImg, "svg", "picture")
 	}
 	sig.Tags[name] = append(sig.Tags[name], info)
+}
+
+// inHead reports whether a node sits under <head>: its own selector starts
+// with the head path (appendSelector keeps head, trims html/body).
+func inHead(sel string) bool {
+	return sel == "head" || strings.HasPrefix(sel, "head >")
+}
+
+var selectorSkipTags = map[string]bool{"html": true, "body": true}
+
+// childSelector builds the CSS-ish selector for a child of parentSel.
+// counts tracks how many of each tag the parent has already handed a
+// selector to (only element children); nth-of-type is added when the tag
+// repeats among siblings, and html/body are trimmed from the path.
+func childSelector(parentSel string, n *html.Node, counts map[string]int) string {
+	if n.Type != html.ElementNode {
+		return parentSel
+	}
+	tag := strings.ToLower(n.Data)
+	if selectorSkipTags[tag] {
+		return parentSel
+	}
+	if counts[tag] > 1 {
+		tag = fmt.Sprintf("%s:nth-of-type(%d)", tag, counts[tag])
+	}
+	if parentSel == "" {
+		return tag
+	}
+	return parentSel + " > " + tag
 }
 
 func attrs(n *html.Node) map[string]string {
@@ -269,7 +306,7 @@ func collectMeta(sig *PageSignals, n *html.Node) {
 		sig.MetaDesc = content
 	case "viewport":
 		sig.Viewport = content
-	case "robots":
+	case robotsMetaName:
 		sig.RobotsMeta = content
 	case "theme-color":
 		sig.ThemeColor = content
@@ -555,3 +592,13 @@ const (
 	schemeHTTPS = "https"
 	tagScript   = "script"
 )
+
+// VisibleText returns the rendered text content of an HTML document with
+// script/style/noscript/svg stripped.
+func VisibleText(rawHTML string) string {
+	doc, err := html.Parse(strings.NewReader(rawHTML))
+	if err != nil {
+		return ""
+	}
+	return extractVisibleText(doc)
+}
