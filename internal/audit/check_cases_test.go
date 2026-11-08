@@ -11,13 +11,14 @@ import (
 )
 
 type checkCase struct {
-	URL        string `json:"url"`
-	Head       string `json:"head"`
-	Body       string `json:"body"`
-	Doc        string `json:"doc"`
-	Pad        int    `json:"pad"`
-	Repeat     int    `json:"repeat"`
-	HeadRepeat int    `json:"headRepeat"`
+	URL        string   `json:"url"`
+	Head       string   `json:"head"`
+	Body       string   `json:"body"`
+	Doc        string   `json:"doc"`
+	Pad        int      `json:"pad"`
+	Repeat     int      `json:"repeat"`
+	HeadRepeat int      `json:"headRepeat"`
+	Evidence   []string `json:"evidence"` // expected evidence selectors on fail
 }
 
 func repeated(s string, n int) string {
@@ -73,7 +74,26 @@ func TestSharedCheckCases(t *testing.T) {
 				if check.Pass != want {
 					t.Errorf("%s case %d (want pass=%v): got pass=%v label=%q\n%s", id, i, want, check.Pass, check.Label, page)
 				}
+				if len(c.Evidence) > 0 && !want {
+					assertEvidenceSelectors(t, id, i, *check, c.Evidence)
+				}
 			}
+		}
+	}
+}
+
+func assertEvidenceSelectors(t *testing.T, id string, caseIdx int, check Check, want []string) {
+	t.Helper()
+	for _, sel := range want {
+		found := false
+		for _, ev := range check.Evidence {
+			if ev.Selector == sel {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("%s case %d: evidence selector %q not in %v", id, caseIdx, sel, check.Evidence)
 		}
 	}
 }

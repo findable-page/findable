@@ -77,11 +77,16 @@ func TestSiteCategoryReportsRobotsAndLLMSChecks(t *testing.T) {
 		"robots-perplexitybot":      StatusPass,
 		"robots-claude-searchbot":   StatusPass,
 		"robots-googlebot":          StatusPass,
+		"robots-bingbot":            StatusPass,
+		"robots-chatgpt-user":       StatusPass,
+		"robots-perplexity-user":    StatusPass,
+		"robots-claude-user":        StatusPass,
 		"robots-gptbot":             StatusFail,
 		"robots-claudebot":          StatusFail,
 		"robots-google-extended":    StatusPass,
 		"robots-applebot-extended":  StatusPass,
 		"robots-meta-externalagent": StatusPass,
+		"robots-ccbot":              StatusPass,
 		"llms-txt":                  StatusPass,
 	}
 	got := siteStatuses(cat)
@@ -93,8 +98,8 @@ func TestSiteCategoryReportsRobotsAndLLMSChecks(t *testing.T) {
 	if len(cat.Checks) != len(want) {
 		t.Errorf("site category has %d checks, want %d", len(cat.Checks), len(want))
 	}
-	if cat.Score != nil || cat.Passed != 10 || cat.Total != 12 {
-		t.Errorf("site category score/passed/total = %v/%d/%d, want unscored 10/12", cat.Score, cat.Passed, cat.Total)
+	if cat.Score != nil || cat.Passed != 15 || cat.Total != 17 {
+		t.Errorf("site category score/passed/total = %v/%d/%d, want unscored 15/17", cat.Score, cat.Passed, cat.Total)
 	}
 }
 

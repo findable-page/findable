@@ -1,0 +1,6 @@
+ 1 CRITICAL  documented  robots_meta label    [2 pages]
+   fix: robots_meta fix sentence
+ 2 MEDIUM    documented  img_alt label
+   fix: img_alt fix sentence
+   evidence: img  (hero.png)
+1 more (low 1)

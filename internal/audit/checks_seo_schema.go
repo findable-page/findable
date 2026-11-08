@@ -186,7 +186,7 @@ func seoSchema(l *checkList, s *PageSignals) {
 		}
 		return
 	}
-	l.add("jsonld_valid", fmt.Sprintf("%d of %d JSON-LD block(s) are not valid JSON", doc.invalid, doc.blocks), doc.invalid == 0)
+	l.addEv("jsonld_valid", fmt.Sprintf("%d of %d JSON-LD block(s) are not valid JSON", doc.invalid, doc.blocks), doc.invalid == 0, jsonldBlockEvidence(s)...)
 	schemaContext(l, doc)
 	schemaHygiene(l, doc)
 	schemaOrganization(l, doc)
@@ -210,6 +210,22 @@ func skipUnless(l *checkList, present bool, id, label, absent string, pass bool)
 		return
 	}
 	l.add(id, label, pass)
+}
+
+// jsonldBlockEvidence points only at invalid JSON-LD blocks.
+func jsonldBlockEvidence(s *PageSignals) []Evidence {
+	var out []Evidence
+	block := 0
+	for _, t := range s.Tags[tagScript] {
+		if !strings.EqualFold(strings.TrimSpace(t.Attrs["type"]), "application/ld+json") {
+			continue
+		}
+		block++
+		if err := json.Unmarshal([]byte(strings.TrimSpace(t.Text)), new(any)); err != nil {
+			out = append(out, evidence(t.Selector, fmt.Sprintf("block %d: %v", block, err)))
+		}
+	}
+	return out
 }
 
 func schemaContext(l *checkList, doc schemaDoc) {
@@ -391,12 +407,12 @@ func schemaBusinessAndVideo(l *checkList, doc schemaDoc) {
 
 func seoSocialCompleteness(l *checkList, s *PageSignals) {
 	meta := func(prop string) string { return metaProperty(s, prop) }
-	l.add("og_type", "Open Graph og:type is set", meta("og:type") != "")
-	l.add("og_site_name", "Open Graph og:site_name is set", meta("og:site_name") != "")
+	l.addEv("og_type", "Open Graph og:type is set", meta("og:type") != "", evidence("head > meta[property=og:type]", meta("og:type")))
+	l.addEv("og_site_name", "Open Graph og:site_name is set", meta("og:site_name") != "", evidence("head > meta[property=og:site_name]", meta("og:site_name")))
 	if image := meta("og:image"); image == "" {
 		l.skip("og_image_absolute", "No og:image to validate")
 	} else {
-		l.add("og_image_absolute", "og:image is an absolute http(s) URL", httpURLRegex.MatchString(image))
+		l.addEv("og_image_absolute", "og:image is an absolute http(s) URL", httpURLRegex.MatchString(image), evidence("head > meta[property=og:image]", image))
 	}
 	ogURL, canonical := meta("og:url"), firstHref(linkTags(s, "canonical"))
 	if ogURL == "" || canonical == "" || s.URL == nil {

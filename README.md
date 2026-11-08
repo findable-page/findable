@@ -29,7 +29,7 @@ One overall score from 0 to 100, built from three families:
 | AEO (answer engine optimization) | 25% | 35 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
 | GEO (generative engine optimization) | 25% | 27 | Author and organization markup, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
 
-That is 160 page checks in the Go engine. The edge API runs a port with the same 160. Twelve more site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, four AI search crawlers (OAI-SearchBot, PerplexityBot, Claude-SearchBot, Googlebot), five AI training crawlers (GPTBot, ClaudeBot, Google-Extended, Applebot-Extended, meta-externalagent), and `/llms.txt` present. Every failing check names what to fix.
+The Go engine runs 165 page checks; the edge API runs a separate port. Seventeen site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, four AI search crawlers (OAI-SearchBot, PerplexityBot, Claude-SearchBot, Googlebot), five AI training crawlers (GPTBot, ClaudeBot, Google-Extended, Applebot-Extended, meta-externalagent), and `/llms.txt` present. Every failing check names what to fix.
 
 ## Quickstart
 
@@ -46,13 +46,16 @@ findable https://example.com
 findable ./page.html          # local file, no server needed
 ```
 
-It prints the four scores and the failing checks, and saves a report file in `-o` (default `.`).
+It prints scores and a prioritized fix list (severity × evidence tier), and saves a report file in `-o` (default `.`). Scores are weighted; `llms.txt` is optional hygiene, not a documented ranking signal.
 
 ## CLI
 
 ```
-findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
-         [-site] [-crawl] [-sitemap url] [-limit N] [-serve :port] [-mcp] [-allow-private] <url or file>
+findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
+         [-site] [-crawl] [-sitemap url] [-limit N] [-allow-private] <url or file>
+findable bots [-bots OAI-SearchBot,PerplexityBot] [-path /] [-format text|json] <url>
+findable mcp
+findable serve 127.0.0.1:8080
 ```
 
 | Flag | Meaning |
@@ -60,19 +63,24 @@ findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
 | `-format csv\|json\|sarif` | Report format. `json` is the same object `/api/scan` returns, `sarif` is SARIF 2.1.0 for GitHub code scanning. Default `csv`. |
 | `-fail-under N` | Exit 1 and name every page whose overall score is below N. |
 | `-sitemap URL` | Audit the pages a sitemap lists. Sitemap indexes are followed. |
-| `-site` | Also run the 12 site checks (robots.txt, AI search crawlers, AI training crawlers, llms.txt). |
+| `-site` | Also run the 17 site checks (robots.txt, AI search crawlers, AI training crawlers, llms.txt). |
 | `-crawl` | Follow internal links, up to `-limit` pages (default 20). |
-| `-k` | Focus keyphrase. Only the edge API scores it today; the offline engine ignores it. |
+| `-k` | Focus keyphrase. The Go engine runs the four keyphrase checks. |
+| `-top N`, `-min-severity LEVEL` | Limit the terminal fix list (critical, high, medium, low). |
+| `-config path` | Load strict JSON config; defaults to `findable.json` if present. Gate, crawl, bots, baseline and ignore sections currently return a usage error rather than silently doing nothing. |
 | `-o`, `-q` | Report directory; `-q` hides the failing-check list. |
-| `-serve 127.0.0.1:8080` | Local API and web UI. Bind to localhost; `:8080` listens on every interface. |
-| `-mcp` | MCP server over stdio. |
+| `-serve 127.0.0.1:8080` | Legacy flag (or `findable serve`); local API and web UI. Bind to localhost; `:8080` listens on every interface. |
+| `-mcp` | Legacy flag (or `findable mcp`); MCP server over stdio. |
 | `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts, ignores `HTTPS_PROXY`/`HTTP_PROXY`, and only connects to ports 80 and 443. With it the CLI uses a plain HTTP client: no address guard, any port, proxy variables honoured. `-serve` is always guarded and ignores this flag. |
 
 ```bash
 findable -q -format sarif -fail-under 70 https://example.com
 findable -sitemap https://example.com/sitemap.xml -limit 50
 findable -site -crawl -limit 10 https://example.com
+findable bots -bots OAI-SearchBot,Claude-SearchBot https://example.com
 ```
+
+Bot probes use spoofed user agents from **your IP**, not vendor IP ranges. A WAF may treat the real bot differently. `0` means success, `1` means score gate failed, `2` means invalid usage, `3` means runtime/network or report-write error.
 
 ## MCP for agents
 

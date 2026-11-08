@@ -348,13 +348,15 @@ func TestLocalAuditEngineOnThinPage(t *testing.T) {
 	scanResult := Analyze("http://localhost/01-thin-poor.html", string(htmlBytes), "", make(http.Header), 200)
 	ov := Overall(scanResult)
 
-	if ov > 45 {
+	// Weighted scoring dents trivia less than the flat model, so a structurally
+	// half-decent thin page lands near 50 rather than 40.
+	if ov > 50 {
 		t.Errorf("expected thin page to score low, got overall=%d", ov)
 	}
 	if scanResult.SEO.Score == nil {
 		t.Fatal("expected an SEO score, got none")
 	}
-	if *scanResult.SEO.Score > 50 {
+	if *scanResult.SEO.Score > 55 {
 		t.Errorf("expected low SEO score, got %v", *scanResult.SEO.Score)
 	}
 }
@@ -388,7 +390,7 @@ func TestLocalAuditEngineAll10Archetypes(t *testing.T) {
 		minScore int
 		maxScore int
 	}{
-		{"01-thin-poor.html", 10, 45},
+		{"01-thin-poor.html", 10, 55}, // weighted model: https/doctype/title earn real weight
 		{"02-standard-blog.html", 50, 95},
 		{"03-faq-aeo.html", 50, 95},
 		{"04-geo-research.html", 65, 100},

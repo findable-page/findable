@@ -71,12 +71,16 @@ func seoCanonicalQuality(l *checkList, s *PageSignals) {
 	}
 	target, err := url.Parse(canonical)
 	self := err == nil && s.URL != nil && pagePathKey(s.URL.ResolveReference(target)) == pagePathKey(s.URL)
+	canonSel := "head > link[rel=canonical]"
+	if tags := linkTags(s, "canonical"); len(tags) > 0 && tags[0].Selector != "" {
+		canonSel = tags[0].Selector
+	}
 	if self {
 		l.add("canonical_self", "Canonical points to this page", true)
 	} else {
-		l.add("canonical_self", "Canonical points elsewhere: "+canonical, false)
+		l.addEv("canonical_self", "Canonical points elsewhere: "+canonical, false, evidence(canonSel, canonical))
 	}
-	l.add("canonical_absolute", "Canonical is an absolute URL", err == nil && target.IsAbs())
+	l.addEv("canonical_absolute", "Canonical is an absolute URL", err == nil && target.IsAbs(), evidence(canonSel, canonical))
 }
 
 func robotsTokens(s *PageSignals) map[string]bool {
@@ -199,6 +203,7 @@ func blocksZoom(viewport string) bool {
 
 func seoHreflang(l *checkList, s *PageSignals) {
 	invalid, relative, total := 0, 0, 0
+	var badCode, badURL []Evidence
 	for _, t := range linkTags(s, "alternate") {
 		code := strings.TrimSpace(t.Attrs["hreflang"])
 		if code == "" {
@@ -207,9 +212,11 @@ func seoHreflang(l *checkList, s *PageSignals) {
 		total++
 		if !hreflangRegex.MatchString(code) {
 			invalid++
+			badCode = append(badCode, evidence(t.Selector, code))
 		}
 		if href := strings.ToLower(strings.TrimSpace(t.Attrs["href"])); !strings.HasPrefix(href, "http://") && !strings.HasPrefix(href, "https://") {
 			relative++
+			badURL = append(badURL, evidence(t.Selector, href))
 		}
 	}
 	if total == 0 {
@@ -217,8 +224,8 @@ func seoHreflang(l *checkList, s *PageSignals) {
 		l.skip("hreflang_absolute", "No hreflang annotations to validate")
 		return
 	}
-	l.add("hreflang_valid", fmt.Sprintf("%d of %d hreflang codes are invalid", invalid, total), invalid == 0)
-	l.add("hreflang_absolute", fmt.Sprintf("%d of %d hreflang URLs are not absolute", relative, total), relative == 0)
+	l.addEv("hreflang_valid", fmt.Sprintf("%d of %d hreflang codes are invalid", invalid, total), invalid == 0, badCode...)
+	l.addEv("hreflang_absolute", fmt.Sprintf("%d of %d hreflang URLs are not absolute", relative, total), relative == 0, badURL...)
 }
 
 func seoCharsetPlacement(l *checkList, s *PageSignals) {

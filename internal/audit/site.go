@@ -5,15 +5,6 @@ import (
 	"strings"
 )
 
-// aiSearchCrawlers retrieve page content to cite it in AI answers
-// (ChatGPT Search, Perplexity, Claude, Google AI Overviews).
-var aiSearchCrawlers = []string{"OAI-SearchBot", "PerplexityBot", "Claude-SearchBot", "Googlebot"}
-
-// trainingCrawlers fetch page content to train AI models. Blocking them does
-// not remove a site from AI search answers while the search crawlers above
-// stay allowed.
-var trainingCrawlers = []string{"GPTBot", "ClaudeBot", "Google-Extended", "Applebot-Extended", "meta-externalagent"}
-
 func crawlerCheck(robotsText, pagePath, bot string) Check {
 	return Check{
 		ID:    "robots-" + strings.ToLower(bot),
@@ -23,16 +14,23 @@ func crawlerCheck(robotsText, pagePath, bot string) Check {
 }
 
 func crawlerLabel(bot string) string {
-	switch bot {
-	case "Googlebot":
-		return "robots.txt lets Googlebot fetch this page (Google Search and AI Overviews)"
-	case "Google-Extended":
+	if bot == "Google-Extended" {
 		return "robots.txt lets Google-Extended fetch this page (Gemini training only; it does not control AI Overviews)"
-	case "GPTBot", "ClaudeBot", "Applebot-Extended", "meta-externalagent":
-		return "robots.txt lets " + bot + " fetch this page (model training; blocking it does not affect AI search citations)"
-	default:
-		return "robots.txt lets " + bot + " fetch this page (AI search retrieval)"
 	}
+	b, ok := BotByName(bot)
+	if !ok {
+		return "robots.txt lets " + bot + " fetch this page"
+	}
+	var verb string
+	switch b.Purpose {
+	case PurposeSearch:
+		verb = "fetch this page (AI search retrieval)"
+	case PurposeUserFetch:
+		verb = "fetch pages users paste on demand"
+	default:
+		verb = "fetch this page (model training; blocking it does not affect AI search citations)"
+	}
+	return "robots.txt lets " + bot + " " + verb
 }
 
 const (
@@ -142,10 +140,14 @@ func SiteCategory(pagePath string, robots, llms *string) Category {
 	for _, bot := range aiSearchCrawlers {
 		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
 	}
+	for _, bot := range userFetchCrawlers {
+		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
+	}
 	for _, bot := range trainingCrawlers {
 		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
 	}
 	checks = append(checks, Check{ID: "llms-txt", Label: "/llms.txt is present", Pass: llms != nil})
+	attachMeta(checks)
 	passed := 0
 	for _, c := range checks {
 		if c.Pass {
