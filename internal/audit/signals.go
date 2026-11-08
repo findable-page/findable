@@ -78,6 +78,7 @@ type PageSignals struct {
 	Favicon             string
 	WebManifest         string
 	RSSFeed             string
+	Boilerplate         []BoilerplateSection
 	Tags                map[string][]TagInfo
 }
 
@@ -87,6 +88,15 @@ type TagInfo struct {
 	HasMedia bool
 	InHead   bool
 	Pos      int
+}
+
+// BoilerplateSection counts the words of a nav, header or footer block and how
+// many of them sit under a data-nosnippet element. Google honours the attribute
+// only on div, span and section elements.
+type BoilerplateSection struct {
+	Tag          string
+	Words        int
+	CoveredWords int
 }
 
 func containsElement(n *html.Node, names ...string) bool {
@@ -105,7 +115,7 @@ func containsElement(n *html.Node, names ...string) bool {
 	return false
 }
 
-var tagsWithText = map[string]bool{"a": true, "button": true, "style": true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
+var tagsWithText = map[string]bool{"a": true, "button": true, tagStyle: true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
 
 var (
 	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)`)
@@ -173,13 +183,13 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	"p":          collectParagraph,
 	"img":        collectImage,
 	"a":          collectAnchor,
+	"nav":        collectBoilerplate,
+	"header":     collectBoilerplate,
+	"footer":     collectBoilerplate,
 	"article":    countSemantic,
 	"section":    countSemantic,
 	"main":       countSemantic,
-	"nav":        countSemantic,
 	"aside":      countSemantic,
-	"header":     countSemantic,
-	"footer":     countSemantic,
 	"time":       countSemantic,
 	"figure":     countSemantic,
 	"details":    countSemantic,
@@ -378,6 +388,45 @@ func countSemantic(sig *PageSignals, n *html.Node) {
 	}
 }
 
+func collectBoilerplate(sig *PageSignals, n *html.Node) {
+	countSemantic(sig, n)
+	words, covered := boilerplateWords(n, false)
+	sig.Boilerplate = append(sig.Boilerplate, BoilerplateSection{Tag: strings.ToLower(n.Data), Words: words, CoveredWords: covered})
+}
+
+func boilerplateWords(n *html.Node, covered bool) (words, coveredWords int) {
+	if n.Type == html.ElementNode {
+		name := strings.ToLower(n.Data)
+		if name == tagScript || name == tagStyle || name == "noscript" || name == "svg" {
+			return 0, 0
+		}
+		if !covered && (name == "div" || name == "span" || name == "section") && hasNoSnippetAttr(n) {
+			covered = true
+		}
+	}
+	if n.Type == html.TextNode {
+		words = len(strings.Fields(n.Data))
+		if covered {
+			coveredWords = words
+		}
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		w, cw := boilerplateWords(c, covered)
+		words += w
+		coveredWords += cw
+	}
+	return words, coveredWords
+}
+
+func hasNoSnippetAttr(n *html.Node) bool {
+	for _, a := range n.Attr {
+		if strings.EqualFold(a.Key, "data-nosnippet") {
+			return true
+		}
+	}
+	return false
+}
+
 func collectBlockquote(sig *PageSignals, n *html.Node) {
 	sig.BlockquoteCount++
 	if quote := strings.TrimSpace(collectText(n)); quote != "" {
@@ -532,7 +581,7 @@ func extractVisibleText(doc *html.Node) string {
 	walk = func(n *html.Node) {
 		if n.Type == html.ElementNode {
 			tag := strings.ToLower(n.Data)
-			if tag == tagScript || tag == "style" || tag == "noscript" || tag == "svg" {
+			if tag == tagScript || tag == tagStyle || tag == "noscript" || tag == "svg" {
 				return
 			}
 		}
@@ -554,4 +603,5 @@ func extractVisibleText(doc *html.Node) string {
 const (
 	schemeHTTPS = "https"
 	tagScript   = "script"
+	tagStyle    = "style"
 )

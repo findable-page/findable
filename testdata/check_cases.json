@@ -86,5 +86,9 @@
   "charset_early": {
     "pass": [{}, {"head": "<meta charset='utf-8'>"}],
     "fail": [{"pad": 1500, "head": "<meta charset='utf-8'>"}]
+  },
+  "meta_robots_snippet_directives": {
+    "pass": [{}, {"head": "<meta name='robots' content='index,follow'>"}, {"head": "<meta name='robots' content='max-snippet:-1, max-image-preview:large, max-video-preview:-1'>"}, {"head": "<meta name='robots' content='max-image-preview:large'>"}],
+    "fail": [{"head": "<meta name='robots' content='max-snippet:80'>"}, {"head": "<meta name='robots' content='max-image-preview:none'>"}, {"head": "<meta name='robots' content='max-image-preview:standard'>"}, {"head": "<meta name='robots' content='max-video-preview:0'>"}]
   }
 }

@@ -94,6 +94,41 @@ func seoRobotsDirectives(l *checkList, s *PageSignals) {
 	conflict := (tokens["index"] && tokens["noindex"]) || (tokens["follow"] && tokens["nofollow"])
 	l.add("meta_robots_conflict", "Robots meta directives do not contradict each other", !conflict)
 	l.add("robots_nofollow", "Page does not nofollow all its links via robots meta", !tokens["nofollow"] && !tokens["none"])
+	seoSnippetDirectives(l, s)
+}
+
+func robotsDirectiveValues(s *PageSignals) map[string]string {
+	values := map[string]string{}
+	for _, content := range metaTags(s, "robots") {
+		for _, token := range strings.Split(strings.ToLower(content), ",") {
+			if key, value, found := strings.Cut(strings.TrimSpace(token), ":"); found {
+				values[strings.TrimSpace(key)] = strings.TrimSpace(value)
+			}
+		}
+	}
+	return values
+}
+
+// seoSnippetDirectives flags caps that keep a page out of AI Overview and rich
+// snippet candidates. Omitted directives keep Google's defaults, so only
+// explicitly restrictive values fail; large is the only max-image-preview
+// value that allows full-width preview cards.
+func seoSnippetDirectives(l *checkList, s *PageSignals) {
+	values := robotsDirectiveValues(s)
+	var restrictive []string
+	for _, directive := range []string{"max-snippet", "max-video-preview"} {
+		if v, ok := values[directive]; ok && v != "-1" {
+			restrictive = append(restrictive, directive+":"+v)
+		}
+	}
+	if v, ok := values["max-image-preview"]; ok && v != "large" {
+		restrictive = append(restrictive, "max-image-preview:"+v)
+	}
+	if len(restrictive) == 0 {
+		l.add("meta_robots_snippet_directives", "Robots meta does not restrict snippets (optimal: max-snippet:-1, max-image-preview:large, max-video-preview:-1)", true)
+		return
+	}
+	l.add("meta_robots_snippet_directives", "Robots meta restricts snippets: "+strings.Join(restrictive, ", "), false)
 }
 
 func seoSingletons(l *checkList, s *PageSignals) {
