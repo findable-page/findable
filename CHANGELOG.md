@@ -8,6 +8,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - CLI audits now default to severity/evidence-weighted scoring; use `-score-model flat` to retain legacy scores and CI thresholds. The GitHub Action defaults its new `score-model` input to `flat` for existing gates.
 - Audit findings now carry severity, evidence tier, fix and evidence fields in reports. `bots` probes crawler access; config loading and runtime errors can exit with code 2 and 3 respectively.
 
+### Added
+- Three answer-extractability checks: `aeo_lead_direct_answer` (a 20-80 word direct-answer paragraph within the first 100 words after the H1), `geo_snippet_boilerplate_control` (long nav/header/footer text should sit under `data-nosnippet` div/span/section wrappers, the only elements Google honours), and `meta_robots_snippet_directives` (flags explicitly restrictive `max-snippet`, `max-image-preview` or `max-video-preview` robots meta values; omitted directives keep Google's defaults and pass).
 ### Fixed
 - `geo_intent_clarity` now compares the title with the primary `<h1>` instead of whichever heading appears first on the page, so pages whose navigation renders an `<h2>` before the main `<h1>` are no longer falsely flagged. When a page has no title or no `<h1>`, the check is reported as not applicable instead of failing.
 

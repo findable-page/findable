@@ -54,7 +54,50 @@ func aeoStructure(l *checkList, s *PageSignals) {
 	aeoPassageShape(l, s, blocks)
 	aeoNavigability(l, s, blocks)
 	aeoAnswerPhrasing(l, s, blocks)
+	aeoLeadDirectAnswer(l, blocks)
 	aeoMediaStructure(l, s)
+}
+
+const leadAnswerWindowWords = 100
+
+// aeoLeadDirectAnswer reports the inverted-pyramid signal: a 20-80 word
+// paragraph that directly answers or defines the topic, starting within the
+// first 100 words after the H1.
+func aeoLeadDirectAnswer(l *checkList, blocks []contentBlock) {
+	leadAt := -1
+	for i, b := range blocks {
+		if b.tag == "h1" {
+			leadAt = i
+			break
+		}
+	}
+	if leadAt == -1 {
+		l.skip("aeo_lead_direct_answer", "No H1 heading to anchor a lead answer")
+		return
+	}
+	paragraphs, wordsAfter := 0, 0
+	for _, b := range blocks[leadAt+1:] {
+		if wordsAfter >= leadAnswerWindowWords {
+			break
+		}
+		if b.tag == "p" {
+			paragraphs++
+			sentence := strings.ToLower(b.text)
+			if cut := strings.IndexAny(sentence, ".!?"); cut >= 0 {
+				sentence = sentence[:cut]
+			}
+			if b.words >= 20 && b.words <= 80 && definitionRegex.MatchString(sentence) {
+				l.add("aeo_lead_direct_answer", "Concise direct-answer paragraph within 100 words of the H1", true)
+				return
+			}
+		}
+		wordsAfter += b.words
+	}
+	if paragraphs == 0 {
+		l.skip("aeo_lead_direct_answer", "No paragraph after the H1 to check")
+		return
+	}
+	l.add("aeo_lead_direct_answer", "No 20-80 word direct-answer paragraph in the first 100 words after the H1", false)
 }
 
 func aeoQuestionAnswers(l *checkList, blocks []contentBlock) {
