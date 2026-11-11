@@ -100,5 +100,29 @@
   "geo_snippet_boilerplate_control": {
     "pass": [{}, {"body": "<nav><a href='/a'>Home</a> <a href='/b'>Docs</a></nav>"}, {"body": "<footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}, {"body": "<footer><section data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</section></footer>"}, {"body": "<header><nav><span data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</span></nav></header>"}],
     "fail": [{"body": "<footer>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer><div data-nosnippet>Short notice only.</div>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<nav>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</nav><footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}]
+  },
+  "geo_schema_knows_about": {
+    "pass": [
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Organization\", \"name\": \"Acme\", \"knowsAbout\": [\"Search Engine Optimization\", \"Artificial Intelligence\", \"Web Performance\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@context\": \"https://schema.org\", \"@graph\": [{\"@type\": \"WebSite\", \"name\": \"Acme\", \"knowsAbout\": [{\"@id\": \"https://www.wikidata.org/wiki/Q11173\", \"name\": \"Chemistry\"}, {\"name\": \"Biology\"}, \"Physics\"]}]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\": \"LocalBusiness\", \"name\": \"Crumb\", \"knowsAbout\": [\"Sourdough\", \"Viennoiserie\", \"Rye\"]}</script>"}
+],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Organization\", \"name\": \"Acme\"}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Organization\", \"name\": \"Acme\", \"knowsAbout\": [\"SEO\", \"Marketing\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Organization\", \"name\": \"Acme\", \"knowsAbout\": [\"SEO\", \"\", \"Marketing\", \" \"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\": \"WebSite\", \"name\": \"Acme\", \"knowsAbout\": \"SEO\"}</script>"}
+]
+  },
+  "geo_author_credential_depth": {
+    "pass": [
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": {\"@type\": \"Person\", \"name\": \"Jane\", \"jobTitle\": \"Principal Systems Engineer\", \"sameAs\": [\"https://www.linkedin.com/in/janedoe\"]}}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": \"Jane\"}</script><script type='application/ld+json'>{\"@type\": \"Person\", \"name\": \"Jane\", \"alumniOf\": \"MIT\"}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": {\"@type\": \"Person\", \"name\": \"Jane\", \"sameAs\": \"https://orcid.org/0000-0002-1825-0097\"}}</script>"}
+],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": {\"@type\": \"Person\", \"name\": \"John Doe\"}}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": [{\"@type\": \"Person\", \"name\": \"Jane\", \"jobTitle\": \"Engineer\"}, {\"@type\": \"Person\", \"name\": \"John Doe\"}]}</script>"}
+]
   }
 }

@@ -252,6 +252,8 @@ var registry = map[string]Meta{
 	"geo_quote_attribution":           {SeverityLow, TierHeuristic, "Attribute quotes to a named source.", ""},
 	"geo_source_diversity":            {SeverityInfo, TierHeuristic, "Cite several distinct domains.", ""},
 	"geo_authoritative_links":         {SeverityLow, TierHeuristic, "Link authoritative sources such as standards and research.", ""},
+	"geo_schema_knows_about":          {SeverityLow, TierDocumented, "Add a knowsAbout array with 3 or more core topics to your Organization or WebSite JSON-LD.", ""},
+	"geo_author_credential_depth":     {SeverityMedium, TierDocumented, "Give the article author's Person JSON-LD a jobTitle, alumniOf, hasCredential or professional profile sameAs.", ""},
 
 	// site-level (robots.txt, llms.txt)
 	"robots-txt":           {SeverityLow, TierDocumented, "Publish a robots.txt at the site root so crawlers can read your rules.", ""},
