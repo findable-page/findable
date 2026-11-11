@@ -103,6 +103,7 @@
   },
   "geo_schema_knows_about": {
     "pass": [
+      {},
       {"head": "<script type='application/ld+json'>{\"@type\": \"Organization\", \"name\": \"Acme\", \"knowsAbout\": [\"Search Engine Optimization\", \"Artificial Intelligence\", \"Web Performance\"]}</script>"},
       {"head": "<script type='application/ld+json'>{\"@context\": \"https://schema.org\", \"@graph\": [{\"@type\": \"WebSite\", \"name\": \"Acme\", \"knowsAbout\": [{\"@id\": \"https://www.wikidata.org/wiki/Q11173\", \"name\": \"Chemistry\"}, {\"name\": \"Biology\"}, \"Physics\"]}]}</script>"},
       {"head": "<script type='application/ld+json'>{\"@type\": \"LocalBusiness\", \"name\": \"Crumb\", \"knowsAbout\": [\"Sourdough\", \"Viennoiserie\", \"Rye\"]}</script>"}
@@ -116,6 +117,7 @@
   },
   "geo_author_credential_depth": {
     "pass": [
+      {},
       {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": {\"@type\": \"Person\", \"name\": \"Jane\", \"jobTitle\": \"Principal Systems Engineer\", \"sameAs\": [\"https://www.linkedin.com/in/janedoe\"]}}</script>"},
       {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": \"Jane\"}</script><script type='application/ld+json'>{\"@type\": \"Person\", \"name\": \"Jane\", \"alumniOf\": \"MIT\"}</script>"},
       {"head": "<script type='application/ld+json'>{\"@type\": \"Article\", \"headline\": \"T\", \"author\": {\"@type\": \"Person\", \"name\": \"Jane\", \"sameAs\": \"https://orcid.org/0000-0002-1825-0097\"}}</script>"}
