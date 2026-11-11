@@ -156,6 +156,8 @@
 "geo_modified_after_published":{"name":"Änderung nach Veröffentlichung","fix":"Korrigiere die Reihenfolge der Daten: Änderung nicht vor Veröffentlichung."},
 "geo_visible_date":{"name":"Sichtbares Datum","fix":"Zeige das Datum im Text, etwa \"Aktualisiert\" oder \"Veröffentlicht\"."},
 "geo_authoritative_links":{"name":"Verlinkung autoritativer Quellen","fix":"Zitiere Primärquellen, etwa .gov-, .edu- oder Referenzseiten."},
+"geo_schema_knows_about":{"name":"Thematische Tiefe im Schema","fix":"Füge knowsAbout mit mindestens drei Kernthemen zum Organization- oder WebSite-Schema hinzu."},
+"geo_author_credential_depth":{"name":"Autoren-Referenzen","fix":"Gib dem Person-Schema des Autors einen jobTitle, alumniOf, hasCredential oder einen Profil-sameAs wie LinkedIn."},
 "geo_source_diversity":{"name":"Vielfalt der Quellen","fix":"Zitiere mehr als eine Quelle, mindestens drei verschiedene Domains."},
 "geo_quote_attribution":{"name":"Zitate mit Quellenangabe","fix":"Füge cite oder ein cite-Element zu Zitaten hinzu."},
 "geo_policy_links":{"name":"Links zu Datenschutz und Bedingungen","fix":"Verlinke Datenschutzerklärung und Nutzungsbedingungen."},

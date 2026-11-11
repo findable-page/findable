@@ -14,14 +14,16 @@ var (
 )
 
 func geoSignals(l *checkList, s *PageSignals) {
-	article := isArticlePage(s)
+	doc := parseSchemaDoc(s)
+	article := isArticlePage(s, doc)
 	geoPublishingDates(l, s, article)
 	geoSourceQuality(l, s, article)
 	geoSiteTrust(l, s)
+	geoSchemaTopicalDepth(l, doc, article)
 }
 
-func isArticlePage(s *PageSignals) bool {
-	return len(parseSchemaDoc(s).ofType(articleTypes...)) > 0 || metaProperty(s, "article:published_time") != "" || articleContainsHeading(s)
+func isArticlePage(s *PageSignals, doc schemaDoc) bool {
+	return len(doc.ofType(articleTypes...)) > 0 || metaProperty(s, "article:published_time") != "" || articleContainsHeading(s)
 }
 
 func articleContainsHeading(s *PageSignals) bool {
@@ -151,4 +153,94 @@ func geoSiteTrust(l *checkList, s *PageSignals) {
 		policy = policy || strings.Contains(label, "privacy") || strings.Contains(label, "terms")
 	}
 	l.add("geo_policy_links", "Privacy or terms page linked", policy)
+}
+
+const knowsAboutMinTopics = 3
+
+var credentialProfileHosts = []string{
+	"linkedin.com", "orcid.org", "researchgate.net", "scholar.google.com", "crunchbase.com", "github.com",
+}
+
+// geoSchemaTopicalDepth covers the schema-topical-eeat-depth capability:
+// organizations that enumerate their topical competence in knowsAbout, and
+// article authors whose Person schema carries verifiable credentials.
+func geoSchemaTopicalDepth(l *checkList, doc schemaDoc, article bool) {
+	geoSchemaKnowsAbout(l, doc)
+	geoAuthorCredentialDepth(l, doc, article)
+}
+
+// geoSchemaKnowsAbout rewards Organization or WebSite nodes declaring at
+// least knowsAboutMinTopics topics. Entries may be plain strings or Thing
+// objects carrying a name or @id (schema.org allows both).
+func geoSchemaKnowsAbout(l *checkList, doc schemaDoc) {
+	nodes := append(doc.ofType(append(append([]string{}, orgTypes...), localTypes...)...), doc.ofType("website")...)
+	best := 0
+	for _, n := range nodes {
+		if count := knowsAboutCount(n); count > best {
+			best = count
+		}
+	}
+	skipUnless(l, len(nodes) > 0, "geo_schema_knows_about",
+		fmt.Sprintf("Organization or WebSite declares %d topical area(s) in knowsAbout (%d or more recommended)", best, knowsAboutMinTopics),
+		"No Organization or WebSite schema to validate",
+		best >= knowsAboutMinTopics)
+}
+
+func knowsAboutCount(n map[string]any) int {
+	count := 0
+	for _, item := range jsonItems(n["knowsAbout"]) {
+		if m, ok := item.(map[string]any); ok {
+			if jsonPresent(m["name"]) || jsonPresent(m["@id"]) {
+				count++
+			}
+			continue
+		}
+		if jsonPresent(item) {
+			count++
+		}
+	}
+	return count
+}
+
+// geoAuthorCredentialDepth verifies that the Person schema behind article
+// authors carries at least one verifiable qualification: jobTitle, alumniOf,
+// hasCredential, or a professional profile among the sameAs links.
+func geoAuthorCredentialDepth(l *checkList, doc schemaDoc, article bool) {
+	persons := authorPersons(doc)
+	skipUnless(l, article && len(persons) > 0, "geo_author_credential_depth",
+		"Author schema includes professional credentials (jobTitle, alumniOf, hasCredential, or profile sameAs)",
+		"No article author Person schema to validate",
+		allNodes(persons, personHasCredential))
+}
+
+// authorPersons returns root-level Person nodes plus Person author objects
+// nested inside Article nodes, which parseSchemaDoc does not collect on its
+// own.
+func authorPersons(doc schemaDoc) []map[string]any {
+	persons := doc.ofType("person")
+	for _, a := range doc.ofType(articleTypes...) {
+		for _, item := range jsonItems(a["author"]) {
+			if m, ok := item.(map[string]any); ok && containsString(nodeTypes(m), "person") {
+				persons = append(persons, m)
+			}
+		}
+	}
+	return persons
+}
+
+func personHasCredential(n map[string]any) bool {
+	for _, key := range []string{"jobTitle", "alumniOf", "hasCredential"} {
+		if jsonPresent(n[key]) {
+			return true
+		}
+	}
+	for _, link := range sameAsLinks(n["sameAs"]) {
+		lower := strings.ToLower(link)
+		for _, host := range credentialProfileHosts {
+			if strings.Contains(lower, host) {
+				return true
+			}
+		}
+	}
+	return false
 }
