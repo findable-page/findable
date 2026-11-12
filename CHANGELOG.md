@@ -10,6 +10,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 - Three answer-extractability checks: `aeo_lead_direct_answer` (a 20-80 word direct-answer paragraph within the first 100 words after the H1), `geo_snippet_boilerplate_control` (long nav/header/footer text should sit under `data-nosnippet` div/span/section wrappers, the only elements Google honours), and `meta_robots_snippet_directives` (flags explicitly restrictive `max-snippet`, `max-image-preview` or `max-video-preview` robots meta values; omitted directives keep Google's defaults and pass).
+- Two schema E-E-A-T checks: `geo_schema_knows_about` (Organization or WebSite JSON-LD declares a `knowsAbout` array with at least 3 distinct topics) and `geo_author_credential_depth` (every author Person in JSON-LD carries a `jobTitle`, `alumniOf`, `hasCredential` or academic/professional `sameAs` profile; `@id` author references resolve through `@graph`).
 ### Fixed
 - `geo_intent_clarity` now compares the title with the primary `<h1>` instead of whichever heading appears first on the page, so pages whose navigation renders an `<h2>` before the main `<h1>` are no longer falsely flagged. When a page has no title or no `<h1>`, the check is reported as not applicable instead of failing.
 

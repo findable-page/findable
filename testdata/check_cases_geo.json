@@ -100,5 +100,25 @@
   "geo_snippet_boilerplate_control": {
     "pass": [{}, {"body": "<nav><a href='/a'>Home</a> <a href='/b'>Docs</a></nav>"}, {"body": "<footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}, {"body": "<footer><section data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</section></footer>"}, {"body": "<header><nav><span data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</span></nav></header>"}],
     "fail": [{"body": "<footer>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer><div data-nosnippet>Short notice only.</div>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<nav>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</nav><footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}]
+  },
+  "geo_schema_knows_about": {
+    "pass": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"knowsAbout\":[\"SEO\",\"AEO\",\"GEO\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"WebSite\",\"knowsAbout\":[\"SEO\",\"AEO\",\"GEO\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@graph\":[{\"@type\":\"Organization\",\"knowsAbout\":[\"SEO\"]},{\"@type\":\"WebSite\",\"knowsAbout\":[\"AEO\",\"GEO\"]}]}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"knowsAbout\":[\"SEO\",\"AEO\"]}</script>"}
+    ]
+  },
+  "geo_author_credential_depth": {
+    "pass": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"author\":{\"@type\":\"Person\",\"name\":\"A\",\"jobTitle\":\"Editor\"}}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"author\":{\"@type\":\"Person\",\"name\":\"A\",\"sameAs\":[\"https://orcid.org/0000-0002-1825-0097\"]}}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@graph\":[{\"@type\":\"Article\",\"author\":{\"@id\":\"#a\"}},{\"@id\":\"#a\",\"@type\":\"Person\",\"name\":\"A\",\"hasCredential\":\"PhD\"}]}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"author\":{\"@type\":\"Person\",\"name\":\"A\"}}</script>"}
+    ]
   }
 }
