@@ -38,6 +38,98 @@ func geoAuthority(l *checkList, s *PageSignals) {
 	l.add("geo_author_credentials", "Visible author byline with credentials or dates", lowerContainsAny(s.TextContent, "by ") || s.AuthorInSchema != "")
 	l.add("geo_org_schema", "Organization or Business schema markup declared", hasOrg)
 	l.add("geo_knowledge_graph", fmt.Sprintf("%d authoritative sameAs links in schema", len(s.SameAsLinks)), len(s.SameAsLinks) > 0)
+	geoSchemaKnowsAbout(l, s)
+	geoAuthorCredentialDepth(l, s)
+}
+
+// credentialProfileHosts are sameAs targets that count as verifiable
+// academic or professional identities for author E-E-A-T.
+var credentialProfileHosts = []string{"linkedin.com", "orcid.org", "scholar.google.com", "researchgate.net", "semanticscholar.org", "academia.edu"}
+
+const knowsAboutMinTopics = 3
+
+// geoSchemaKnowsAbout checks topical depth: GEO studies report a citation
+// boost when Organization or WebSite schema enumerates its core topics.
+func geoSchemaKnowsAbout(l *checkList, s *PageSignals) {
+	doc := parseSchemaDoc(s)
+	nodes := doc.ofType(append(append([]string{}, orgTypes...), localTypes...)...)
+	nodes = append(nodes, doc.ofType("website")...)
+	best := 0
+	for _, node := range nodes {
+		best = max(best, countKnowsAboutTopics(node))
+	}
+	skipUnless(l, len(nodes) > 0, "geo_schema_knows_about",
+		fmt.Sprintf("knowsAbout lists %d topic(s) on Organization or WebSite schema (%d+ recommended)", best, knowsAboutMinTopics),
+		"No Organization or WebSite schema to validate", best >= knowsAboutMinTopics)
+}
+
+func countKnowsAboutTopics(node map[string]any) int {
+	count := 0
+	for _, item := range jsonItems(node["knowsAbout"]) {
+		if m, ok := item.(map[string]any); ok {
+			if jsonPresent(m["name"]) {
+				count++
+			}
+		} else if jsonPresent(item) {
+			count++
+		}
+	}
+	return count
+}
+
+// geoAuthorCredentialDepth checks author Person schema for verifiable
+// credentials: jobTitle, alumniOf, hasCredential or an academic/professional
+// profile in sameAs. ponytail: author entries referencing a separate Person
+// via @id are not resolved; @graph id resolution is issue #13.
+func geoAuthorCredentialDepth(l *checkList, s *PageSignals) {
+	doc := parseSchemaDoc(s)
+	authors := doc.ofType("person")
+	for _, article := range doc.ofType(articleTypes...) {
+		for _, a := range jsonItems(article["author"]) {
+			if m, ok := a.(map[string]any); ok {
+				authors = append(authors, m)
+			}
+		}
+	}
+	credentialed := 0
+	for _, a := range authors {
+		if authorHasCredential(a) {
+			credentialed++
+		}
+	}
+	skipUnless(l, len(authors) > 0, "geo_author_credential_depth",
+		fmt.Sprintf("%d of %d author Person schema(s) list credentials (jobTitle, alumniOf, hasCredential or a professional sameAs)", credentialed, len(authors)),
+		"No author Person schema to validate", credentialed > 0)
+}
+
+func authorHasCredential(node map[string]any) bool {
+	for _, key := range []string{"jobTitle", "alumniOf", "hasCredential"} {
+		if jsonPresent(node[key]) {
+			return true
+		}
+	}
+	for _, link := range sameAsLinks(node["sameAs"]) {
+		host := hostOfLink(link)
+		for _, domain := range credentialProfileHosts {
+			if host == domain || strings.HasSuffix(host, "."+domain) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// hostOfLink extracts the lowercase host of a sameAs URL; ponytail: no
+// userinfo or port parsing, only what real sameAs links need.
+func hostOfLink(link string) string {
+	trimmed := strings.TrimPrefix(strings.TrimPrefix(strings.ToLower(strings.TrimSpace(link)), "https://"), "http://")
+	if slash := strings.Index(trimmed, "/"); slash >= 0 {
+		trimmed = trimmed[:slash]
+	}
+	if colon := strings.Index(trimmed, ":"); colon >= 0 {
+		trimmed = trimmed[:colon]
+	}
+	return strings.TrimPrefix(trimmed, "www.")
 }
 
 func geoTrust(l *checkList, s *PageSignals) {
