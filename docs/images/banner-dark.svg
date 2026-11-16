@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360" role="img" aria-label="findable: is your site findable by Google and by AI answer engines?">
+  <title>findable</title>
+  <desc>is your site findable by Google and by AI answer engines?</desc>
+  <rect width="1280" height="360" fill="#0f1115"/>
+  <circle cx="1120" cy="-20" r="280" fill="#6d5efc" fill-opacity="0.28"/>
+  <circle cx="1240" cy="200" r="200" fill="#ffb020" fill-opacity="0.22"/>
+  <g transform="translate(72,86)">
+    <g transform="scale(1.15)">
+  <circle cx="26" cy="26" r="17" fill="none" stroke="#6d5efc" stroke-width="8"/>
+  <path d="M39 39L56 56" stroke="#6d5efc" stroke-width="9" stroke-linecap="round"/>
+  <path d="M26 15C27 22 30 25 37 26C30 27 27 30 26 37C25 30 22 27 15 26C22 25 25 22 26 15Z" fill="#ffb020"/>
+</g>
+    <text x="86" y="48" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="750" font-size="52" letter-spacing="-1.4" fill="#f4f5f7">findable</text>
+  </g>
+  <text x="72" y="200" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="700" font-size="34" letter-spacing="-0.6" fill="#d0d3db">Is your site findable by Google and by</text>
+  <text x="72" y="244" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="700" font-size="34" letter-spacing="-0.6" fill="#d0d3db">AI answer engines?</text>
+  <rect x="72" y="280" width="1136" height="1" fill="#242730"/>
+  <g font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="700" font-size="16">
+    <g transform="translate(72,304)">
+      <rect width="72" height="32" rx="16" fill="#181a20" stroke="#2a2d36"/>
+      <text x="36" y="21" text-anchor="middle" fill="#3dd68c">SEO</text>
+    </g>
+    <g transform="translate(154,304)">
+      <rect width="72" height="32" rx="16" fill="#181a20" stroke="#2a2d36"/>
+      <text x="36" y="21" text-anchor="middle" fill="#9b90ff">AEO</text>
+    </g>
+    <g transform="translate(236,304)">
+      <rect width="72" height="32" rx="16" fill="#181a20" stroke="#2a2d36"/>
+      <text x="36" y="21" text-anchor="middle" fill="#ff8a4a">GEO</text>
+    </g>
+    <text x="332" y="325" font-weight="600" font-size="15" fill="#9aa0ad">CLI · MCP · GitHub Action · API</text>
+    <g transform="translate(1034,304)">
+      <rect width="174" height="32" rx="10" fill="#6d5efc"/>
+      <text x="87" y="21" text-anchor="middle" fill="#ffffff" font-size="15">findable.page</text>
+    </g>
+  </g>
+</svg>
