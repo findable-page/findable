@@ -10,11 +10,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 - Three answer-extractability checks: `aeo_lead_direct_answer` (a 20-80 word direct-answer paragraph within the first 100 words after the H1), `geo_snippet_boilerplate_control` (long nav/header/footer text should sit under `data-nosnippet` div/span/section wrappers, the only elements Google honours), and `meta_robots_snippet_directives` (flags explicitly restrictive `max-snippet`, `max-image-preview` or `max-video-preview` robots meta values; omitted directives keep Google's defaults and pass).
-### Fixed
-- `geo_intent_clarity` now compares the title with the primary `<h1>` instead of whichever heading appears first on the page, so pages whose navigation renders an `<h2>` before the main `<h1>` are no longer falsely flagged. When a page has no title or no `<h1>`, the check is reported as not applicable instead of failing.
-
-### Added
+- Princeton GEO evidentiary density checks: `geo_statistics_density` now measures density (at least one quantitative data point per 300 words) instead of a flat count of 3, and new `geo_assertion_evidence_pairing` flags content sections (h2/h3 blocks over 100 words) that carry no figure, date, or citation/external link. Sample sizes (`n=123`) now count as quantitative evidence.
 - Site checks now distinguish AI search retrieval crawlers (`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, `Googlebot`) from AI model training crawlers (`GPTBot`, `ClaudeBot`, `Google-Extended`, `Applebot-Extended`, `meta-externalagent`), with labels explaining that blocking training bots does not affect AI search citations and that `Google-Extended` governs Gemini training, not AI Overviews.
+
+### Fixed
+- Percentages like `9%.` never matched the quantitative-statistics pattern because a word boundary after `%` can never hold; percentages are now a dedicated alternative, so they count toward `geo_statistics_density` and section evidence.
+- `geo_intent_clarity` now compares the title with the primary `<h1>` instead of whichever heading appears first on the page, so pages whose navigation renders an `<h2>` before the main `<h1>` are no longer falsely flagged. When a page has no title or no `<h1>`, the check is reported as not applicable instead of failing.
 
 ## [0.3.0] - 2026-10-15
 
