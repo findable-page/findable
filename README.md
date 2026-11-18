@@ -47,7 +47,7 @@ One overall score from 0 to 100, built from three families. The default model is
 | Family | Weight | Page checks | What it measures |
 |---|---|---|---|
 | SEO | 50% | 100 | Title and meta tags, headings, canonical, Open Graph and Twitter cards, mobile, HTTPS and security headers, accessibility landmarks |
-| AEO (answer engine optimization) | 25% | 36 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
+| AEO (answer engine optimization) | 25% | 38 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
 | GEO (generative engine optimization) | 25% | 28 | Author and organization markup, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
 
 The Go engine runs 164 page checks. Four more SEO checks run when you pass a focus keyphrase with `-k`. The hosted API at [findable.page](https://findable.page) is a separate TypeScript engine. Seventeen site checks are opt-in (`-site`) and unscored. Every failing check names what to fix. `llms.txt` is optional hygiene, not a documented ranking signal.

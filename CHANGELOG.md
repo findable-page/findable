@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Audit findings now carry severity, evidence tier, fix and evidence fields in reports. `bots` probes crawler access; config loading and runtime errors can exit with code 2 and 3 respectively.
 
 ### Added
+- Two RAG chunk integrity checks: `aeo_chunk_token_budget` (h2-h4 sections over ~500 tokens, about 375 words, without a subheading get split mid-passage by AI retrieval chunkers; token counts use the words x 1.33 approximation) and `aeo_heading_semantic_specificity` (generic h2/h3 labels like Overview, Details, mehr Infos or Section 2 weaken metadata-assisted vector retrieval).
 - Three answer-extractability checks: `aeo_lead_direct_answer` (a 20-80 word direct-answer paragraph within the first 100 words after the H1), `geo_snippet_boilerplate_control` (long nav/header/footer text should sit under `data-nosnippet` div/span/section wrappers, the only elements Google honours), and `meta_robots_snippet_directives` (flags explicitly restrictive `max-snippet`, `max-image-preview` or `max-video-preview` robots meta values; omitted directives keep Google's defaults and pass).
 ### Fixed
 - `geo_intent_clarity` now compares the title with the primary `<h1>` instead of whichever heading appears first on the page, so pages whose navigation renders an `<h2>` before the main `<h1>` are no longer falsely flagged. When a page has no title or no `<h1>`, the check is reported as not applicable instead of failing.
