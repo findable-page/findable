@@ -54,6 +54,29 @@
     "pass": [{}, {"body": "<p>w w w w w w w w w w</p>", "repeat": 35}, {"body": "<h2>A</h2><p>w w w w w w w w w w</p><h2>B</h2><p>w w w w w w w w w w</p>", "repeat": 20}],
     "fail": [{"body": "<p>w w w w w w w w w w</p>", "repeat": 36}]
   },
+  "aeo_chunk_token_budget": {
+    "pass": [
+      {},
+      {"body": "<h2>A</h2><p>w w w w w w w w w w</p><h3>Sub</h3><p>w w w w w w w w w w</p>", "repeat": 18},
+      {"head": "<h2>Big</h2>", "body": "<p>w w w w w w w w w w</p>", "repeat": 37}
+    ],
+    "fail": [
+      {"head": "<h2>Big</h2>", "body": "<p>w w w w w w w w w w</p>", "repeat": 38, "evidence": ["h2"]}
+    ]
+  },
+  "aeo_heading_semantic_specificity": {
+    "pass": [
+      {},
+      {"body": "<h2>How caching cuts latency</h2><p>x</p>"},
+      {"body": "<h3>Überblick der Preise</h3><p>x</p>"}
+    ],
+    "fail": [
+      {"body": "<h2>Overview</h2><p>x</p>", "evidence": ["h2"]},
+      {"body": "<h3>Details</h3><p>x</p>"},
+      {"body": "<h2>Section 3</h2><p>x</p>"},
+      {"body": "<h2>mehr Infos</h2><p>x</p>"}
+    ]
+  },
   "aeo_unique_headings": {
     "pass": [{}, {"body": "<h2>One</h2><h2>Two</h2>"}],
     "fail": [{"body": "<h2>Intro</h2><h2>intro</h2>"}]
