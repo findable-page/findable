@@ -59,7 +59,7 @@ func firstHref(tags []TagInfo) string {
 }
 
 func pagePathKey(u *url.URL) string {
-	return strings.ToLower(u.Host) + strings.TrimSuffix(u.Path, "/")
+	return strings.ToLower(u.Scheme) + "://" + strings.ToLower(u.Host) + strings.TrimSuffix(u.Path, "/")
 }
 
 func seoCanonicalQuality(l *checkList, s *PageSignals) {
