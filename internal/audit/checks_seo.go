@@ -62,7 +62,7 @@ func seoDescription(l *checkList, s *PageSignals) {
 
 func seoTechnicalMeta(l *checkList, s *PageSignals) {
 	l.add("viewport", "Viewport meta tag found (mobile-friendly)", s.Viewport != "")
-	l.add("charset", "UTF-8 charset declared", lowerContainsAny(s.Charset, "utf-8") || lowerContainsAny(s.RawHTML, "utf-8"))
+	l.add("charset", "UTF-8 charset declared", utf8Declared(s))
 	l.add("lang_attr", "Language attribute set on HTML tag", s.Lang != "")
 	l.add("html_doctype", "<!DOCTYPE html> declared", s.HTMLDoctype)
 	l.add("meta_refresh", "No meta refresh redirect (good)", s.MetaRefresh == "")
@@ -74,6 +74,22 @@ func seoTechnicalMeta(l *checkList, s *PageSignals) {
 		xTag := strings.Join(xTagHeaders, ", ")
 		l.addEv("x_robots_tag_noindex", "X-Robots-Tag header does not noindex this page", !ParseXRobotsTag(xTagHeaders).NoIndexFor(pageCrawler), evidence("X-Robots-Tag", xTag))
 	}
+}
+
+// utf8Declared reports a UTF-8 declaration from any HTML-spec source:
+// <meta charset>, <meta http-equiv="content-type"> or the Content-Type
+// response header. Matching the raw HTML instead would false-pass on pages
+// that only mention the string in scripts or copy.
+func utf8Declared(s *PageSignals) bool {
+	if lowerContainsAny(s.Charset, "utf-8", "utf8") || lowerContainsAny(s.Headers.Get("Content-Type"), "charset=utf-8", "charset=utf8") {
+		return true
+	}
+	for _, m := range s.Tags["meta"] {
+		if strings.EqualFold(strings.TrimSpace(m.Attrs["http-equiv"]), "content-type") && lowerContainsAny(m.Attrs["content"], "charset=utf-8", "charset=utf8") {
+			return true
+		}
+	}
+	return false
 }
 
 func seoHeadings(l *checkList, s *PageSignals) {
