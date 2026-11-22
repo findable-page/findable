@@ -2,6 +2,7 @@ package audit
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -11,6 +12,7 @@ func evalGEO(s *PageSignals) []Check {
 		geoCitations,
 		geoAuthority,
 		geoTrust,
+		geoSchemaEeat,
 		geoFreshness,
 		geoIntent,
 		geoSignals,
@@ -38,6 +40,71 @@ func geoAuthority(l *checkList, s *PageSignals) {
 	l.add("geo_author_credentials", "Visible author byline with credentials or dates", lowerContainsAny(s.TextContent, "by ") || s.AuthorInSchema != "")
 	l.add("geo_org_schema", "Organization or Business schema markup declared", hasOrg)
 	l.add("geo_knowledge_graph", fmt.Sprintf("%d authoritative sameAs links in schema", len(s.SameAsLinks)), len(s.SameAsLinks) > 0)
+}
+
+func geoSchemaEeat(l *checkList, s *PageSignals) {
+	doc := parseSchemaDoc(s)
+	topicHolders := doc.ofType(append(append([]string{}, orgTypes...), localTypes...)...)
+	topicHolders = append(topicHolders, doc.ofType("website")...)
+	// Any-holder and any-author semantics on purpose: the GEO family tests
+	// that a signal exists somewhere (like geo_author_schema), unlike SEO's
+	// allNodes schema checks.
+	best := 0
+	for _, n := range topicHolders {
+		if c := countTopics(n["knowsAbout"]); c > best {
+			best = c
+		}
+	}
+	skipUnless(l, len(topicHolders) > 0, "geo_schema_knows_about", fmt.Sprintf("Organization, LocalBusiness or WebSite schema lists %d knowsAbout topic(s), 3+ recommended", best), "No Organization or WebSite schema to validate", best >= 3)
+
+	credentialed, total := 0, 0
+	articles := doc.ofType(articleTypes...)
+	for _, article := range articles {
+		for _, a := range jsonItems(article["author"]) {
+			m, ok := a.(map[string]any)
+			if !ok {
+				continue
+			}
+			total++
+			if authorHasCredential(m) {
+				credentialed++
+			}
+		}
+	}
+	skipUnless(l, len(articles) > 0, "geo_author_credential_depth", fmt.Sprintf("%d of %d article author(s) carry credentials (jobTitle, alumniOf, hasCredential or professional sameAs)", credentialed, total), "No Article schema to validate", total > 0 && credentialed > 0)
+}
+
+func countTopics(v any) int {
+	count := 0
+	for _, item := range jsonItems(v) {
+		if s, ok := item.(string); ok && strings.TrimSpace(s) != "" {
+			count++
+		}
+	}
+	return count
+}
+
+var credentialSameAsDomains = []string{"linkedin.com", "orcid.org", "researchgate.net", "scholar.google.com", "academia.edu"}
+
+func authorHasCredential(n map[string]any) bool {
+	for _, key := range []string{"jobTitle", "alumniOf", "hasCredential"} {
+		if jsonPresent(n[key]) {
+			return true
+		}
+	}
+	for _, link := range sameAsLinks(n["sameAs"]) {
+		u, err := url.Parse(link)
+		if err != nil {
+			continue
+		}
+		host := strings.ToLower(u.Hostname())
+		for _, domain := range credentialSameAsDomains {
+			if host == domain || strings.HasSuffix(host, "."+domain) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func geoTrust(l *checkList, s *PageSignals) {
