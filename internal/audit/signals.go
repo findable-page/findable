@@ -154,8 +154,14 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 			sig.DOMSize++
 			countDuplicateIDs(&sig, n, seenIDs)
 			recordTag(&sig, n, inHead(sel), sel)
-			if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
-				collect(&sig, n)
+			// Collectors extract HTML semantics (page title, headings, links…);
+			// SVG/MathML elements that share a name (<svg><title>, svg <style>,
+			// SVG2 <a>) would otherwise overwrite them — e.g. an inline icon's
+			// <title> replacing the page title.
+			if n.Namespace == "" {
+				if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
+					collect(&sig, n)
+				}
 			}
 		}
 		var counts map[string]int

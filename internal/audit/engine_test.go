@@ -17,6 +17,25 @@ func findCheck(checks []Check, id string) *Check {
 	return nil
 }
 
+// An inline SVG icon's <title> is an accessibility label for the graphic,
+// not the page title; it must not overwrite the real <title> signal (which
+// feeds title_exists, title_length, keyphrase_in_title and geo_intent_clarity).
+func TestSVGTitleDoesNotOverwritePageTitle(t *testing.T) {
+	page := `<!DOCTYPE html><html lang="en"><head><title>Real Page Title</title></head>` +
+		`<body><h1>Hello</h1><svg><title>icon</title><circle r="5"/></svg><p>Body copy.</p></body></html>`
+	sig := extractSignals("https://example.com/", page, make(http.Header), 200)
+	if sig.Title != "Real Page Title" {
+		t.Errorf("svg <title> overwrote page title: got %q", sig.Title)
+	}
+	scan := Analyze("https://example.com/", page, "", make(http.Header), 200)
+	if c := findCheck(scan.SEO.Checks, "title_exists"); c == nil || !strings.Contains(c.Label, "Real Page Title") {
+		t.Errorf("title_exists should report the head title, got %+v", c)
+	}
+	if c := findCheck(scan.SEO.Checks, "title_single"); c == nil || !c.Pass {
+		t.Errorf("title_single should ignore the svg title, got %+v", c)
+	}
+}
+
 func TestSignalsEmptyAndMalformedHTML(t *testing.T) {
 	// Empty HTML
 	sig := extractSignals("https://example.com", "", make(http.Header), 200)
