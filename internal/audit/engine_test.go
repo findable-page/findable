@@ -312,6 +312,40 @@ func TestGEOKnowledgeGraphAndTrustSignals(t *testing.T) {
 	}
 }
 
+func TestGEOEntityAuthoritativeSameAs(t *testing.T) {
+	schema := func(sameAs string) string {
+		return "<!DOCTYPE html><html><head><script type='application/ld+json'>" +
+			"{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Global Tech\",\"sameAs\":" + sameAs + "}" +
+			"</script></head><body><p>Body</p></body></html>"
+	}
+
+	wiki := Analyze("https://example.com", schema(`["https://www.wikidata.org/wiki/Q12345", "https://example.com/about"]`), "", make(http.Header), 200)
+	if c := findCheck(wiki.GEO.Checks, "geo_entity_authoritative_sameas"); !c.Pass {
+		t.Errorf("wikidata sameAs should pass, got label=%q", c.Label)
+	}
+
+	ownOnly := Analyze("https://example.com", schema(`["https://example.com/about", "https://facebook.com/tech"]`), "", make(http.Header), 200)
+	c := findCheck(ownOnly.GEO.Checks, "geo_entity_authoritative_sameas")
+	if c.Pass {
+		t.Error("sameAs without an authoritative registry should fail")
+	}
+	if len(c.Evidence) == 0 || c.Evidence[0].Selector != "sameAs" {
+		t.Errorf("expected evidence on non-authoritative sameAs links, got %+v", c.Evidence)
+	}
+
+	// Lookalike hosts must not count.
+	lookalike := Analyze("https://example.com", schema(`["https://en.wikipedia.org.example.com/SEO"]`), "", make(http.Header), 200)
+	if c := findCheck(lookalike.GEO.Checks, "geo_entity_authoritative_sameas"); c.Pass {
+		t.Error("wikipedia.org.example.com is not a wikipedia host and should fail")
+	}
+
+	none := Analyze("https://example.com", schema(`[]`), "", make(http.Header), 200)
+	c = findCheck(none.GEO.Checks, "geo_entity_authoritative_sameas")
+	if c.Applicable == nil || *c.Applicable {
+		t.Error("no sameAs links should make geo_entity_authoritative_sameas not applicable")
+	}
+}
+
 func TestGEOIntentClarityComparesTitleWithH1(t *testing.T) {
 	// A nav h2 appears before the h1; the check must compare the title with
 	// the h1, not with the first heading on the page.

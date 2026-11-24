@@ -236,6 +236,7 @@ var registry = map[string]Meta{
 	"geo_author_credentials":          {SeverityLow, TierHeuristic, "Show author bylines with credentials.", ""},
 	"geo_org_schema":                  {SeverityMedium, TierHeuristic, "Declare Organization JSON-LD with a consistent identity.", ""},
 	"geo_knowledge_graph":             {SeverityLow, TierHeuristic, "Add sameAs links to authoritative profiles (Wikipedia, LinkedIn).", ""},
+	"geo_entity_authoritative_sameas": {SeverityLow, TierHeuristic, "Add sameAs links to authoritative entity registries (wikidata.org, wikipedia.org, crunchbase.com) so answer engines can resolve the entity.", ""},
 	"geo_trust":                       {SeverityLow, TierHeuristic, "Link About and Contact pages.", ""},
 	"geo_policy_links":                {SeverityLow, TierHeuristic, "Link privacy and terms pages from the footer.", ""},
 	"geo_entity_markup":               {SeverityLow, TierHeuristic, "Declare more than one schema.org entity type on the page.", ""},

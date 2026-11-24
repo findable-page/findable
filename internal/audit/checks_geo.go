@@ -2,6 +2,7 @@ package audit
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -37,7 +38,53 @@ func geoAuthority(l *checkList, s *PageSignals) {
 	l.add("geo_author_schema", "Author schema markup found", hasPerson || s.AuthorInSchema != "")
 	l.add("geo_author_credentials", "Visible author byline with credentials or dates", lowerContainsAny(s.TextContent, "by ") || s.AuthorInSchema != "")
 	l.add("geo_org_schema", "Organization or Business schema markup declared", hasOrg)
-	l.add("geo_knowledge_graph", fmt.Sprintf("%d authoritative sameAs links in schema", len(s.SameAsLinks)), len(s.SameAsLinks) > 0)
+	l.add("geo_knowledge_graph", fmt.Sprintf("%d sameAs entity links in schema", len(s.SameAsLinks)), len(s.SameAsLinks) > 0)
+	geoEntityAuthoritativeSameAs(l, s)
+}
+
+// authoritativeEntityDomains are the entity registries answer engines use to
+// resolve entities: a sameAs link to one of them anchors the Organization or
+// Person node in the knowledge graph.
+var authoritativeEntityDomains = []string{"wikidata.org", "wikipedia.org", "crunchbase.com"}
+
+// geoEntityAuthoritativeSameAs verifies that schema sameAs links point to
+// authoritative entity repositories rather than only to the site's own pages
+// or social profiles. Skipped when no sameAs links exist at all because
+// geo_knowledge_graph already covers that case.
+func geoEntityAuthoritativeSameAs(l *checkList, s *PageSignals) {
+	if len(s.SameAsLinks) == 0 {
+		l.skip("geo_entity_authoritative_sameas", "No sameAs links in schema to evaluate")
+		return
+	}
+	count := 0
+	var ev []Evidence
+	for _, link := range s.SameAsLinks {
+		if isAuthoritativeEntityURL(link) {
+			count++
+		} else if len(ev) < maxEvidence {
+			ev = append(ev, evidence("sameAs", link))
+		}
+	}
+	l.addEv("geo_entity_authoritative_sameas",
+		fmt.Sprintf("%d of %d sameAs links point to authoritative entity registries (Wikidata, Wikipedia, Crunchbase)", count, len(s.SameAsLinks)),
+		count > 0, ev...)
+}
+
+// isAuthoritativeEntityURL reports whether the URL's host is one of the
+// authoritative entity registry domains or a subdomain of one (language
+// wikis like en.wikipedia.org included).
+func isAuthoritativeEntityURL(link string) bool {
+	u, err := url.Parse(link)
+	if err != nil {
+		return false
+	}
+	host := strings.ToLower(u.Hostname())
+	for _, domain := range authoritativeEntityDomains {
+		if host == domain || strings.HasSuffix(host, "."+domain) {
+			return true
+		}
+	}
+	return false
 }
 
 func geoTrust(l *checkList, s *PageSignals) {

@@ -100,5 +100,17 @@
   "geo_snippet_boilerplate_control": {
     "pass": [{}, {"body": "<nav><a href='/a'>Home</a> <a href='/b'>Docs</a></nav>"}, {"body": "<footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}, {"body": "<footer><section data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</section></footer>"}, {"body": "<header><nav><span data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</span></nav></header>"}],
     "fail": [{"body": "<footer>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer><div data-nosnippet>Short notice only.</div>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<nav>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</nav><footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}]
+  },
+  "geo_entity_authoritative_sameas": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://www.wikidata.org/wiki/Q42\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Person\",\"sameAs\":[\"https://en.wikipedia.org/wiki/Ada_Lovelace\",\"https://example.com/me\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":\"https://www.crunchbase.com/organization/global-tech\"}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://example.com/about\",\"https://linkedin.com/company/global-tech\"]}</script>", "evidence": ["sameAs"]},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://wikipedia.org.example.com/wiki/SEO\"]}</script>"}
+    ]
   }
 }
