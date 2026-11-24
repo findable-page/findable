@@ -317,7 +317,12 @@ func collectMeta(sig *PageSignals, n *html.Node) {
 	case "viewport":
 		sig.Viewport = content
 	case robotsMetaName:
-		sig.RobotsMeta = content
+		// Crawlers combine every robots meta tag, so keep them all: a
+		// noindex in an earlier tag must not be hidden by a later one.
+		if sig.RobotsMeta != "" && content != "" {
+			sig.RobotsMeta += ", "
+		}
+		sig.RobotsMeta += content
 	case "theme-color":
 		sig.ThemeColor = content
 	}
