@@ -31,6 +31,11 @@ func botsCmd(args []string) {
 		fmt.Fprintln(os.Stderr, "findable: bots requires an http(s) URL")
 		os.Exit(exitUsage)
 	}
+	*format = strings.ToLower(*format)
+	if *format != "text" && *format != "json" {
+		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n", *format)
+		os.Exit(exitUsage)
+	}
 	var names []string
 	if *bots != "" {
 		names = strings.Split(*bots, ",")
@@ -43,14 +48,10 @@ func botsCmd(args []string) {
 	if err != nil {
 		failRuntime("%v", err)
 	}
-	switch strings.ToLower(*format) {
-	case "text":
-		printBotVerdicts(verdicts)
-	case "json":
+	if *format == "json" {
 		fmt.Println(report.EncodeJSON(verdicts))
-	default:
-		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n", *format)
-		os.Exit(exitUsage)
+	} else {
+		printBotVerdicts(verdicts)
 	}
 	for _, v := range verdicts {
 		if v.Verdict == fetch.VerdictError {
