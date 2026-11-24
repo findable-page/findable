@@ -99,7 +99,7 @@ func seoLinkQuality(l *checkList, s *PageSignals) {
 		if strings.HasPrefix(strings.ToLower(href), "javascript:") {
 			javascript++
 		}
-		if target := resolveNavigable(s, href); target != nil && target.Host == s.URL.Host && lowerContainsAny(a.Attrs["rel"], "nofollow") {
+		if target := resolveNavigable(s, href); target != nil && sameHost(target, s.URL) && lowerContainsAny(a.Attrs["rel"], "nofollow") {
 			nofollowInternal++
 		}
 		text := strings.ToLower(strings.Join(strings.Fields(a.Text), " "))
@@ -190,7 +190,7 @@ func hasResourceHints(s *PageSignals, stylesheets []TagInfo) bool {
 		resources = append(resources, t.Attrs["href"])
 	}
 	for _, ref := range resources {
-		if target := resolveNavigable(s, ref); target != nil && target.Host != s.URL.Host {
+		if target := resolveNavigable(s, ref); target != nil && !sameHost(target, s.URL) {
 			return false
 		}
 	}
