@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Audit findings now carry severity, evidence tier, fix and evidence fields in reports. `bots` probes crawler access; config loading and runtime errors can exit with code 2 and 3 respectively.
 
 ### Added
+- Site check `llms-txt-spec`: when `/llms.txt` is present, its Markdown structure is validated against the llmstxt.org v2 format (single H1 title first, blockquote summary immediately after it, H2 sections whose lists are `- [Title](url)` links with absolute http(s) URLs); failures report the offending line. Not applicable when the file is missing. Link reachability checks are out of scope.
 - Three answer-extractability checks: `aeo_lead_direct_answer` (a 20-80 word direct-answer paragraph within the first 100 words after the H1), `geo_snippet_boilerplate_control` (long nav/header/footer text should sit under `data-nosnippet` div/span/section wrappers, the only elements Google honours), and `meta_robots_snippet_directives` (flags explicitly restrictive `max-snippet`, `max-image-preview` or `max-video-preview` robots meta values; omitted directives keep Google's defaults and pass).
 ### Fixed
 - `link_noopener` now matches whole `rel` tokens; values such as `notnoopener` no longer hide unsafe `_blank` links.
