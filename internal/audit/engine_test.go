@@ -17,6 +17,25 @@ func findCheck(checks []Check, id string) *Check {
 	return nil
 }
 
+// An inline SVG icon's <title> is an accessibility label for the graphic,
+// not the page title; it must not overwrite the real <title> signal (which
+// feeds title_exists, title_length, keyphrase_in_title and geo_intent_clarity).
+func TestSVGTitleDoesNotOverwritePageTitle(t *testing.T) {
+	page := `<!DOCTYPE html><html lang="en"><head><title>Real Page Title</title></head>` +
+		`<body><h1>Hello</h1><svg><title>icon</title><circle r="5"/></svg><p>Body copy.</p></body></html>`
+	sig := extractSignals("https://example.com/", page, make(http.Header), 200)
+	if sig.Title != "Real Page Title" {
+		t.Errorf("svg <title> overwrote page title: got %q", sig.Title)
+	}
+	scan := Analyze("https://example.com/", page, "", make(http.Header), 200)
+	if c := findCheck(scan.SEO.Checks, "title_exists"); c == nil || !strings.Contains(c.Label, "Real Page Title") {
+		t.Errorf("title_exists should report the head title, got %+v", c)
+	}
+	if c := findCheck(scan.SEO.Checks, "title_single"); c == nil || !c.Pass {
+		t.Errorf("title_single should ignore the svg title, got %+v", c)
+	}
+}
+
 func TestSignalsEmptyAndMalformedHTML(t *testing.T) {
 	// Empty HTML
 	sig := extractSignals("https://example.com", "", make(http.Header), 200)
@@ -39,6 +58,72 @@ func TestSignalsEmptyAndMalformedHTML(t *testing.T) {
 	sig3 := extractSignals("https://example.com", unicodeHTML, make(http.Header), 200)
 	if !strings.Contains(sig3.Title, "🚀") {
 		t.Errorf("expected emoji to be preserved in title, got: %q", sig3.Title)
+	}
+}
+
+func TestCharsetDeclared(t *testing.T) {
+	cases := []struct {
+		name   string
+		head   string
+		body   string
+		header http.Header
+		want   bool
+	}{
+		{
+			name: "meta charset",
+			head: `<meta charset="utf-8">`,
+			want: true,
+		},
+		{
+			name: "http-equiv content-type",
+			head: `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">`,
+			want: true,
+		},
+		{
+			name:   "content-type response header only",
+			head:   "",
+			header: http.Header{"Content-Type": []string{"text/html; charset=utf-8"}},
+			want:   true,
+		},
+		{
+			name: "utf-8 mentioned in body text only",
+			head: "",
+			body: `<p>We encode everything in utf-8 here.</p>`,
+			want: false,
+		},
+		{
+			name: "quoted http-equiv charset",
+			head: `<meta http-equiv="Content-Type" content='text/html; charset="UTF-8"'>`,
+			want: true,
+		},
+		{
+			name:   "spaced content-type response header",
+			header: http.Header{"Content-Type": []string{"text/html; charset = utf-8"}},
+			want:   true,
+		},
+		{
+			name: "no declaration",
+			head: "",
+			body: `<p>Hello world</p>`,
+			want: false,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			hdr := tc.header
+			if hdr == nil {
+				hdr = make(http.Header)
+			}
+			page := "<!DOCTYPE html><html lang='en'><head><title>t</title>" + tc.head + "</head><body>" + tc.body + "</body></html>"
+			scan := Analyze("https://example.com/page", page, "", hdr, 200)
+			c := findCheck(scan.SEO.Checks, "charset")
+			if c == nil {
+				t.Fatal("charset check missing")
+			}
+			if c.Pass != tc.want {
+				t.Errorf("charset pass = %v, want %v (label %q)", c.Pass, tc.want, c.Label)
+			}
+		})
 	}
 }
 
@@ -98,6 +183,32 @@ func TestSEOMetaDescBoundaries(t *testing.T) {
 	}
 }
 
+func TestSEOTextLengthsCountCharactersNotBytes(t *testing.T) {
+	// Non-ASCII text multiplies byte length: these titles/descriptions/alts are
+	// optimal in characters but exceed the limits when counted in bytes.
+	titleHTML := fmt.Sprintf(
+		"<!DOCTYPE html><html><head><title>%s</title><meta name='description' content='%s'></head></html>",
+		strings.Repeat("ビ", 40),  // 40 chars, 120 bytes
+		strings.Repeat("é", 130), // 130 chars, 260 bytes
+	)
+	res := Analyze("https://example.com", titleHTML, "", make(http.Header), 200)
+	if c := findCheck(res.SEO.Checks, "title_length"); !c.Pass {
+		t.Errorf("40-character CJK title (120 bytes) should pass title_length, got: %s", c.Label)
+	}
+	if c := findCheck(res.SEO.Checks, "desc_length"); !c.Pass {
+		t.Errorf("130-character accented description (260 bytes) should pass desc_length, got: %s", c.Label)
+	}
+
+	imgHTML := fmt.Sprintf(
+		"<!DOCTYPE html><html><body><img src='p' alt='%s' width='1' height='1'></body></html>",
+		strings.Repeat("日", 100), // 100 chars, 300 bytes
+	)
+	resImg := Analyze("https://example.com", imgHTML, "", make(http.Header), 200)
+	if c := findCheck(resImg.SEO.Checks, "img_alt_length"); !c.Pass {
+		t.Errorf("100-character CJK alt (300 bytes) should pass img_alt_length, got: %s", c.Label)
+	}
+}
+
 func TestSEOHeadingHierarchyRules(t *testing.T) {
 	// Normal: H1 -> H2 -> H3
 	validHTML := `<!DOCTYPE html><html><body><h1>Title</h1><h2>Section</h2><h3>Sub</h3></body></html>`
@@ -148,6 +259,35 @@ func TestSEOLinkSafetyAndOpener(t *testing.T) {
 	c3 := findCheck(res3.SEO.Checks, "empty_hrefs")
 	if c3.Pass {
 		t.Errorf("expected empty hrefs to fail empty_hrefs check")
+	}
+}
+
+func TestSEOLinkOpenerRelTokens(t *testing.T) {
+	for _, tc := range []struct {
+		rel  string
+		pass bool
+	}{
+		{"noopener", true},
+		{"NOREFERRER external", true},
+		{"notnoopener", false},
+		{"noopenerish noreferrer-other", false},
+		{"external", false},
+	} {
+		t.Run(tc.rel, func(t *testing.T) {
+			raw := fmt.Sprintf(`<html><body><a href="https://external.com" target="_blank" rel="%s">External</a></body></html>`, tc.rel)
+			res := Analyze("https://example.com", raw, "", make(http.Header), 200)
+			check := findCheck(res.SEO.Checks, "link_noopener")
+			if check == nil || check.Pass != tc.pass {
+				t.Errorf("rel=%q: check=%+v, want pass=%v", tc.rel, check, tc.pass)
+			}
+			if !tc.pass && check != nil && (len(check.Evidence) != 1 || check.Evidence[0].Value != "https://external.com") {
+				t.Errorf("rel=%q: missing unsafe-link evidence: %+v", tc.rel, check.Evidence)
+			}
+			signals := extractSignals("https://example.com", raw, make(http.Header), 200)
+			if tc.pass && signals.MissingOpenerCount != 0 || !tc.pass && signals.MissingOpenerCount != 1 {
+				t.Errorf("rel=%q: missing opener count=%d", tc.rel, signals.MissingOpenerCount)
+			}
+		})
 	}
 }
 
@@ -273,6 +413,32 @@ func TestGEOStatisticsDensityAndQuotes(t *testing.T) {
 	citC := findCheck(res.GEO.Checks, "geo_citations")
 	if !citC.Pass {
 		t.Errorf("expected external link to pass geo_citations")
+	}
+}
+
+func TestGEOAssertionEvidencePairingSections(t *testing.T) {
+	rhet := strings.Repeat("This passage argues a position with purely rhetorical language and no facts at all whatsoever. ", 8) // 120 words
+	good := "The audit found that 73% of pages improved and n=400 were sampled. " + strings.Repeat("Detailed measurements back every claim made in this section. ", 12)
+	doc := "<!DOCTYPE html><html><body><h1>Report</h1>" +
+		"<h2>Evidence</h2><p>" + good + "</p>" +
+		"<h3>Opinion</h3><p>" + rhet + "</p>" +
+		"</body></html>"
+	res := Analyze("https://example.com", doc, "", make(http.Header), 200)
+	c := findCheck(res.GEO.Checks, "geo_assertion_evidence_pairing")
+	if c.Pass {
+		t.Fatalf("expected h3 section without evidence to fail, got %q", c.Label)
+	}
+	if len(c.Evidence) == 0 || c.Evidence[0].Selector != "h3" {
+		t.Errorf("expected evidence pointing at the lacking h3, got %+v", c.Evidence)
+	}
+
+	docGood := "<!DOCTYPE html><html><body><h1>Report</h1>" +
+		"<h2>Evidence</h2><p>" + good + "</p>" +
+		"<h3>More opinion</h3><p>" + rhet + "<a href='https://research.example/x'>source</a></p>" +
+		"</body></html>"
+	res2 := Analyze("https://example.com", docGood, "", make(http.Header), 200)
+	if c2 := findCheck(res2.GEO.Checks, "geo_assertion_evidence_pairing"); !c2.Pass {
+		t.Errorf("expected external link in h3 section to pass, got %q evidence=%+v", c2.Label, c2.Evidence)
 	}
 }
 
@@ -412,5 +578,95 @@ func TestLocalAuditEngineAll10Archetypes(t *testing.T) {
 		if score < p.minScore || score > p.maxScore {
 			t.Errorf("%s: score %d outside expected range [%d, %d]", p.name, score, p.minScore, p.maxScore)
 		}
+	}
+}
+
+func TestAEORAGChunkBudgetSections(t *testing.T) {
+	words := func(n int) string { return strings.Repeat("word ", n) }
+
+	// One 380-word h2 section (~506 tokens) exceeds the 500-token budget.
+	monolith := `<!DOCTYPE html><html><body><h2>Latency tuning</h2><p>` + words(380) + `</p></body></html>`
+	res := Analyze("https://example.com", monolith, "", make(http.Header), 200)
+	c := findCheck(res.AEO.Checks, "aeo_chunk_token_budget")
+	if c == nil || c.Pass {
+		t.Errorf("expected 380-word section to fail aeo_chunk_token_budget, got %+v", c)
+	}
+	if len(c.Evidence) == 0 || c.Evidence[0].Selector != "h2" {
+		t.Errorf("expected evidence anchored at the opening h2, got %+v", c.Evidence)
+	}
+	want := fmt.Sprintf("~%d tokens", approxTokens(380))
+	if !strings.HasSuffix(c.Evidence[0].Value, want) {
+		t.Errorf("expected %q token estimate in evidence, got %q", want, c.Evidence[0].Value)
+	}
+
+	// An h3 subheading splits the same 380 words into two in-budget sections.
+	split := `<!DOCTYPE html><html><body><h2>Latency tuning</h2><p>` + words(190) + `</p><h3>Measuring tail latency</h3><p>` + words(190) + `</p></body></html>`
+	res = Analyze("https://example.com", split, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget"); c == nil || !c.Pass {
+		t.Errorf("expected subheadings to keep sections within budget, got %+v", c)
+	}
+
+	// h5/h6 do not delimit sections, so this is still one oversized chunk.
+	shallow := `<!DOCTYPE html><html><body><h2>Latency tuning</h2><h5>part one</h5><p>` + words(190) + `</p><h6>part two</h6><p>` + words(190) + `</p></body></html>`
+	res = Analyze("https://example.com", shallow, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget"); c == nil || c.Pass {
+		t.Errorf("expected h5/h6 not to split sections, got %+v", c)
+	}
+
+	// A li carries its nested sub-list text, so nested li words must not
+	// count twice: 300 visible words stay at ~400 tokens and pass.
+	nested := `<!DOCTYPE html><html><body><h2>List section</h2><ul><li>` + words(150) + `<ul><li>` + words(150) + `</li></ul></li></ul></body></html>`
+	res = Analyze("https://example.com", nested, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget"); c == nil || !c.Pass {
+		t.Errorf("expected nested list words to count once, got %+v", c)
+	}
+
+	// No h2-h4 headings: not applicable rather than failed.
+	plain := `<!DOCTYPE html><html><body><p>` + words(400) + `</p></body></html>`
+	res = Analyze("https://example.com", plain, "", make(http.Header), 200)
+	c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget")
+	if c == nil || c.Applicable == nil || *c.Applicable {
+		t.Errorf("expected aeo_chunk_token_budget not applicable without h2-h4, got %+v", c)
+	}
+}
+
+func TestAEOHeadingSemanticSpecificity(t *testing.T) {
+	generic := `<!DOCTYPE html><html><body>
+	<h2>Overview</h2><p>x</p>
+	<h3>How caching helps</h3><p>y</p>
+	<h3>Section 2</h3><p>z</p>
+	<h3>mehr Infos</h3><p>w</p>
+	</body></html>`
+	res := Analyze("https://example.com", generic, "", make(http.Header), 200)
+	c := findCheck(res.AEO.Checks, "aeo_heading_semantic_specificity")
+	if c == nil || c.Pass {
+		t.Errorf("expected generic headings to fail aeo_heading_semantic_specificity, got %+v", c)
+	}
+	flagged := map[string]bool{}
+	for _, ev := range c.Evidence {
+		flagged[ev.Value] = true
+	}
+	for _, want := range []string{"Overview", "Section 2", "mehr Infos"} {
+		if !flagged[want] {
+			t.Errorf("expected heading %q flagged, got %v", want, flagged)
+		}
+	}
+	if flagged["How caching helps"] {
+		t.Errorf("descriptive heading wrongly flagged: %v", flagged)
+	}
+
+	descriptive := `<!DOCTYPE html><html><body>
+	<h2>How caching cuts tail latency</h2><p>x</p>
+	<h3>Overview of pricing tiers</h3><p>y</p>
+	</body></html>`
+	res = Analyze("https://example.com", descriptive, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_heading_semantic_specificity"); c == nil || !c.Pass {
+		t.Errorf("expected descriptive headings to pass, got %+v", c)
+	}
+
+	res = Analyze("https://example.com", "<!DOCTYPE html><html><body><p>no headings</p></body></html>", "", make(http.Header), 200)
+	c = findCheck(res.AEO.Checks, "aeo_heading_semantic_specificity")
+	if c == nil || c.Applicable == nil || *c.Applicable {
+		t.Errorf("expected not applicable without h2/h3, got %+v", c)
 	}
 }

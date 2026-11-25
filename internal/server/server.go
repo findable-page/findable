@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/netip"
+	"net/url"
 	"regexp"
 	"strings"
 	"sync"
@@ -160,8 +161,8 @@ func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {
 			http.Error(w, "bad request: missing url", http.StatusBadRequest)
 			return
 		}
-		if !fetch.IsHTTPURL(req.URL) {
-			http.Error(w, "bad request: url must start with http:// or https://", http.StatusBadRequest)
+		if msg := invalidTarget(req.URL); msg != "" {
+			http.Error(w, "bad request: "+msg, http.StatusBadRequest)
 			return
 		}
 		format := report.FormatJSON
@@ -194,6 +195,18 @@ func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {
 		w.Header().Set("Content-Type", formatContentTypes[format])
 		writeBody(w, report.PageReport(format, host, audit.Page{URL: req.URL, Scan: res}))
 	}
+}
+
+// invalidTarget explains why target cannot be scanned, or returns "".
+// A malformed URL is the caller's mistake, so it is a 400, not a fetch 500.
+func invalidTarget(target string) string {
+	if !fetch.IsHTTPURL(target) {
+		return "url must start with http:// or https://"
+	}
+	if u, err := url.Parse(target); err != nil || u.Hostname() == "" {
+		return "url is not a valid http(s) URL with a host"
+	}
+	return ""
 }
 
 func handleHealth(w http.ResponseWriter, _ *http.Request) {

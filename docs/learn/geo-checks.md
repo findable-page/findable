@@ -1,6 +1,6 @@
 ---
 title: "Every findable GEO Check ID, Plus AI Crawler Checks"
-description: "All 28 GEO checks in findable explained, plus the unscored Site checks for GPTBot, ClaudeBot and llms.txt. GEO is 25% of the score. Fixes included."
+description: "All 31 GEO checks in findable explained, plus the unscored Site checks for GPTBot, ClaudeBot and llms.txt. GEO is 25% of the score. Fixes included."
 slug: geo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -18,11 +18,11 @@ faq:
 
 # Every GEO check findable runs, and how to fix each one
 
-AI tools now write answers and cite pages. GEO is the work of making your page worth citing. findable runs 28 GEO checks, and a short set of unscored Site checks for AI crawlers. This guide covers both. Remember that these are heuristics. They test signals, not quality.
+AI tools now write answers and cite pages. GEO is the work of making your page worth citing. findable runs 31 GEO checks, and a short set of unscored Site checks for AI crawlers. This guide covers both. Remember that these are heuristics. They test signals, not quality.
 
 ## What does the GEO family test in findable?
 
-GEO is 25% of your findable score. It has 28 checks on citability: numbers, tables, quotes, outbound sources, clear definitions, author and organization markup, trust pages, fresh dates and content length. Each check is a pattern match, so a pass shows the signal exists, not that it is good.
+GEO is 25% of your findable score. It has 31 checks on citability: numbers, tables, quotes, outbound sources, clear definitions, author and organization markup, trust pages, fresh dates and content length. Each check is a pattern match, so a pass shows the signal exists, not that it is good.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -154,7 +154,7 @@ For `llms-txt`, add a plain Markdown file at `/llms.txt` that lists your key pag
 
 ## Key takeaways
 
-- GEO is 25% of the findable score and has 28 checks.
+- GEO is 25% of the findable score and has 31 checks.
 - Real sources, quotes, tables and numbers with units make a page easier to cite.
 - Never invent a statistic to pass `geo_statistics_density`.
 - Show a byline, add Person and Organization JSON-LD, and link about and contact pages.
