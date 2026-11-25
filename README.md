@@ -47,19 +47,19 @@ One overall score from 0 to 100, built from three families. The default model is
 | Family | Weight | Page checks | What it measures |
 |---|---|---|---|
 | SEO | 50% | 100 | Title and meta tags, headings, canonical, Open Graph and Twitter cards, mobile, HTTPS and security headers, accessibility landmarks |
-| AEO (answer engine optimization) | 25% | 36 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
-| GEO (generative engine optimization) | 25% | 28 | Author and organization markup, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
+| AEO (answer engine optimization) | 25% | 38 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
+| GEO (generative engine optimization) | 25% | 34 | Author and organization markup, knowsAbout topics, author credentials, entity sameAs and @id graph, brand-name consistency, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
 
-The Go engine runs 164 page checks. Four more SEO checks run when you pass a focus keyphrase with `-k`. Every scan also reports an `access` gate. When robots `noindex` or `nosnippet`, a non-2xx response, or a disallowed AI search crawler closes that gate, the CLI and web report show `BLOCKED_FROM_INDEXING` and the JSON field `access.accessBlocked` is true. Content scores are still returned so the two problems stay separate. The hosted API at [findable.page](https://findable.page) is a separate TypeScript engine. Seventeen site checks are opt-in (`-site`) and unscored. Every failing check names what to fix. `llms.txt` is optional hygiene, not a documented ranking signal.
+The Go engine runs 172 page checks. Four more SEO checks run when you pass a focus keyphrase with `-k`. Every scan also reports an `access` gate. When robots `noindex`, `none` or `nosnippet`, a non-2xx response, or a disallowed AI search crawler closes that gate, the CLI and web report show `BLOCKED_FROM_INDEXING` and the JSON field `access.accessBlocked` is true. Content scores are still returned so the two problems stay separate. The hosted API at [findable.page](https://findable.page) is a separate TypeScript engine. Eighteen site checks are opt-in (`-site`) and unscored. Every failing check names what to fix. `llms.txt` is optional hygiene, not a documented ranking signal.
 
 <details>
-<summary>The 17 site checks (<code>-site</code>)</summary>
+<summary>The 18 site checks (<code>-site</code>)</summary>
 
 - `robots.txt` is present, and the page is allowed for `*`
 - AI search crawlers: OAI-SearchBot, PerplexityBot, Claude-SearchBot, Googlebot, Bingbot
 - On-demand user-fetch crawlers: ChatGPT-User, Perplexity-User, Claude-User
 - AI training crawlers: GPTBot, ClaudeBot, Google-Extended, Applebot-Extended, meta-externalagent, CCBot
-- `/llms.txt` is present
+- `/llms.txt` is present, and when it is, its structure matches the llmstxt.org format (`llms-txt-spec`)
 
 Blocking a training crawler does not affect AI search citations. `Google-Extended` governs Gemini training, not AI Overviews.
 
@@ -72,8 +72,10 @@ findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-score-model
          [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-top N]
          [-min-severity LEVEL] [-config path] [-allow-private] <url or file>
 findable bots [-bots OAI-SearchBot,PerplexityBot] [-path /] [-format text|json] <url>
+findable diff [-fail-on-regression] [-max-drop N] [-markdown] <baseline.json> <current.json>
 findable mcp
 findable serve 127.0.0.1:8080
+findable simulate -query TEXT -brand NAME -domain HOST [-engine URL] [-format text|json]
 ```
 
 | Flag | Meaning |
@@ -81,8 +83,9 @@ findable serve 127.0.0.1:8080
 | `-format csv\|json\|sarif` | Report format. `json` is the same object `/api/scan` returns, `sarif` is SARIF 2.1.0 for GitHub code scanning. Default `csv`. |
 | `-fail-under N` | Exit 1 and name every page whose overall score is below N. |
 | `-score-model weighted\|flat` | Scoring formula. Default `weighted`. `flat` keeps legacy passed/total scores. |
+| `diff` | Compare a JSON report against a stored baseline: per-page score movement (overall, SEO, AEO, GEO), checks that stopped passing, and improvements. Accepts page, crawl and sitemap JSON reports; `-markdown` prints a PR-comment table, `-fail-on-regression` exits 1 when any check regressed or a page's overall score dropped by more than `-max-drop` (default 0). |
 | `-sitemap URL` | Audit the pages a sitemap lists. Sitemap indexes are followed. |
-| `-site` | Also run the 17 site checks (robots.txt, AI search, user-fetch and training crawlers, llms.txt). |
+| `-site` | Also run the 18 site checks (robots.txt, AI search, user-fetch and training crawlers, llms.txt). |
 | `-crawl` | Follow internal links, up to `-limit` pages (default 20). |
 | `-k` | Focus keyphrase. Adds the four keyphrase checks (title, description, H1, body). |
 | `-top N`, `-min-severity LEVEL` | Limit the terminal fix list (default 10 items; levels are critical, high, medium, low). |
@@ -90,12 +93,15 @@ findable serve 127.0.0.1:8080
 | `-o`, `-q` | Report directory (default `.`); `-q` hides the failing-check list. |
 | `-serve 127.0.0.1:8080` | Legacy flag (or `findable serve`); local API and web UI. Bind to localhost; `:8080` listens on every interface. |
 | `-mcp` | Legacy flag (or `findable mcp`); MCP server over stdio. |
+| `simulate` | POST `-query` to `-engine` (or `FINDABLE_SIMULATE_ENGINE`). Reports whether `-brand` is mentioned, whether `-domain` is cited, and which other domains were cited. `FINDABLE_SIMULATE_TOKEN` is sent as a bearer token and is not printed. |
 | `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts, ignores `HTTPS_PROXY`/`HTTP_PROXY`, and only connects to ports 80 and 443. With it the CLI uses a plain HTTP client: no address guard, any port, proxy variables honoured. `-serve` is always guarded and ignores this flag. |
 
 ```bash
 findable -q -format sarif -fail-under 70 https://example.com
 findable -sitemap https://example.com/sitemap.xml -limit 50
 findable -site -crawl -limit 10 https://example.com
+findable -q -format json https://example.com -o baseline
+findable diff -fail-on-regression baseline.json <current-report>.json
 findable bots -bots OAI-SearchBot,Claude-SearchBot https://example.com
 ```
 
@@ -119,7 +125,7 @@ The npm server exposes `audit_page`, `crawl_site` and the `seo_audit_prompt` pro
 
 ## API
 
-Hosted at https://findable.page (source: [findable-page/findable-page](https://github.com/findable-page/findable-page)), or run your own local server with `findable serve 127.0.0.1:8080`.
+Hosted at https://findable.page, or run your own local server with `findable serve 127.0.0.1:8080`.
 
 ```bash
 curl -s -X POST https://findable.page/api/scan \

@@ -122,7 +122,11 @@ func isRobotsAgentName(name string) bool {
 }
 
 // NoIndexFor combines generic and agent-specific directives: index cannot
-// cancel a noindex directive from either source.
+// cancel a noindex directive from either source. "none" is documented by
+// Google as equivalent to noindex, nofollow.
 func (r XRobotsRules) NoIndexFor(agent string) bool {
-	return r[pageCrawler]["noindex"] || r[strings.ToLower(agent)]["noindex"]
+	blocked := func(set map[string]bool) bool {
+		return set["noindex"] || set["none"]
+	}
+	return blocked(r[pageCrawler]) || blocked(r[strings.ToLower(agent)])
 }

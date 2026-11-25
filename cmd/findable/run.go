@@ -173,9 +173,10 @@ func writeReport(path, content string) {
 	}
 }
 
+// fail reports an invalid invocation. Exit 1 is reserved for -fail-under.
 func fail(f string, a ...any) {
 	fmt.Fprintf(os.Stderr, "findable: "+f+"\n", a...)
-	os.Exit(1)
+	os.Exit(exitUsage)
 }
 
 const exitRuntime = 3

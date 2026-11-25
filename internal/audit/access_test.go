@@ -65,8 +65,8 @@ func TestAccessGateTreatsNoneAndCrawlerSpecificDirectivesAsBlocks(t *testing.T) 
 	none := `<!DOCTYPE html><html><head><meta name="robots" content="none"><title>None</title></head><body><h1>None</h1></body></html>`
 	scan := Analyze("https://example.com", none, "", make(http.Header), http.StatusOK)
 	assertBlocked(t, scan, "robots_none")
-	if c := findCheck(scan.SEO.Checks, "robots_meta"); c == nil || !c.Pass {
-		t.Fatalf("robots none must not change the scored noindex check, got %+v", c)
+	if c := findCheck(scan.SEO.Checks, "robots_meta"); c == nil || c.Pass {
+		t.Fatalf("robots none is noindex for the scored check, got %+v", c)
 	}
 
 	search := botByPurpose(PurposeSearch)

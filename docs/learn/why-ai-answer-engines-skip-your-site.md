@@ -43,13 +43,13 @@ User-agent: *
 Allow: /
 ```
 
-If you do want to block one of them, that is your call. Just make it a choice. With `-site`, findable reports `robots-txt`, `robots-page`, the four AI search crawlers (`robots-oai-searchbot`, `robots-perplexitybot`, `robots-claude-searchbot`, `robots-googlebot`), the five AI training crawlers (`robots-gptbot`, `robots-claudebot`, `robots-google-extended`, `robots-applebot-extended`, `robots-meta-externalagent`) and `llms-txt`. Blocking a training bot does not remove you from AI search citations while the search crawlers stay allowed; Google-Extended governs Gemini training, not AI Overviews.
+If you do want to block one of them, that is your call. Just make it a choice. With `-site`, findable reports `robots-txt`, `robots-page`, the four AI search crawlers (`robots-oai-searchbot`, `robots-perplexitybot`, `robots-claude-searchbot`, `robots-googlebot`), the five AI training crawlers (`robots-gptbot`, `robots-claudebot`, `robots-google-extended`, `robots-applebot-extended`, `robots-meta-externalagent`) and `llms-txt` plus `llms-txt-spec`. Blocking a training bot does not remove you from AI search citations while the search crawlers stay allowed; Google-Extended governs Gemini training, not AI Overviews.
 
 ## Why does a missing llms.txt matter?
 
 An `llms.txt` file is a plain Markdown file at your site root that points language models to your best pages. It is a proposal, so no engine promises to read it. It costs little to add and gives tools a clean map of your site.
 
-Read the [llms.txt proposal](https://llmstxt.org/) for the format. findable checks for it with the `llms-txt` site check. It is unscored, so a miss will not drop your grade. The check only tests that the file exists; it does not parse the Markdown or follow the links in it.
+Read the [llms.txt proposal](https://llmstxt.org/) for the format. findable checks for it with the `llms-txt` site check, and when the file exists `llms-txt-spec` verifies its structure (one H1 title, the blockquote summary right after it, H2 sections of `- [Title](url)` links with absolute URLs). Both are unscored, so a miss will not drop your grade. The checks do not follow the links in the file.
 
 ## Why can't bots read JavaScript-only content?
 
