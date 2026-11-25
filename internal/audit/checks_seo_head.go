@@ -70,13 +70,19 @@ func seoCanonicalQuality(l *checkList, s *PageSignals) {
 		return
 	}
 	target, err := url.Parse(canonical)
-	self := err == nil && s.URL != nil && pagePathKey(s.URL.ResolveReference(target)) == pagePathKey(s.URL)
-	if self {
-		l.add("canonical_self", "Canonical points to this page", true)
-	} else {
-		l.add("canonical_self", "Canonical points elsewhere: "+canonical, false)
+	canonSel := "head > link[rel=canonical]"
+	if tags := linkTags(s, "canonical"); len(tags) > 0 && tags[0].Selector != "" {
+		canonSel = tags[0].Selector
 	}
-	l.add("canonical_absolute", "Canonical is an absolute URL", err == nil && target.IsAbs())
+	switch {
+	case s.URL == nil || (s.URL.Scheme != "http" && s.URL.Scheme != "https"):
+		l.skip("canonical_self", "No page URL to compare the canonical with (local file)")
+	case err == nil && pagePathKey(s.URL.ResolveReference(target)) == pagePathKey(s.URL):
+		l.add("canonical_self", "Canonical points to this page", true)
+	default:
+		l.addEv("canonical_self", "Canonical points elsewhere: "+canonical, false, evidence(canonSel, canonical))
+	}
+	l.addEv("canonical_absolute", "Canonical is an absolute URL", err == nil && target.IsAbs(), evidence(canonSel, canonical))
 }
 
 func robotsTokens(s *PageSignals) map[string]bool {
@@ -94,6 +100,41 @@ func seoRobotsDirectives(l *checkList, s *PageSignals) {
 	conflict := (tokens["index"] && tokens["noindex"]) || (tokens["follow"] && tokens["nofollow"])
 	l.add("meta_robots_conflict", "Robots meta directives do not contradict each other", !conflict)
 	l.add("robots_nofollow", "Page does not nofollow all its links via robots meta", !tokens["nofollow"] && !tokens["none"])
+	seoSnippetDirectives(l, s)
+}
+
+func robotsDirectiveValues(s *PageSignals) map[string]string {
+	values := map[string]string{}
+	for _, content := range metaTags(s, "robots") {
+		for _, token := range strings.Split(strings.ToLower(content), ",") {
+			if key, value, found := strings.Cut(strings.TrimSpace(token), ":"); found {
+				values[strings.TrimSpace(key)] = strings.TrimSpace(value)
+			}
+		}
+	}
+	return values
+}
+
+// seoSnippetDirectives flags caps that keep a page out of AI Overview and rich
+// snippet candidates. Omitted directives keep Google's defaults, so only
+// explicitly restrictive values fail; large is the only max-image-preview
+// value that allows full-width preview cards.
+func seoSnippetDirectives(l *checkList, s *PageSignals) {
+	values := robotsDirectiveValues(s)
+	var restrictive []string
+	for _, directive := range []string{"max-snippet", "max-video-preview"} {
+		if v, ok := values[directive]; ok && v != "-1" {
+			restrictive = append(restrictive, directive+":"+v)
+		}
+	}
+	if v, ok := values["max-image-preview"]; ok && v != "large" {
+		restrictive = append(restrictive, "max-image-preview:"+v)
+	}
+	if len(restrictive) == 0 {
+		l.add("meta_robots_snippet_directives", "Robots meta does not restrict snippets (optimal: max-snippet:-1, max-image-preview:large, max-video-preview:-1)", true)
+		return
+	}
+	l.add("meta_robots_snippet_directives", "Robots meta restricts snippets: "+strings.Join(restrictive, ", "), false)
 }
 
 func seoSingletons(l *checkList, s *PageSignals) {
@@ -164,6 +205,7 @@ func blocksZoom(viewport string) bool {
 
 func seoHreflang(l *checkList, s *PageSignals) {
 	invalid, relative, total := 0, 0, 0
+	var badCode, badURL []Evidence
 	for _, t := range linkTags(s, "alternate") {
 		code := strings.TrimSpace(t.Attrs["hreflang"])
 		if code == "" {
@@ -172,9 +214,11 @@ func seoHreflang(l *checkList, s *PageSignals) {
 		total++
 		if !hreflangRegex.MatchString(code) {
 			invalid++
+			badCode = append(badCode, evidence(t.Selector, code))
 		}
 		if href := strings.ToLower(strings.TrimSpace(t.Attrs["href"])); !strings.HasPrefix(href, "http://") && !strings.HasPrefix(href, "https://") {
 			relative++
+			badURL = append(badURL, evidence(t.Selector, href))
 		}
 	}
 	if total == 0 {
@@ -182,8 +226,8 @@ func seoHreflang(l *checkList, s *PageSignals) {
 		l.skip("hreflang_absolute", "No hreflang annotations to validate")
 		return
 	}
-	l.add("hreflang_valid", fmt.Sprintf("%d of %d hreflang codes are invalid", invalid, total), invalid == 0)
-	l.add("hreflang_absolute", fmt.Sprintf("%d of %d hreflang URLs are not absolute", relative, total), relative == 0)
+	l.addEv("hreflang_valid", fmt.Sprintf("%d of %d hreflang codes are invalid", invalid, total), invalid == 0, badCode...)
+	l.addEv("hreflang_absolute", fmt.Sprintf("%d of %d hreflang URLs are not absolute", relative, total), relative == 0, badURL...)
 }
 
 func seoCharsetPlacement(l *checkList, s *PageSignals) {

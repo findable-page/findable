@@ -1,6 +1,6 @@
 ---
 title: "Every findable SEO Check ID and How to Fix It"
-description: "A plain guide to all 98 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
+description: "A plain guide to all 99 SEO checks in findable, from title_length to csp. See what each id tests, when it passes and the fix. SEO is 50% of your score."
 slug: seo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -22,7 +22,7 @@ You ran an audit and got a list of ids like `title_length` and `img_dimensions`.
 
 ## What does the SEO family cover in findable?
 
-SEO is 50% of your findable score, the biggest share. It has 98 checks covering metadata, structured data, performance and accessibility - the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
+SEO is 50% of your findable score, the biggest share. It has 99 checks covering metadata, structured data, performance and accessibility - the basics: metadata, page setup, headings, content size, links, images, social tags, security headers and markup. Each check has a fixed id, so you can search for it in any report.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -66,6 +66,7 @@ SEO is 50% of your findable score, the biggest share. It has 98 checks covering 
 | `canonical_absolute` | Canonical is an absolute URL | Use a full https URL |
 | `meta_robots_conflict` | Robots meta has no contradictory directives | Drop the conflicting index or follow token |
 | `robots_nofollow` | Robots meta does not nofollow every link | Remove nofollow or none |
+| `meta_robots_snippet_directives` | Robots meta does not cap snippets | Use max-snippet:-1, max-image-preview:large, max-video-preview:-1 |
 | `title_single` | At most one title tag in head | Keep a single title |
 | `desc_single` | At most one meta description | Keep a single description |
 | `url_length` | Path and query of 100 characters or fewer | Shorten the URL |
@@ -217,7 +218,7 @@ Read Google's [structured data intro](https://developers.google.com/search/docs/
 ## Key takeaways
 
 - SEO is 50% of the findable score, so start here.
-- There are 98 SEO checks. Each has a fixed id and a simple pass test.
+- There are 99 SEO checks. Each has a fixed id and a simple pass test.
 - Fix the head first: title, description, charset, viewport, lang, doctype.
 - `word_count`, `text_html_ratio` and `dom_size` are heuristics. Use judgment.
 - Security header checks pass when the header exists. They do not rate its strength.

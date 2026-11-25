@@ -2,6 +2,7 @@ package audit
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -78,6 +79,7 @@ type PageSignals struct {
 	Favicon             string
 	WebManifest         string
 	RSSFeed             string
+	Boilerplate         []BoilerplateSection
 	Tags                map[string][]TagInfo
 }
 
@@ -87,6 +89,16 @@ type TagInfo struct {
 	HasMedia bool
 	InHead   bool
 	Pos      int
+	Selector string
+}
+
+// BoilerplateSection counts the words of a nav, header or footer block and how
+// many of them sit under a data-nosnippet element. Google honours the attribute
+// only on div, span and section elements.
+type BoilerplateSection struct {
+	Tag          string
+	Words        int
+	CoveredWords int
 }
 
 func containsElement(n *html.Node, names ...string) bool {
@@ -105,7 +117,7 @@ func containsElement(n *html.Node, names ...string) bool {
 	return false
 }
 
-var tagsWithText = map[string]bool{"a": true, "button": true, "style": true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
+var tagsWithText = map[string]bool{"a": true, "button": true, tagStyle: true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
 
 var (
 	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)`)
@@ -136,22 +148,28 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 	}
 
 	seenIDs := make(map[string]int)
-	var walk func(*html.Node, bool)
-	walk = func(n *html.Node, inHead bool) {
+	var walk func(*html.Node, string)
+	walk = func(n *html.Node, sel string) {
 		if n.Type == html.ElementNode {
 			sig.DOMSize++
 			countDuplicateIDs(&sig, n, seenIDs)
-			recordTag(&sig, n, inHead)
-			inHead = inHead || n.Data == "head"
+			recordTag(&sig, n, inHead(sel), sel)
 			if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
 				collect(&sig, n)
 			}
 		}
+		var counts map[string]int
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c, inHead)
+			if c.Type == html.ElementNode {
+				if counts == nil {
+					counts = make(map[string]int)
+				}
+				counts[strings.ToLower(c.Data)]++
+			}
+			walk(c, childSelector(sel, c, counts))
 		}
 	}
-	walk(doc, false)
+	walk(doc, "")
 
 	sig.TextContent = extractVisibleText(doc)
 	sig.Words = strings.Fields(sig.TextContent)
@@ -171,15 +189,15 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	"h5":         collectHeading,
 	"h6":         collectHeading,
 	"p":          collectParagraph,
-	"img":        collectImage,
+	tagImg:       collectImage,
 	"a":          collectAnchor,
+	"nav":        collectBoilerplate,
+	"header":     collectBoilerplate,
+	"footer":     collectBoilerplate,
 	"article":    countSemantic,
 	"section":    countSemantic,
 	"main":       countSemantic,
-	"nav":        countSemantic,
 	"aside":      countSemantic,
-	"header":     countSemantic,
-	"footer":     countSemantic,
 	"time":       countSemantic,
 	"figure":     countSemantic,
 	"details":    countSemantic,
@@ -196,17 +214,46 @@ var elementCollectors = map[string]func(*PageSignals, *html.Node){
 	tagScript:    collectScript,
 }
 
-func recordTag(sig *PageSignals, n *html.Node, inHead bool) {
+func recordTag(sig *PageSignals, n *html.Node, inHead bool, selector string) {
 	name := strings.ToLower(n.Data)
-	info := TagInfo{Attrs: attrs(n), InHead: inHead, Pos: sig.DOMSize}
+	info := TagInfo{Attrs: attrs(n), InHead: inHead, Pos: sig.DOMSize, Selector: selector}
 	if name == tagScript && strings.EqualFold(trimmedAttr(info.Attrs, "type"), "application/ld+json") {
 		info.Text = collectRawText(n)
 	}
 	if tagsWithText[name] {
 		info.Text = collectText(n)
-		info.HasMedia = containsElement(n, "img", "svg", "picture")
+		info.HasMedia = containsElement(n, tagImg, "svg", "picture")
 	}
 	sig.Tags[name] = append(sig.Tags[name], info)
+}
+
+// inHead reports whether a node sits under <head>: its own selector starts
+// with the head path (appendSelector keeps head, trims html/body).
+func inHead(sel string) bool {
+	return sel == "head" || strings.HasPrefix(sel, "head >")
+}
+
+var selectorSkipTags = map[string]bool{"html": true, "body": true}
+
+// childSelector builds the CSS-ish selector for a child of parentSel.
+// counts tracks how many of each tag the parent has already handed a
+// selector to (only element children); nth-of-type is added when the tag
+// repeats among siblings, and html/body are trimmed from the path.
+func childSelector(parentSel string, n *html.Node, counts map[string]int) string {
+	if n.Type != html.ElementNode {
+		return parentSel
+	}
+	tag := strings.ToLower(n.Data)
+	if selectorSkipTags[tag] {
+		return parentSel
+	}
+	if counts[tag] > 1 {
+		tag = fmt.Sprintf("%s:nth-of-type(%d)", tag, counts[tag])
+	}
+	if parentSel == "" {
+		return tag
+	}
+	return parentSel + " > " + tag
 }
 
 func attrs(n *html.Node) map[string]string {
@@ -269,8 +316,13 @@ func collectMeta(sig *PageSignals, n *html.Node) {
 		sig.MetaDesc = content
 	case "viewport":
 		sig.Viewport = content
-	case "robots":
-		sig.RobotsMeta = content
+	case robotsMetaName:
+		// Crawlers combine every robots meta tag, so keep them all: a
+		// noindex in an earlier tag must not be hidden by a later one.
+		if sig.RobotsMeta != "" && content != "" {
+			sig.RobotsMeta += ", "
+		}
+		sig.RobotsMeta += content
 	case "theme-color":
 		sig.ThemeColor = content
 	}
@@ -345,6 +397,22 @@ func collectAnchor(sig *PageSignals, n *html.Node) {
 
 var nonNavigableHrefPrefixes = []string{"#", "javascript:", "mailto:", "tel:"}
 
+var defaultPorts = map[string]string{schemeHTTP: "80", schemeHTTPS: "443"}
+
+// sameHost reports whether a and b name the same host and port, ignoring
+// host case, a trailing dot and an explicit default port for the scheme.
+func sameHost(a, b *url.URL) bool {
+	norm := func(u *url.URL) string {
+		host := strings.TrimSuffix(strings.ToLower(u.Hostname()), ".")
+		port := u.Port()
+		if port == defaultPorts[u.Scheme] {
+			port = ""
+		}
+		return host + ":" + port
+	}
+	return norm(a) == norm(b)
+}
+
 func classifyLink(sig *PageSignals, href string) {
 	if href == "" {
 		return
@@ -363,7 +431,7 @@ func classifyLink(sig *PageSignals, href string) {
 	if base != nil {
 		resolved = base.ResolveReference(linkURL)
 	}
-	if base != nil && (resolved.Host == base.Host || resolved.Host == "") {
+	if base != nil && (resolved.Host == "" || sameHost(resolved, base)) {
 		sig.InternalLinks = append(sig.InternalLinks, resolved.String())
 	} else {
 		sig.ExternalLinks = append(sig.ExternalLinks, resolved.String())
@@ -376,6 +444,45 @@ func countSemantic(sig *PageSignals, n *html.Node) {
 	if tag == "details" {
 		sig.DetailsCount++
 	}
+}
+
+func collectBoilerplate(sig *PageSignals, n *html.Node) {
+	countSemantic(sig, n)
+	words, covered := boilerplateWords(n, false)
+	sig.Boilerplate = append(sig.Boilerplate, BoilerplateSection{Tag: strings.ToLower(n.Data), Words: words, CoveredWords: covered})
+}
+
+func boilerplateWords(n *html.Node, covered bool) (words, coveredWords int) {
+	if n.Type == html.ElementNode {
+		name := strings.ToLower(n.Data)
+		if name == tagScript || name == tagStyle || name == "noscript" || name == "svg" {
+			return 0, 0
+		}
+		if !covered && (name == "div" || name == "span" || name == "section") && hasNoSnippetAttr(n) {
+			covered = true
+		}
+	}
+	if n.Type == html.TextNode {
+		words = len(strings.Fields(n.Data))
+		if covered {
+			coveredWords = words
+		}
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		w, cw := boilerplateWords(c, covered)
+		words += w
+		coveredWords += cw
+	}
+	return words, coveredWords
+}
+
+func hasNoSnippetAttr(n *html.Node) bool {
+	for _, a := range n.Attr {
+		if strings.EqualFold(a.Key, "data-nosnippet") {
+			return true
+		}
+	}
+	return false
 }
 
 func collectBlockquote(sig *PageSignals, n *html.Node) {
@@ -532,7 +639,7 @@ func extractVisibleText(doc *html.Node) string {
 	walk = func(n *html.Node) {
 		if n.Type == html.ElementNode {
 			tag := strings.ToLower(n.Data)
-			if tag == tagScript || tag == "style" || tag == "noscript" || tag == "svg" {
+			if tag == tagScript || tag == tagStyle || tag == "noscript" || tag == "svg" {
 				return
 			}
 		}
@@ -553,5 +660,17 @@ func extractVisibleText(doc *html.Node) string {
 
 const (
 	schemeHTTPS = "https"
+	schemeHTTP  = "http"
 	tagScript   = "script"
+	tagStyle    = "style"
 )
+
+// VisibleText returns the rendered text content of an HTML document with
+// script/style/noscript/svg stripped.
+func VisibleText(rawHTML string) string {
+	doc, err := html.Parse(strings.NewReader(rawHTML))
+	if err != nil {
+		return ""
+	}
+	return extractVisibleText(doc)
+}
