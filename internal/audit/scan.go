@@ -32,13 +32,15 @@ type Category struct {
 }
 
 type Scan struct {
-	Overall       *int      `json:"overall,omitempty"`
-	SEO           Category  `json:"seo"`
-	AEO           Category  `json:"aeo"`
-	GEO           Category  `json:"geo"`
-	CWV           Category  `json:"cwv"`
-	InternalLinks []string  `json:"internalLinks"`
-	Site          *Category `json:"site,omitempty"`
+	Overall       *int        `json:"overall,omitempty"`
+	SEO           Category    `json:"seo"`
+	AEO           Category    `json:"aeo"`
+	GEO           Category    `json:"geo"`
+	CWV           Category    `json:"cwv"`
+	InternalLinks []string    `json:"internalLinks"`
+	Site          *Category   `json:"site,omitempty"`
+	StatusCode    int         `json:"statusCode,omitempty"`
+	Access        *AccessGate `json:"access,omitempty"`
 }
 
 type Page struct {

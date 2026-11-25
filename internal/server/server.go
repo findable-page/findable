@@ -184,6 +184,7 @@ func scanHandler(client *http.Client, limiter *rateLimiter) http.HandlerFunc {
 		}
 		if req.Site && fetch.IsHTTPURL(req.URL) {
 			res.Site = fetch.SiteChecks(client, req.URL)
+			res.RefreshAccess()
 		}
 		if format == report.FormatJSON {
 			w.Header().Set("Content-Type", jsonContentType)

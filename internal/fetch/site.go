@@ -31,6 +31,7 @@ func scanPage(client *http.Client, target string, opts CrawlOptions) (audit.Scan
 	s, err := Scan(client, target, opts.Keyphrase)
 	if err == nil && opts.Site && IsHTTPURL(target) {
 		s.Site = SiteChecks(client, target)
+		s.RefreshAccess()
 	}
 	return s, err
 }

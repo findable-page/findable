@@ -255,7 +255,7 @@ var registry = map[string]Meta{
 
 	// site-level (robots.txt, llms.txt)
 	"robots-txt":           {SeverityLow, TierDocumented, "Publish a robots.txt at the site root so crawlers can read your rules.", ""},
-	"robots-page":          {SeverityCritical, TierDocumented, "Allow crawlers to fetch this page in robots.txt; a Disallow here removes it from search.", ""},
+	checkRobotsPage:        {SeverityCritical, TierDocumented, "Allow crawlers to fetch this page in robots.txt; a Disallow here removes it from search.", ""},
 	"x_robots_tag_noindex": {SeverityCritical, TierDocumented, "Remove noindex from the X-Robots-Tag response header so the page can be indexed.", ""},
 	"llms-txt":             {SeverityLow, TierHeuristic, "Optionally publish /llms.txt describing the site for AI tools; it is not a ranking signal.", ""},
 }

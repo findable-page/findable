@@ -16,9 +16,11 @@ func Analyze(targetURL, rawHTML, keyphrase string, headers http.Header, statusCo
 		GEO:           buildCategory(evalGEO(&sig)),
 		CWV:           Category{Checks: []Check{}},
 		InternalLinks: sig.InternalLinks,
+		StatusCode:    statusCode,
 	}
 	overall := Overall(s)
 	s.Overall = &overall
+	s.RefreshAccess()
 	return s
 }
 

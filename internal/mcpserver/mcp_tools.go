@@ -131,6 +131,7 @@ func toolAuditPage(a toolArgs, client *http.Client) (text string, isError bool) 
 	}
 	if site, _ := a["site"].(bool); site && fetch.IsHTTPURL(targetURL) {
 		res.Site = fetch.SiteChecks(client, targetURL)
+		res.RefreshAccess()
 	}
 	return toolResult(scanSummary(targetURL, res))
 }
