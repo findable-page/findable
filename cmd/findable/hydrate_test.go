@@ -35,7 +35,8 @@ func TestHydrateCommandReportsClientOnlyTitle(t *testing.T) {
 
 	script := filepath.Join(workDir, "render.sh")
 	body := "#!/bin/sh\nprintf '%s' '<html><head><title>From renderer</title></head></html>'\n"
-	if err := os.WriteFile(script, []byte(body), 0o700); err != nil {
+	// The renderer is executed as a program, so it has to be executable.
+	if err := os.WriteFile(script, []byte(body), 0o700); err != nil { //nolint:gosec // test-only renderer, not a secret
 		t.Fatal(err)
 	}
 	cmdOut, code := runFindable(t, workDir, "hydrate", "-render-cmd", script, raw)
