@@ -1,6 +1,6 @@
 ---
 title: "Every findable GEO Check ID, Plus AI Crawler Checks"
-description: "All 31 GEO checks in findable explained, plus the unscored Site checks for GPTBot, ClaudeBot and llms.txt. GEO is 25% of the score. Fixes included."
+description: "All 34 GEO checks in findable explained, plus the unscored Site checks for GPTBot, ClaudeBot and llms.txt. GEO is 25% of the score. Fixes included."
 slug: geo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -18,11 +18,11 @@ faq:
 
 # Every GEO check findable runs, and how to fix each one
 
-AI tools now write answers and cite pages. GEO is the work of making your page worth citing. findable runs 31 GEO checks, and a short set of unscored Site checks for AI crawlers. This guide covers both. Remember that these are heuristics. They test signals, not quality.
+AI tools now write answers and cite pages. GEO is the work of making your page worth citing. findable runs 34 GEO checks, and a short set of unscored Site checks for AI crawlers. This guide covers both. Remember that these are heuristics. They test signals, not quality.
 
 ## What does the GEO family test in findable?
 
-GEO is 25% of your findable score. It has 31 checks on citability: numbers, tables, quotes, outbound sources, clear definitions, author and organization markup, trust pages, fresh dates and content length. Each check is a pattern match, so a pass shows the signal exists, not that it is good.
+GEO is 25% of your findable score. It has 34 checks on citability: numbers, tables, quotes, outbound sources, clear definitions, author and organization markup, trust pages, fresh dates and content length. Each check is a pattern match, so a pass shows the signal exists, not that it is good.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -38,6 +38,9 @@ GEO is 25% of your findable score. It has 31 checks on citability: numbers, tabl
 | `geo_author_credential_depth` | Author Person schema lists a credential (N/A without author Person schema) | Add `jobTitle`, `alumniOf`, `hasCredential` or a profile `sameAs` |
 | `geo_org_schema` | Organization or LocalBusiness schema | Add Organization JSON-LD |
 | `geo_knowledge_graph` | `sameAs` links in schema | Link your profiles |
+| `geo_entity_authoritative_sameas` | `sameAs` host is Wikidata, Wikipedia or Crunchbase | Anchor the entity in a registry |
+| `geo_schema_id_graph_coherence` | `@id` references resolve inside the graph | Define every referenced node |
+| `geo_brand_entity_consistency` | Organization, WebSite, og:site_name and title suffix agree | Use one brand name |
 | `geo_schema_knows_about` | 3 or more topics in `knowsAbout` on Organization or WebSite schema (N/A without one) | List your core topics |
 | `geo_trust` | Internal links to about and contact | Link both pages |
 | `geo_entity_markup` | 2 or more schema types | Mark up more entities |
@@ -79,7 +82,7 @@ A passage is citable when you can lift it out and it still makes sense. Name the
 
 ## How do I fix the author and organization checks?
 
-Eight checks cover who is behind the page: `geo_author_schema`, `geo_author_credentials`, `geo_author_credential_depth`, `geo_org_schema`, `geo_knowledge_graph`, `geo_schema_knows_about`, `geo_trust` and `geo_entity_markup`. Show a byline, add Person and Organization JSON-LD with `sameAs` links, give the author a credential such as `jobTitle`, `alumniOf`, `hasCredential` or an ORCID/LinkedIn `sameAs`, list your core topics in `knowsAbout`, link to your about and contact pages, and use at least 2 schema types.
+Eleven checks cover who is behind the page: `geo_author_schema`, `geo_author_credentials`, `geo_author_credential_depth`, `geo_org_schema`, `geo_knowledge_graph`, `geo_entity_authoritative_sameas`, `geo_schema_id_graph_coherence`, `geo_brand_entity_consistency`, `geo_schema_knows_about`, `geo_trust` and `geo_entity_markup`. Show a byline, add Person and Organization JSON-LD with `sameAs` links to Wikidata, Wikipedia or Crunchbase, give the author a credential such as `jobTitle`, `alumniOf`, `hasCredential` or an ORCID/LinkedIn `sameAs`, list your core topics in `knowsAbout`, make `@id` references resolve, keep the brand name consistent, link to your about and contact pages, and use at least 2 schema types.
 
 ```html
 <p>By Alex Morgan</p>
@@ -154,7 +157,7 @@ For `llms-txt`, add a plain Markdown file at `/llms.txt` that lists your key pag
 
 ## Key takeaways
 
-- GEO is 25% of the findable score and has 31 checks.
+- GEO is 25% of the findable score and has 34 checks.
 - Real sources, quotes, tables and numbers with units make a page easier to cite.
 - Never invent a statistic to pass `geo_statistics_density`.
 - Show a byline, add Person and Organization JSON-LD, and link about and contact pages.

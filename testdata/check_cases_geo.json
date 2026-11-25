@@ -101,7 +101,39 @@
     "pass": [{}, {"body": "<nav><a href='/a'>Home</a> <a href='/b'>Docs</a></nav>"}, {"body": "<footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}, {"body": "<footer><section data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</section></footer>"}, {"body": "<header><nav><span data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</span></nav></header>"}],
     "fail": [{"body": "<footer>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer><div data-nosnippet>Short notice only.</div>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<nav>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</nav><footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}]
   },
-
+  "geo_entity_authoritative_sameas": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://www.wikidata.org/wiki/Q42\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Person\",\"sameAs\":[\"https://en.wikipedia.org/wiki/Ada_Lovelace\",\"https://example.com/me\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":\"https://www.crunchbase.com/organization/global-tech\"}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://example.com/about\",\"https://linkedin.com/company/global-tech\"]}</script>", "evidence": ["sameAs"]},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://wikipedia.org.example.com/wiki/SEO\"]}</script>"}
+    ]
+  },
+  "geo_schema_id_graph_coherence": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"author\":{\"@type\":\"Person\",\"name\":\"Ada\"}}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@graph\":[{\"@type\":\"Article\",\"author\":{\"@id\":\"https://example.com/#author\"}},{\"@type\":\"Person\",\"@id\":\"https://example.com/#author\",\"name\":\"Ada\"}]}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@graph\":[{\"@type\":\"Article\",\"publisher\":{\"@id\":\"https://example.com/#missing\"}}]}</script>", "evidence": ["@id"]}
+    ]
+  },
+  "geo_brand_entity_consistency": {
+    "pass": [
+      {},
+      {"head": "<title>CleanPower announces a new plant</title><script type='application/ld+json'>{\"@type\":\"Organization\",\"name\":\"Atlantic Energy Tribune\"}</script>"},
+      {"head": "<title>Pricing | Acme Widgets</title><meta property='og:site_name' content='Acme'><script type='application/ld+json'>{\"@type\":\"Organization\",\"name\":\"Acme Widgets\"}</script>"}
+    ],
+    "fail": [
+      {"head": "<meta property='og:site_name' content='Acme'><script type='application/ld+json'>{\"@type\":\"Organization\",\"name\":\"Globex\"}</script>", "evidence": ["og:site_name vs Organization.name"]},
+      {"head": "<title>Pricing | Globex</title><meta property='og:site_name' content='Acme'>", "evidence": ["title"]}
+    ]
+  },
   "geo_statistics_density": {
     "pass": [
       {},
