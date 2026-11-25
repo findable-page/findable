@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode/utf8"
 )
 
 func evalSEO(s *PageSignals) []Check {
@@ -37,7 +38,7 @@ func seoTitle(l *checkList, s *PageSignals) {
 		return
 	}
 	l.add("title_exists", fmt.Sprintf("Title tag found: %q", s.Title), true)
-	n := len(s.Title)
+	n := utf8.RuneCountInString(s.Title)
 	if n >= 30 && n <= 60 {
 		l.add("title_length", fmt.Sprintf("Title length: %d characters (optimal: 30-60)", n), true)
 	} else {
@@ -51,7 +52,7 @@ func seoDescription(l *checkList, s *PageSignals) {
 		l.addEv("desc_length", "Meta description is missing", false, evidence(descSelector, ""))
 		return
 	}
-	n := len(s.MetaDesc)
+	n := utf8.RuneCountInString(s.MetaDesc)
 	l.add("desc_exists", fmt.Sprintf("Meta description found (%d chars)", n), true)
 	if n >= 120 && n <= 160 {
 		l.add("desc_length", fmt.Sprintf("Description length: %d chars (optimal: 120-160)", n), true)
@@ -62,11 +63,11 @@ func seoDescription(l *checkList, s *PageSignals) {
 
 func seoTechnicalMeta(l *checkList, s *PageSignals) {
 	l.add("viewport", "Viewport meta tag found (mobile-friendly)", s.Viewport != "")
-	l.add("charset", "UTF-8 charset declared", lowerContainsAny(s.Charset, "utf-8") || lowerContainsAny(s.RawHTML, "utf-8"))
+	l.add("charset", "UTF-8 charset declared", utf8Declared(s))
 	l.add("lang_attr", "Language attribute set on HTML tag", s.Lang != "")
 	l.add("html_doctype", "<!DOCTYPE html> declared", s.HTMLDoctype)
 	l.add("meta_refresh", "No meta refresh redirect (good)", s.MetaRefresh == "")
-	l.addEv("robots_meta", "No robots meta tag blocking crawling", !lowerContainsAny(s.RobotsMeta, "noindex"), evidence(`head > meta[name=robots]`, s.RobotsMeta))
+	l.addEv("robots_meta", "No robots meta tag blocking crawling", !robotsBlocksIndex(s), evidence(`head > meta[name=robots]`, s.RobotsMeta))
 	xTagHeaders := s.Headers.Values("X-Robots-Tag")
 	if len(xTagHeaders) == 0 {
 		l.skip("x_robots_tag_noindex", "No X-Robots-Tag header to check")
@@ -74,6 +75,27 @@ func seoTechnicalMeta(l *checkList, s *PageSignals) {
 		xTag := strings.Join(xTagHeaders, ", ")
 		l.addEv("x_robots_tag_noindex", "X-Robots-Tag header does not noindex this page", !ParseXRobotsTag(xTagHeaders).NoIndexFor(pageCrawler), evidence("X-Robots-Tag", xTag))
 	}
+}
+
+// utf8Declared reports a UTF-8 declaration from any HTML-spec source:
+// <meta charset>, <meta http-equiv="content-type"> or the Content-Type
+// response header. Matching the raw HTML instead would false-pass on pages
+// that only mention the string in scripts or copy.
+func utf8Declared(s *PageSignals) bool {
+	if charsetIsUTF8(s.Charset) || charsetIsUTF8(s.Headers.Get("Content-Type")) {
+		return true
+	}
+	for _, m := range s.Tags["meta"] {
+		if strings.EqualFold(strings.TrimSpace(m.Attrs["http-equiv"]), "content-type") && charsetIsUTF8(m.Attrs["content"]) {
+			return true
+		}
+	}
+	return false
+}
+
+func charsetIsUTF8(value string) bool {
+	compact := strings.ToLower(strings.NewReplacer(" ", "", `"`, "", "'", "").Replace(value))
+	return strings.Contains(compact, "utf-8") || strings.Contains(compact, "utf8")
 }
 
 func seoHeadings(l *checkList, s *PageSignals) {
