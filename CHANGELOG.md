@@ -9,13 +9,20 @@ All notable changes to this project are documented here. The format follows [Kee
 - Audit findings now carry severity, evidence tier, fix and evidence fields in reports. `bots` probes crawler access; config loading and runtime errors can exit with code 2 and 3 respectively.
 
 ### Added
+- `findable diff [-fail-on-regression] [-max-drop N] [-markdown] <baseline.json> <current.json>`: compare any JSON report (page, crawl or sitemap) against a stored baseline, showing per-page score movement, checks that stopped passing and improvements; `-fail-on-regression` exits 1 for CI score-regression gating.
+- Site check `llms-txt-spec`: when `/llms.txt` is present, its Markdown structure is validated against the llmstxt.org v2 format (single H1 title first, blockquote summary immediately after it, H2 sections whose lists are `- [Title](url)` links with absolute http(s) URLs); failures report the offending line. Not applicable when the file is missing. Link reachability checks are out of scope.
 - Three answer-extractability checks: `aeo_lead_direct_answer` (a 20-80 word direct-answer paragraph within the first 100 words after the H1), `geo_snippet_boilerplate_control` (long nav/header/footer text should sit under `data-nosnippet` div/span/section wrappers, the only elements Google honours), and `meta_robots_snippet_directives` (flags explicitly restrictive `max-snippet`, `max-image-preview` or `max-video-preview` robots meta values; omitted directives keep Google's defaults and pass).
 - Princeton GEO evidentiary density checks: `geo_statistics_density` now measures density (at least one quantitative data point per 300 words) instead of a flat count of 3, and new `geo_assertion_evidence_pairing` flags content sections (h2/h3 blocks over 100 words) that carry no figure, date, or citation/external link. Sample sizes (`n=123`) now count as quantitative evidence.
 - Site checks now distinguish AI search retrieval crawlers (`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, `Googlebot`) from AI model training crawlers (`GPTBot`, `ClaudeBot`, `Google-Extended`, `Applebot-Extended`, `meta-externalagent`), with labels explaining that blocking training bots does not affect AI search citations and that `Google-Extended` governs Gemini training, not AI Overviews.
 
 ### Fixed
 - Percentages like `9%.` never matched the quantitative-statistics pattern because a word boundary after `%` can never hold; percentages are now a dedicated alternative, so they count toward `geo_statistics_density` and section evidence.
+- `link_noopener` now matches whole `rel` tokens; values such as `notnoopener` no longer hide unsafe `_blank` links.
+- Signal extraction no longer runs HTML element collectors on SVG/MathML elements: an inline SVG icon's `<title>` (an accessibility label for the graphic) no longer overwrites the page `<title>` used by `title_exists`, `title_length`, `keyphrase_in_title` and `geo_intent_clarity`.
+- Robots meta and X-Robots-Tag `none` directive (documented by Google as `noindex, nofollow`) is now treated as noindex by `robots_meta`, `aeo_ai_robots`, `x_robots_tag_noindex`, the `bots` probe verdicts and `meta_robots_conflict`, instead of silently passing.
+- `title_length`, `desc_length` and `img_alt_length` now count characters instead of bytes, so titles, meta descriptions and alt text containing non-ASCII text (CJK, Arabic, accented Latin, emoji) are no longer penalized as too long.
 - `geo_intent_clarity` now compares the title with the primary `<h1>` instead of whichever heading appears first on the page, so pages whose navigation renders an `<h2>` before the main `<h1>` are no longer falsely flagged. When a page has no title or no `<h1>`, the check is reported as not applicable instead of failing.
+- The `charset` check now honours the three HTML-spec declaration sources — `<meta charset>`, `<meta http-equiv="content-type">` and the `Content-Type` response header — instead of searching the raw HTML for the string `utf-8`, which false-passed on pages that only mention it in scripts or copy and false-failed pages declaring it via the HTTP header.
 
 ## [0.3.0] - 2026-10-15
 

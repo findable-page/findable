@@ -17,6 +17,25 @@ func findCheck(checks []Check, id string) *Check {
 	return nil
 }
 
+// An inline SVG icon's <title> is an accessibility label for the graphic,
+// not the page title; it must not overwrite the real <title> signal (which
+// feeds title_exists, title_length, keyphrase_in_title and geo_intent_clarity).
+func TestSVGTitleDoesNotOverwritePageTitle(t *testing.T) {
+	page := `<!DOCTYPE html><html lang="en"><head><title>Real Page Title</title></head>` +
+		`<body><h1>Hello</h1><svg><title>icon</title><circle r="5"/></svg><p>Body copy.</p></body></html>`
+	sig := extractSignals("https://example.com/", page, make(http.Header), 200)
+	if sig.Title != "Real Page Title" {
+		t.Errorf("svg <title> overwrote page title: got %q", sig.Title)
+	}
+	scan := Analyze("https://example.com/", page, "", make(http.Header), 200)
+	if c := findCheck(scan.SEO.Checks, "title_exists"); c == nil || !strings.Contains(c.Label, "Real Page Title") {
+		t.Errorf("title_exists should report the head title, got %+v", c)
+	}
+	if c := findCheck(scan.SEO.Checks, "title_single"); c == nil || !c.Pass {
+		t.Errorf("title_single should ignore the svg title, got %+v", c)
+	}
+}
+
 func TestSignalsEmptyAndMalformedHTML(t *testing.T) {
 	// Empty HTML
 	sig := extractSignals("https://example.com", "", make(http.Header), 200)
@@ -39,6 +58,72 @@ func TestSignalsEmptyAndMalformedHTML(t *testing.T) {
 	sig3 := extractSignals("https://example.com", unicodeHTML, make(http.Header), 200)
 	if !strings.Contains(sig3.Title, "🚀") {
 		t.Errorf("expected emoji to be preserved in title, got: %q", sig3.Title)
+	}
+}
+
+func TestCharsetDeclared(t *testing.T) {
+	cases := []struct {
+		name   string
+		head   string
+		body   string
+		header http.Header
+		want   bool
+	}{
+		{
+			name: "meta charset",
+			head: `<meta charset="utf-8">`,
+			want: true,
+		},
+		{
+			name: "http-equiv content-type",
+			head: `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">`,
+			want: true,
+		},
+		{
+			name:   "content-type response header only",
+			head:   "",
+			header: http.Header{"Content-Type": []string{"text/html; charset=utf-8"}},
+			want:   true,
+		},
+		{
+			name: "utf-8 mentioned in body text only",
+			head: "",
+			body: `<p>We encode everything in utf-8 here.</p>`,
+			want: false,
+		},
+		{
+			name: "quoted http-equiv charset",
+			head: `<meta http-equiv="Content-Type" content='text/html; charset="UTF-8"'>`,
+			want: true,
+		},
+		{
+			name:   "spaced content-type response header",
+			header: http.Header{"Content-Type": []string{"text/html; charset = utf-8"}},
+			want:   true,
+		},
+		{
+			name: "no declaration",
+			head: "",
+			body: `<p>Hello world</p>`,
+			want: false,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			hdr := tc.header
+			if hdr == nil {
+				hdr = make(http.Header)
+			}
+			page := "<!DOCTYPE html><html lang='en'><head><title>t</title>" + tc.head + "</head><body>" + tc.body + "</body></html>"
+			scan := Analyze("https://example.com/page", page, "", hdr, 200)
+			c := findCheck(scan.SEO.Checks, "charset")
+			if c == nil {
+				t.Fatal("charset check missing")
+			}
+			if c.Pass != tc.want {
+				t.Errorf("charset pass = %v, want %v (label %q)", c.Pass, tc.want, c.Label)
+			}
+		})
 	}
 }
 
@@ -98,6 +183,32 @@ func TestSEOMetaDescBoundaries(t *testing.T) {
 	}
 }
 
+func TestSEOTextLengthsCountCharactersNotBytes(t *testing.T) {
+	// Non-ASCII text multiplies byte length: these titles/descriptions/alts are
+	// optimal in characters but exceed the limits when counted in bytes.
+	titleHTML := fmt.Sprintf(
+		"<!DOCTYPE html><html><head><title>%s</title><meta name='description' content='%s'></head></html>",
+		strings.Repeat("ビ", 40),  // 40 chars, 120 bytes
+		strings.Repeat("é", 130), // 130 chars, 260 bytes
+	)
+	res := Analyze("https://example.com", titleHTML, "", make(http.Header), 200)
+	if c := findCheck(res.SEO.Checks, "title_length"); !c.Pass {
+		t.Errorf("40-character CJK title (120 bytes) should pass title_length, got: %s", c.Label)
+	}
+	if c := findCheck(res.SEO.Checks, "desc_length"); !c.Pass {
+		t.Errorf("130-character accented description (260 bytes) should pass desc_length, got: %s", c.Label)
+	}
+
+	imgHTML := fmt.Sprintf(
+		"<!DOCTYPE html><html><body><img src='p' alt='%s' width='1' height='1'></body></html>",
+		strings.Repeat("日", 100), // 100 chars, 300 bytes
+	)
+	resImg := Analyze("https://example.com", imgHTML, "", make(http.Header), 200)
+	if c := findCheck(resImg.SEO.Checks, "img_alt_length"); !c.Pass {
+		t.Errorf("100-character CJK alt (300 bytes) should pass img_alt_length, got: %s", c.Label)
+	}
+}
+
 func TestSEOHeadingHierarchyRules(t *testing.T) {
 	// Normal: H1 -> H2 -> H3
 	validHTML := `<!DOCTYPE html><html><body><h1>Title</h1><h2>Section</h2><h3>Sub</h3></body></html>`
@@ -148,6 +259,35 @@ func TestSEOLinkSafetyAndOpener(t *testing.T) {
 	c3 := findCheck(res3.SEO.Checks, "empty_hrefs")
 	if c3.Pass {
 		t.Errorf("expected empty hrefs to fail empty_hrefs check")
+	}
+}
+
+func TestSEOLinkOpenerRelTokens(t *testing.T) {
+	for _, tc := range []struct {
+		rel  string
+		pass bool
+	}{
+		{"noopener", true},
+		{"NOREFERRER external", true},
+		{"notnoopener", false},
+		{"noopenerish noreferrer-other", false},
+		{"external", false},
+	} {
+		t.Run(tc.rel, func(t *testing.T) {
+			raw := fmt.Sprintf(`<html><body><a href="https://external.com" target="_blank" rel="%s">External</a></body></html>`, tc.rel)
+			res := Analyze("https://example.com", raw, "", make(http.Header), 200)
+			check := findCheck(res.SEO.Checks, "link_noopener")
+			if check == nil || check.Pass != tc.pass {
+				t.Errorf("rel=%q: check=%+v, want pass=%v", tc.rel, check, tc.pass)
+			}
+			if !tc.pass && check != nil && (len(check.Evidence) != 1 || check.Evidence[0].Value != "https://external.com") {
+				t.Errorf("rel=%q: missing unsafe-link evidence: %+v", tc.rel, check.Evidence)
+			}
+			signals := extractSignals("https://example.com", raw, make(http.Header), 200)
+			if tc.pass && signals.MissingOpenerCount != 0 || !tc.pass && signals.MissingOpenerCount != 1 {
+				t.Errorf("rel=%q: missing opener count=%d", tc.rel, signals.MissingOpenerCount)
+			}
+		})
 	}
 }
 
