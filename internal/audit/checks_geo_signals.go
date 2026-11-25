@@ -85,7 +85,7 @@ func geoPublishingDates(l *checkList, s *PageSignals, article bool) {
 }
 
 func hostWithoutWWW(host string) string {
-	return strings.TrimPrefix(strings.ToLower(host), "www.")
+	return strings.TrimPrefix(strings.TrimSuffix(strings.ToLower(host), "."), "www.")
 }
 
 func externalHosts(s *PageSignals) []string {
@@ -94,13 +94,13 @@ func externalHosts(s *PageSignals) []string {
 	if s.URL == nil {
 		return nil
 	}
-	own := hostWithoutWWW(s.URL.Host)
+	own := hostWithoutWWW(s.URL.Hostname())
 	for _, a := range s.Tags["a"] {
 		target := resolveNavigable(s, a.Attrs["href"])
 		if target == nil || (target.Scheme != "http" && target.Scheme != schemeHTTPS) {
 			continue
 		}
-		if host := hostWithoutWWW(target.Host); host != "" && host != own && !seen[host] {
+		if host := hostWithoutWWW(target.Hostname()); host != "" && host != own && !seen[host] {
 			seen[host] = true
 			hosts = append(hosts, host)
 		}
