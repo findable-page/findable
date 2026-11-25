@@ -56,6 +56,16 @@ func TestBrandEntityConsistency(t *testing.T) {
 		t.Fatalf("divergent brand names should fail, got %+v", c)
 	}
 
+	embedded := `<!DOCTYPE html><html><head>
+	<meta property="og:site_name" content="AI">
+	<script type="application/ld+json">{"@type":"Organization","name":"Email Weekly"}</script>
+	</head></html>`
+	res = Analyze("https://example.com", embedded, "", make(http.Header), 200)
+	c = findCheck(res.GEO.Checks, "geo_brand_entity_consistency")
+	if c.Pass {
+		t.Fatal("a short brand inside another word should not count as the same name")
+	}
+
 	headline := `<!DOCTYPE html><html><head><title>CleanPower announces a new plant</title>
 	<script type="application/ld+json">{"@type":"Organization","name":"Atlantic Energy Tribune"}</script>
 	</head></html>`

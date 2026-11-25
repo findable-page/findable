@@ -3,6 +3,8 @@ package audit
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 const schemaIDKey = "@id"
@@ -208,7 +210,40 @@ func brandNamesDisagree(a, b string) bool {
 	if a == "" || b == "" || a == b {
 		return false
 	}
-	return !strings.Contains(a, b) && !strings.Contains(b, a)
+	return !brandContains(a, b) && !brandContains(b, a)
+}
+
+// brandContains reports whether needle is a whole name inside hay. "Acme"
+// matches "Acme Widgets"; "AI" does not match "Email".
+func brandContains(hay, needle string) bool {
+	for start := 0; start < len(hay); {
+		rel := strings.Index(hay[start:], needle)
+		if rel < 0 {
+			return false
+		}
+		at := start + rel
+		if brandEdgeBefore(hay, at) && brandEdgeAfter(hay, at+len(needle)) {
+			return true
+		}
+		start = at + 1
+	}
+	return false
+}
+
+func brandEdgeBefore(text string, i int) bool {
+	if i <= 0 {
+		return true
+	}
+	r, _ := utf8.DecodeLastRuneInString(text[:i])
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+}
+
+func brandEdgeAfter(text string, i int) bool {
+	if i >= len(text) {
+		return true
+	}
+	r, _ := utf8.DecodeRuneInString(text[i:])
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }
 
 func normBrand(s string) string {
