@@ -7,8 +7,10 @@ import (
 	"time"
 )
 
+const edgeOrigin = "https://example.com/"
+
 func edgeScan(raw string) Scan {
-	return Analyze("https://example.com/page", raw, "", make(http.Header), 200)
+	return Analyze(edgeOrigin+"page", raw, "", make(http.Header), 200)
 }
 
 func edgeDoc(head, body string) string {
@@ -24,19 +26,23 @@ func TestEdgeInputsStayBounded(t *testing.T) {
 	cases := []struct {
 		name, url, html string
 	}{
-		{name: "empty", url: "https://example.com/", html: ""},
-		{name: "empty document", url: "https://example.com/", html: "<html></html>"},
+		{name: "empty", html: ""},
+		{name: "empty document", html: "<html></html>"},
 		{name: "broken url", url: "http://[", html: "<html><body><p>Hi</p></body></html>"},
-		{name: "garbage markup", url: "https://example.com/", html: "<<<<>>>>"},
-		{name: "null byte", url: "https://example.com/", html: "<p>\x00café</p>"},
-		{name: "unclosed tags", url: "https://example.com/", html: "<html><head><title>Café</title><body><article><h1>What is <b>naïve</b>?<p>Unclosed"},
-		{name: "broken json-ld", url: "https://example.com/", html: `<script type="application/ld+json">{not json</script><p>Hi</p>`},
-		{name: "huge unicode", url: "https://example.com/", html: huge},
+		{name: "garbage markup", html: "<<<<>>>>"},
+		{name: "null byte", html: "<p>\x00café</p>"},
+		{name: "unclosed tags", html: "<html><head><title>Café</title><body><article><h1>What is <b>naïve</b>?<p>Unclosed"},
+		{name: "broken json-ld", html: `<script type="application/ld+json">{not json</script><p>Hi</p>`},
+		{name: "huge unicode", html: huge},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			url := tc.url
+			if url == "" {
+				url = edgeOrigin
+			}
 			started := time.Now()
-			scan := Analyze(tc.url, tc.html, "café", make(http.Header), 200)
+			scan := Analyze(url, tc.html, "café", make(http.Header), 200)
 			if elapsed := time.Since(started); elapsed > time.Second {
 				t.Fatalf("took %s", elapsed)
 			}
