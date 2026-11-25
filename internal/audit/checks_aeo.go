@@ -77,5 +77,5 @@ func aeoSemantics(l *checkList, s *PageSignals) {
 		semanticTotal += count
 	}
 	l.add("aeo_semantic_html", fmt.Sprintf("%d semantic HTML5 elements found", semanticTotal), semanticTotal >= 4)
-	l.addEv("aeo_ai_robots", "No AI-blocking directives detected", !lowerContainsAny(s.RobotsMeta, "noindex"), evidence(`head > meta[name=robots]`, s.RobotsMeta))
+	l.addEv("aeo_ai_robots", "No AI-blocking directives detected", !robotsBlocksIndex(s), evidence(`head > meta[name=robots]`, s.RobotsMeta))
 }

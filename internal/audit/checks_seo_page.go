@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 var (
@@ -43,7 +44,7 @@ func seoImageQuality(l *checkList, s *PageSignals) {
 			placeholder++
 			placeholderEv = append(placeholderEv, evidence(sel, alt))
 		}
-		if len(alt) > 125 {
+		if utf8.RuneCountInString(alt) > 125 {
 			long++
 			longEv = append(longEv, evidence(sel, alt))
 		}
