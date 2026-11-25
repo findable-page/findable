@@ -73,6 +73,7 @@ findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-score-model
          [-min-severity LEVEL] [-config path] [-allow-private] <url or file>
 findable bots [-bots OAI-SearchBot,PerplexityBot] [-path /] [-format text|json] <url>
 findable diff [-fail-on-regression] [-max-drop N] [-markdown] <baseline.json> <current.json>
+findable fanout -query TOPIC [-format text|json] <url or file>
 findable hydrate [-rendered file | -render-cmd program] [-format text|json] <url or file>
 findable mcp
 findable serve 127.0.0.1:8080
@@ -96,6 +97,7 @@ findable simulate -query TEXT -brand NAME -domain HOST [-engine URL] [-format te
 | `-mcp` | Legacy flag (or `findable mcp`); MCP server over stdio. |
 | `simulate` | POST `-query` to `-engine` (or `FINDABLE_SIMULATE_ENGINE`). Reports whether `-brand` is mentioned, whether `-domain` is cited, and which other domains were cited. `FINDABLE_SIMULATE_TOKEN` is sent as a bearer token and is not printed. |
 | `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts, ignores `HTTPS_PROXY`/`HTTP_PROXY`, and only connects to ports 80 and 443. With it the CLI uses a plain HTTP client: no address guard, any port, proxy variables honoured. `-serve` is always guarded and ignores this flag. |
+| `fanout` | Expand `-query` into eight sub-intents (definition, how-to, comparison, pros/cons, pricing, examples, problems, practices) and mark which ones the page's headings, paragraphs or tables cover. |
 | `hydrate` | Compare raw HTML with a rendered DOM from `-rendered` or `-render-cmd`. Flags title, canonical, h1-h3, JSON-LD and body text that exist only after client rendering. |
 
 ```bash
