@@ -6,7 +6,10 @@ import (
 	"golang.org/x/net/html"
 )
 
-const robotsMetaName = "robots"
+const (
+	robotsMetaName  = "robots"
+	robotsNoneToken = "none"
+)
 
 // XRobotsRules holds parsed robots directives per agent, with "*" as the
 // wildcard. Used for both X-Robots-Tag headers and meta robots tags.
@@ -53,7 +56,7 @@ func ParseXRobotsTag(values []string) XRobotsRules {
 
 func isRobotsDirective(name string) bool {
 	switch name {
-	case "max-snippet", "max-image-preview", "max-video-preview", "unavailable_after", "noindex", "nofollow", "none", "index", "follow", "noarchive", "nosnippet", "noimageindex", "notranslate", "indexifembedded":
+	case "max-snippet", "max-image-preview", "max-video-preview", "unavailable_after", "noindex", "nofollow", robotsNoneToken, "index", "follow", "noarchive", "nosnippet", "noimageindex", "notranslate", "indexifembedded":
 		return true
 	}
 	return false
@@ -119,7 +122,11 @@ func isRobotsAgentName(name string) bool {
 }
 
 // NoIndexFor combines generic and agent-specific directives: index cannot
-// cancel a noindex directive from either source.
+// cancel a noindex directive from either source. "none" is documented by
+// Google as equivalent to noindex, nofollow.
 func (r XRobotsRules) NoIndexFor(agent string) bool {
-	return r[pageCrawler]["noindex"] || r[strings.ToLower(agent)]["noindex"]
+	blocked := func(set map[string]bool) bool {
+		return set["noindex"] || set["none"]
+	}
+	return blocked(r[pageCrawler]) || blocked(r[strings.ToLower(agent)])
 }

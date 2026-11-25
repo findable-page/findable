@@ -88,6 +88,7 @@ func TestSiteCategoryReportsRobotsAndLLMSChecks(t *testing.T) {
 		"robots-meta-externalagent": StatusPass,
 		"robots-ccbot":              StatusPass,
 		"llms-txt":                  StatusPass,
+		"llms-txt-spec":             StatusPass,
 	}
 	got := siteStatuses(cat)
 	for id, status := range want {
@@ -98,8 +99,8 @@ func TestSiteCategoryReportsRobotsAndLLMSChecks(t *testing.T) {
 	if len(cat.Checks) != len(want) {
 		t.Errorf("site category has %d checks, want %d", len(cat.Checks), len(want))
 	}
-	if cat.Score != nil || cat.Passed != 15 || cat.Total != 17 {
-		t.Errorf("site category score/passed/total = %v/%d/%d, want unscored 15/17", cat.Score, cat.Passed, cat.Total)
+	if cat.Score != nil || cat.Passed != 16 || cat.Total != 18 {
+		t.Errorf("site category score/passed/total = %v/%d/%d, want unscored 16/18", cat.Score, cat.Passed, cat.Total)
 	}
 }
 
@@ -151,6 +152,29 @@ func TestSiteCategoryWithoutRobotsOrLLMS(t *testing.T) {
 	}
 	if got["robots-page"] != StatusPass || got["robots-gptbot"] != StatusPass {
 		t.Errorf("no robots.txt means nothing is blocked: %v", got)
+	}
+	if got["llms-txt-spec"] != StatusNotApplicable {
+		t.Errorf("llms-txt-spec without a file = %q, want N/A", got["llms-txt-spec"])
+	}
+}
+
+func TestSiteCategoryFlagsMalformedLLMSTxt(t *testing.T) {
+	robots := ""
+	llms := "## Docs\n\n- [Docs](/docs)\n"
+	cat := SiteCategory("/", &robots, &llms)
+	got := siteStatuses(cat)
+	if got["llms-txt"] != StatusPass || got["llms-txt-spec"] != StatusFail {
+		t.Errorf("malformed llms.txt: llms-txt=%q llms-txt-spec=%q, want PASS/FAIL", got["llms-txt"], got["llms-txt-spec"])
+	}
+	for _, c := range cat.Checks {
+		if c.ID == "llms-txt-spec" {
+			if len(c.Evidence) == 0 || c.Evidence[0].Value == "" {
+				t.Errorf("llms-txt-spec failure must carry evidence detail, got %+v", c.Evidence)
+			}
+		}
+	}
+	if cat.Passed != 17 || cat.Total != 18 {
+		t.Errorf("spec failure keeps the file counted: passed/total = %d/%d, want 17/18", cat.Passed, cat.Total)
 	}
 }
 

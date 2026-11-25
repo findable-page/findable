@@ -19,7 +19,7 @@ const fanoutUsage = "usage: findable fanout -query TOPIC [-format text|json] [-a
 func fanoutCmd(args []string) {
 	fs := flag.NewFlagSet("fanout", flag.ContinueOnError)
 	query := fs.String("query", "", "topic to expand into sub-intents")
-	format := fs.String("format", "text", "output format: text or json")
+	format := fs.String("format", formatText, "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow fetching localhost and private-network targets")
 	fs.Usage = func() { fmt.Fprintln(os.Stderr, fanoutUsage) }
 	if err := fs.Parse(args); err != nil {
@@ -36,9 +36,9 @@ func fanoutCmd(args []string) {
 	}
 	result := audit.QueryFanout(target, html, *query)
 	switch strings.ToLower(*format) {
-	case "json":
+	case formatJSON:
 		fmt.Print(report.EncodeJSON(result))
-	case "text":
+	case formatText:
 		printFanout(result)
 	default:
 		fmt.Fprintf(os.Stderr, "findable: unknown fanout format %q (want text or json)\n", *format)

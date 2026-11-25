@@ -91,6 +91,24 @@ func TestParseMetaRobotsIgnoresNonAgents(t *testing.T) {
 	}
 }
 
+func TestXRobotsNoneMeansNoIndex(t *testing.T) {
+	// Google documents robots "none" as equivalent to noindex, nofollow.
+	if !ParseXRobotsTag([]string{"none"}).NoIndexFor("Googlebot") {
+		t.Error("X-Robots-Tag: none must be treated as noindex")
+	}
+	agent := ParseXRobotsTag([]string{"GPTBot: none"})
+	if !agent.NoIndexFor("GPTBot") {
+		t.Error("agent-scoped none must be treated as noindex")
+	}
+	if agent.NoIndexFor("Googlebot") {
+		t.Error("agent-scoped none must not leak to other agents")
+	}
+	meta := ParseMetaRobots(`<meta name="robots" content="none">`)
+	if !meta.NoIndexFor("*") {
+		t.Error("meta robots content=none must be treated as noindex")
+	}
+}
+
 func TestXRobotsNoIndexCombines(t *testing.T) {
 	// A bot-specific index cannot cancel generic noindex.
 	rules := ParseXRobotsTag([]string{"noindex, GPTBot: index"})

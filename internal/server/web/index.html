@@ -127,6 +127,9 @@
     .recent-score { font-weight: 800; color: var(--accent); }
 
     .error-panel { background: var(--surface); border: 1px solid var(--bad); border-left-width: 4px; border-radius: 14px; padding: 1rem 1.25rem; width: min(100%, 820px); margin: 0 0 1.25rem; text-align: left; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .access-banner { background: var(--bad-light); border: 1px solid var(--bad); border-left-width: 4px; border-radius: 14px; padding: 1rem 1.25rem; margin: 0 0 1.25rem; text-align: left; }
+    .access-banner[hidden] { display: none; }
+    .access-banner-title { font-weight: 800; color: var(--bad); }
     .error-panel-text { flex: 1; min-width: 200px; overflow-wrap: anywhere; }
     .error-panel-title { font-weight: 800; color: var(--bad); }
 
@@ -400,6 +403,10 @@
     </section>
 
     <div id="results" class="results-wrap hidden">
+      <div id="accessBanner" class="access-banner" hidden>
+        <div class="access-banner-title" id="accessBannerTitle"></div>
+        <p id="accessBannerMessage"></p>
+      </div>
       <section class="score-hero" aria-labelledby="resultsHeading">
         <div class="ring-box large">
           <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
@@ -1360,7 +1367,21 @@ findable https://example.com</code></pre>
       $("resultsHeading").focus({ preventScroll: true });
     }
 
+    function paintAccess(data) {
+      const banner = $("accessBanner");
+      const access = data.access;
+      if (!access || !access.accessBlocked) {
+        banner.hidden = true;
+        return;
+      }
+      banner.hidden = false;
+      $("accessBannerTitle").textContent = access.status || "BLOCKED_FROM_INDEXING";
+      const reasons = (access.reasons || []).map(reason => reason.id + ": " + reason.detail).join("; ");
+      $("accessBannerMessage").textContent = access.message + (reasons ? " " + reasons : "");
+    }
+
     function paintResults(data, url) {
+      paintAccess(data);
       $("resultUrl").textContent = url;
       document.title = t("docTitle", { host: recentHost(url) || url, n: overallScore(data) });
       $("resultDate").textContent = t("audited", { date: auditedAt.toLocaleString() }) + (auditedKeyphrase ? t("keyphraseLine", { kp: auditedKeyphrase }) : "");

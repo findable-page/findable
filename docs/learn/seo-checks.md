@@ -35,7 +35,7 @@ SEO is 50% of your findable score, the biggest share. It has 99 checks covering 
 | `lang_attr` | `<html>` has a lang attribute | Set `lang="en"` or your language |
 | `html_doctype` | `<!DOCTYPE html>` is present | Put it on line one |
 | `meta_refresh` | No meta refresh tag | Use a server redirect instead |
-| `robots_meta` | No `noindex` in the robots meta | Remove `noindex` |
+| `robots_meta` | No `noindex` or `none` in the robots meta | Remove `noindex` or `none` |
 | `h1_exists` | Exactly one h1 | Keep one h1 per page |
 | `h2_exists` | At least one h2 | Split content into sections |
 | `heading_hierarchy` | No skipped heading levels | Go h1, h2, h3 in order |
@@ -139,7 +139,7 @@ The length ranges are common guidance, not a hard rule from Google. Google may r
 
 ## How do I fix the page setup checks?
 
-Six checks cover basic page setup: `viewport`, `charset`, `lang_attr`, `html_doctype`, `meta_refresh` and `robots_meta`. Most are one-line additions to the head. The last two are about things you must not have: a meta refresh and a `noindex` directive. `html_doctype` ignores leading whitespace but fails if a byte order mark comes before the doctype.
+Six checks cover basic page setup: `viewport`, `charset`, `lang_attr`, `html_doctype`, `meta_refresh` and `robots_meta`. Most are one-line additions to the head. The last two are about things you must not have: a meta refresh and a `noindex` directive (`none` counts as `noindex, nofollow`). `html_doctype` ignores leading whitespace but fails if a byte order mark comes before the doctype.
 
 ```html
 <!DOCTYPE html>
@@ -149,7 +149,7 @@ Six checks cover basic page setup: `viewport`, `charset`, `lang_attr`, `html_doc
   <meta name="viewport" content="width=device-width, initial-scale=1">
 ```
 
-If `robots_meta` fails, look for `noindex` in `<meta name="robots">`. It tells crawlers to skip the page. If `meta_refresh` fails, replace the tag with a 301 redirect on the server.
+If `robots_meta` fails, look for `noindex` or `none` in `<meta name="robots">`. They tell crawlers to skip the page. If `meta_refresh` fails, replace the tag with a 301 redirect on the server.
 
 ## How do I fix the heading and content checks?
 

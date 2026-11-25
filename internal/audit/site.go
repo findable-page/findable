@@ -128,6 +128,8 @@ func RobotsAllows(robots, agent, path string) bool {
 	return best.allow
 }
 
+const checkRobotsPage = "robots-page"
+
 func SiteCategory(pagePath string, robots, llms *string) Category {
 	robotsText := ""
 	if robots != nil {
@@ -136,7 +138,7 @@ func SiteCategory(pagePath string, robots, llms *string) Category {
 	checks := make([]Check, 0, len(aiSearchCrawlers)+len(trainingCrawlers)+3)
 	checks = append(checks,
 		Check{ID: "robots-txt", Label: "robots.txt is present", Pass: robots != nil},
-		Check{ID: "robots-page", Label: "robots.txt lets crawlers fetch this page", Pass: RobotsAllows(robotsText, pageCrawler, pagePath)},
+		Check{ID: checkRobotsPage, Label: "robots.txt lets crawlers fetch this page", Pass: RobotsAllows(robotsText, pageCrawler, pagePath)},
 	)
 	for _, bot := range aiSearchCrawlers {
 		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
@@ -148,12 +150,26 @@ func SiteCategory(pagePath string, robots, llms *string) Category {
 		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
 	}
 	checks = append(checks, Check{ID: "llms-txt", Label: "/llms.txt is present", Pass: llms != nil})
+	notApplicable := false
+	spec := Check{ID: "llms-txt-spec", Label: "/llms.txt follows the llmstxt.org structure", Pass: true, Applicable: &notApplicable}
+	if llms != nil {
+		ok, detail := LLMSTxtSpecValid(*llms)
+		spec = Check{ID: spec.ID, Label: spec.Label, Pass: ok}
+		if !ok {
+			spec.Evidence = []Evidence{{Value: detail}}
+		}
+	}
+	checks = append(checks, spec)
 	attachMeta(checks)
-	passed := 0
+	passed, total := 0, 0
 	for _, c := range checks {
+		if c.Applicable != nil && !*c.Applicable {
+			continue
+		}
+		total++
 		if c.Pass {
 			passed++
 		}
 	}
-	return Category{Passed: passed, Total: len(checks), Checks: checks}
+	return Category{Passed: passed, Total: total, Checks: checks}
 }
