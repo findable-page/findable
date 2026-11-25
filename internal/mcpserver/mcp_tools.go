@@ -54,7 +54,8 @@ func toolDefinitions() []map[string]any {
 		tool("generate_csv_report",
 			"Generates a full UTF-8 BOM CSV audit report string for a target URL or file.",
 			schemaProps{
-				argURL: prop(typeString, "The target URL or local HTML file path."),
+				argURL:       prop(typeString, "The target URL or local HTML file path."),
+				argKeyphrase: prop(typeString, "Optional focus keyword to evaluate in title, description, and headings."),
 			}, argURL),
 	}
 }

@@ -51,6 +51,7 @@ type robotsGroup struct {
 func parseRobots(robots string) []robotsGroup {
 	var groups []robotsGroup
 	inAgents := false
+	robots = strings.TrimPrefix(robots, "\ufeff")
 	for _, line := range strings.Split(robots, "\n") {
 		line, _, _ = strings.Cut(line, "#")
 		key, value, ok := strings.Cut(line, ":")
