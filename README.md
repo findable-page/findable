@@ -74,6 +74,7 @@ findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-score-model
 findable bots [-bots OAI-SearchBot,PerplexityBot] [-path /] [-format text|json] <url>
 findable mcp
 findable serve 127.0.0.1:8080
+findable simulate -query TEXT -brand NAME -domain HOST [-engine URL] [-format text|json]
 ```
 
 | Flag | Meaning |
@@ -90,6 +91,7 @@ findable serve 127.0.0.1:8080
 | `-o`, `-q` | Report directory (default `.`); `-q` hides the failing-check list. |
 | `-serve 127.0.0.1:8080` | Legacy flag (or `findable serve`); local API and web UI. Bind to localhost; `:8080` listens on every interface. |
 | `-mcp` | Legacy flag (or `findable mcp`); MCP server over stdio. |
+| `simulate` | POST `-query` to `-engine` (or `FINDABLE_SIMULATE_ENGINE`). Reports whether `-brand` is mentioned, whether `-domain` is cited, and which other domains were cited. `FINDABLE_SIMULATE_TOKEN` is sent as a bearer token and is not printed. |
 | `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts, ignores `HTTPS_PROXY`/`HTTP_PROXY`, and only connects to ports 80 and 443. With it the CLI uses a plain HTTP client: no address guard, any port, proxy variables honoured. `-serve` is always guarded and ignores this flag. |
 
 ```bash
