@@ -61,6 +61,62 @@ func firstBotCheckID(purpose string) string {
 	return ""
 }
 
+func TestAccessGateTreatsNoneAndCrawlerSpecificDirectivesAsBlocks(t *testing.T) {
+	none := `<!DOCTYPE html><html><head><meta name="robots" content="none"><title>None</title></head><body><h1>None</h1></body></html>`
+	scan := Analyze("https://example.com", none, "", make(http.Header), http.StatusOK)
+	assertBlocked(t, scan, "robots_none")
+	if c := findCheck(scan.SEO.Checks, "robots_meta"); c == nil || !c.Pass {
+		t.Fatalf("robots none must not change the scored noindex check, got %+v", c)
+	}
+
+	search := botByPurpose(PurposeSearch)
+	directed := `<!DOCTYPE html><html><head><meta name="` + search.Name + `" content="noindex"><title>Bot</title></head><body><h1>Bot</h1></body></html>`
+	scan = Analyze("https://example.com", directed, "", make(http.Header), http.StatusOK)
+	assertBlocked(t, scan, "robots-"+strings.ToLower(search.Name))
+
+	headers := make(http.Header)
+	headers.Set("X-Robots-Tag", "GPTBot: noindex")
+	scan = Analyze("https://example.com", `<!DOCTYPE html><html><head><title>Train</title></head><body><h1>Train</h1></body></html>`, "", headers, http.StatusOK)
+	if scan.Access == nil || scan.Access.AccessBlocked {
+		t.Fatalf("training-crawler noindex closed the gate: %+v", scan.Access)
+	}
+}
+
+func TestAccessGateUsesSiteRobotsForSearchCrawlersOnly(t *testing.T) {
+	page := `<!DOCTYPE html><html><head><title>Open page with a long enough title here</title></head><body><h1>Open</h1></body></html>`
+	scan := Analyze("https://example.com/docs", page, "", make(http.Header), http.StatusOK)
+	training := botByPurpose(PurposeTraining)
+	trainingOnly := "User-agent: " + training.Name + "\nDisallow: /\n"
+	site := SiteCategory("/docs", &trainingOnly, nil)
+	scan.Site = &site
+	scan.RefreshAccess()
+	if scan.Access == nil || scan.Access.AccessBlocked {
+		t.Fatalf("training disallow closed the gate: %+v", scan.Access)
+	}
+
+	search := botByPurpose(PurposeSearch)
+	searchBlocked := "User-agent: " + search.Name + "\nDisallow: /docs\n"
+	site = SiteCategory("/docs", &searchBlocked, nil)
+	scan.Site = &site
+	scan.RefreshAccess()
+	assertBlocked(t, scan, "robots-"+strings.ToLower(search.Name))
+	trainingID := "robots-" + strings.ToLower(training.Name)
+	for _, reason := range scan.Access.Reasons {
+		if reason.ID == trainingID {
+			t.Fatal("an allowed training crawler was reported as a block")
+		}
+	}
+}
+
+func botByPurpose(purpose string) Bot {
+	for _, bot := range Bots {
+		if bot.Purpose == purpose {
+			return bot
+		}
+	}
+	return Bot{}
+}
+
 func assertBlocked(t *testing.T, scan Scan, reasonID string) {
 	t.Helper()
 	if scan.Access == nil || !scan.Access.AccessBlocked {

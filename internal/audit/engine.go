@@ -20,6 +20,7 @@ func Analyze(targetURL, rawHTML, keyphrase string, headers http.Header, statusCo
 	}
 	overall := Overall(s)
 	s.Overall = &overall
+	s.directiveReasons = indexingDirectiveReasons(&sig)
 	s.RefreshAccess()
 	return s
 }

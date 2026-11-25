@@ -41,6 +41,9 @@ type Scan struct {
 	Site          *Category   `json:"site,omitempty"`
 	StatusCode    int         `json:"statusCode,omitempty"`
 	Access        *AccessGate `json:"access,omitempty"`
+	// directiveReasons are indexing blocks the scored checks do not already
+	// fail, such as robots "none" and a noindex aimed at one search crawler.
+	directiveReasons []AccessReason
 }
 
 type Page struct {
