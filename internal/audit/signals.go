@@ -323,7 +323,12 @@ func collectMeta(sig *PageSignals, n *html.Node) {
 	case "viewport":
 		sig.Viewport = content
 	case robotsMetaName:
-		sig.RobotsMeta = content
+		// Crawlers combine every robots meta tag, so keep them all: a
+		// noindex in an earlier tag must not be hidden by a later one.
+		if sig.RobotsMeta != "" && content != "" {
+			sig.RobotsMeta += ", "
+		}
+		sig.RobotsMeta += content
 	case "theme-color":
 		sig.ThemeColor = content
 	}
@@ -398,6 +403,22 @@ func collectAnchor(sig *PageSignals, n *html.Node) {
 
 var nonNavigableHrefPrefixes = []string{"#", "javascript:", "mailto:", "tel:"}
 
+var defaultPorts = map[string]string{schemeHTTP: "80", schemeHTTPS: "443"}
+
+// sameHost reports whether a and b name the same host and port, ignoring
+// host case, a trailing dot and an explicit default port for the scheme.
+func sameHost(a, b *url.URL) bool {
+	norm := func(u *url.URL) string {
+		host := strings.TrimSuffix(strings.ToLower(u.Hostname()), ".")
+		port := u.Port()
+		if port == defaultPorts[u.Scheme] {
+			port = ""
+		}
+		return host + ":" + port
+	}
+	return norm(a) == norm(b)
+}
+
 func classifyLink(sig *PageSignals, href string) {
 	if href == "" {
 		return
@@ -416,7 +437,7 @@ func classifyLink(sig *PageSignals, href string) {
 	if base != nil {
 		resolved = base.ResolveReference(linkURL)
 	}
-	if base != nil && (resolved.Host == base.Host || resolved.Host == "") {
+	if base != nil && (resolved.Host == "" || sameHost(resolved, base)) {
 		sig.InternalLinks = append(sig.InternalLinks, resolved.String())
 	} else {
 		sig.ExternalLinks = append(sig.ExternalLinks, resolved.String())
@@ -645,6 +666,7 @@ func extractVisibleText(doc *html.Node) string {
 
 const (
 	schemeHTTPS = "https"
+	schemeHTTP  = "http"
 	tagScript   = "script"
 	tagStyle    = "style"
 )
