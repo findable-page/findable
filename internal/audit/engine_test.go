@@ -42,6 +42,72 @@ func TestSignalsEmptyAndMalformedHTML(t *testing.T) {
 	}
 }
 
+func TestCharsetDeclared(t *testing.T) {
+	cases := []struct {
+		name   string
+		head   string
+		body   string
+		header http.Header
+		want   bool
+	}{
+		{
+			name: "meta charset",
+			head: `<meta charset="utf-8">`,
+			want: true,
+		},
+		{
+			name: "http-equiv content-type",
+			head: `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">`,
+			want: true,
+		},
+		{
+			name:   "content-type response header only",
+			head:   "",
+			header: http.Header{"Content-Type": []string{"text/html; charset=utf-8"}},
+			want:   true,
+		},
+		{
+			name: "utf-8 mentioned in body text only",
+			head: "",
+			body: `<p>We encode everything in utf-8 here.</p>`,
+			want: false,
+		},
+		{
+			name: "quoted http-equiv charset",
+			head: `<meta http-equiv="Content-Type" content='text/html; charset="UTF-8"'>`,
+			want: true,
+		},
+		{
+			name:   "spaced content-type response header",
+			header: http.Header{"Content-Type": []string{"text/html; charset = utf-8"}},
+			want:   true,
+		},
+		{
+			name: "no declaration",
+			head: "",
+			body: `<p>Hello world</p>`,
+			want: false,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			hdr := tc.header
+			if hdr == nil {
+				hdr = make(http.Header)
+			}
+			page := "<!DOCTYPE html><html lang='en'><head><title>t</title>" + tc.head + "</head><body>" + tc.body + "</body></html>"
+			scan := Analyze("https://example.com/page", page, "", hdr, 200)
+			c := findCheck(scan.SEO.Checks, "charset")
+			if c == nil {
+				t.Fatal("charset check missing")
+			}
+			if c.Pass != tc.want {
+				t.Errorf("charset pass = %v, want %v (label %q)", c.Pass, tc.want, c.Label)
+			}
+		})
+	}
+}
+
 func TestSEOTitleLengthBoundaries(t *testing.T) {
 	tests := []struct {
 		titleLen int
