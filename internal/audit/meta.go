@@ -86,7 +86,7 @@ var registry = map[string]Meta{
 	"hreflang_absolute":     {SeverityMedium, TierDocumented, "Use absolute URLs in hreflang annotations.", ""},
 
 	// SEO: robots and canonicals
-	"robots_meta":                    {SeverityCritical, TierDocumented, "Remove noindex from the robots meta tag so the page can be indexed.", ""},
+	"robots_meta":                    {SeverityCritical, TierDocumented, "Remove noindex or none from the robots meta tag so the page can be indexed.", ""},
 	"robots_nofollow":                {SeverityHigh, TierDocumented, "Remove nofollow or none from the robots meta tag so links can be followed.", ""},
 	"meta_robots_conflict":           {SeverityHigh, TierDocumented, "Remove contradictory robots meta directives such as index together with noindex.", ""},
 	"meta_robots_snippet_directives": {SeverityMedium, TierDocumented, "Use max-snippet:-1, max-image-preview:large and max-video-preview:-1 in the robots meta.", ""},
@@ -222,7 +222,7 @@ var registry = map[string]Meta{
 	"aeo_howto_valid":           {SeverityMedium, TierDocumented, "Fix the HowTo JSON-LD markup.", ""},
 	"aeo_clean_url":             {SeverityLow, TierHeuristic, "Use lowercase URLs without underscores.", ""},
 	"aeo_semantic_html":         {SeverityLow, TierHeuristic, "Use semantic HTML5 elements such as main, article and nav.", ""},
-	"aeo_ai_robots":             {SeverityCritical, TierDocumented, "Remove the noindex robots meta so AI answer engines can cite this page.", ""},
+	"aeo_ai_robots":             {SeverityCritical, TierDocumented, "Remove the noindex (or none) robots meta so AI answer engines can cite this page.", ""},
 
 	// GEO
 	"geo_statistics_density":          {SeverityLow, TierHeuristic, "Add concrete numbers and units to support claims.", ""},
@@ -256,7 +256,7 @@ var registry = map[string]Meta{
 	// site-level (robots.txt, llms.txt)
 	"robots-txt":           {SeverityLow, TierDocumented, "Publish a robots.txt at the site root so crawlers can read your rules.", ""},
 	"robots-page":          {SeverityCritical, TierDocumented, "Allow crawlers to fetch this page in robots.txt; a Disallow here removes it from search.", ""},
-	"x_robots_tag_noindex": {SeverityCritical, TierDocumented, "Remove noindex from the X-Robots-Tag response header so the page can be indexed.", ""},
+	"x_robots_tag_noindex": {SeverityCritical, TierDocumented, "Remove noindex or none from the X-Robots-Tag response header so the page can be indexed.", ""},
 	"llms-txt":             {SeverityLow, TierHeuristic, "Optionally publish /llms.txt describing the site for AI tools; it is not a ranking signal.", ""},
 }
 
