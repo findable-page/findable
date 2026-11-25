@@ -122,7 +122,7 @@ func buildGeoSections(s *PageSignals) []geoSection {
 		sec := &secs[bounds[cur].sec]
 		if t.p {
 			sec.words += len(strings.Fields(t.text))
-			sec.stats += len(statRegex.FindAllString(t.text, -1))
+			sec.stats += len(statRegex.FindAllString(collapseSpaces(t.text), -1))
 			sec.text.WriteString(t.text)
 		} else if isExternalHref(s, t.href) {
 			sec.external = true

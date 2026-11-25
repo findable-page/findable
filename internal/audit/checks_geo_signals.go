@@ -93,7 +93,8 @@ func geoPublishingDates(l *checkList, s *PageSignals, article bool) {
 	} else {
 		l.add("geo_modified_after_published", "Modified date is not earlier than the publish date", modDay >= pubDay)
 	}
-	skipUnless(l, article, "geo_visible_date", "A visible published or updated date appears on the page", notArticle, visibleDateRegex.MatchString(strings.ToLower(s.TextContent)))
+	visible := collapseSpaces(strings.ToLower(s.TextContent))
+	skipUnless(l, article, "geo_visible_date", "A visible published or updated date appears on the page", notArticle, visibleDateRegex.MatchString(visible))
 }
 
 // isoMetaDate returns an article:* meta value only when it is ISO-8601.

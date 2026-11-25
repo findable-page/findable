@@ -91,7 +91,7 @@ func aeoFormatting(l *checkList, s *PageSignals) {
 }
 
 func aeoReadability(l *checkList, s *PageSignals) {
-	lowerText := strings.ToLower(s.TextContent)
+	lowerText := collapseSpaces(strings.ToLower(s.TextContent))
 	pronouns := strings.Count(lowerText, " you ") + strings.Count(lowerText, " your ") + strings.Count(lowerText, " we ")
 	l.add("aeo_conversational", "Conversational tone with user pronouns ('you', 'your', 'we')", pronouns >= 3)
 
