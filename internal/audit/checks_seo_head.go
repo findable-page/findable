@@ -70,14 +70,16 @@ func seoCanonicalQuality(l *checkList, s *PageSignals) {
 		return
 	}
 	target, err := url.Parse(canonical)
-	self := err == nil && s.URL != nil && pagePathKey(s.URL.ResolveReference(target)) == pagePathKey(s.URL)
 	canonSel := "head > link[rel=canonical]"
 	if tags := linkTags(s, "canonical"); len(tags) > 0 && tags[0].Selector != "" {
 		canonSel = tags[0].Selector
 	}
-	if self {
+	switch {
+	case s.URL == nil || (s.URL.Scheme != "http" && s.URL.Scheme != "https"):
+		l.skip("canonical_self", "No page URL to compare the canonical with (local file)")
+	case err == nil && pagePathKey(s.URL.ResolveReference(target)) == pagePathKey(s.URL):
 		l.add("canonical_self", "Canonical points to this page", true)
-	} else {
+	default:
 		l.addEv("canonical_self", "Canonical points elsewhere: "+canonical, false, evidence(canonSel, canonical))
 	}
 	l.addEv("canonical_absolute", "Canonical is an absolute URL", err == nil && target.IsAbs(), evidence(canonSel, canonical))
