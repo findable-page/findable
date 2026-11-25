@@ -120,7 +120,10 @@ func containsElement(n *html.Node, names ...string) bool {
 var tagsWithText = map[string]bool{"a": true, "button": true, tagStyle: true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
 
 var (
-	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)`)
+	// statRegex captures quantitative evidence: currency, percentages, units,
+	// counts and sample sizes (n=123). Percent needs its own alternative
+	// because a \b after % never holds (% is not a word character).
+	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*%|\b\d+(?:\.\d+)?\s*(?:ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b|\bn=\d+\b)`)
 	yearRegex = regexp.MustCompile(`\b202[4-9]\b`)
 )
 

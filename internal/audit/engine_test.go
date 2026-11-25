@@ -416,6 +416,32 @@ func TestGEOStatisticsDensityAndQuotes(t *testing.T) {
 	}
 }
 
+func TestGEOAssertionEvidencePairingSections(t *testing.T) {
+	rhet := strings.Repeat("This passage argues a position with purely rhetorical language and no facts at all whatsoever. ", 8) // 120 words
+	good := "The audit found that 73% of pages improved and n=400 were sampled. " + strings.Repeat("Detailed measurements back every claim made in this section. ", 12)
+	doc := "<!DOCTYPE html><html><body><h1>Report</h1>" +
+		"<h2>Evidence</h2><p>" + good + "</p>" +
+		"<h3>Opinion</h3><p>" + rhet + "</p>" +
+		"</body></html>"
+	res := Analyze("https://example.com", doc, "", make(http.Header), 200)
+	c := findCheck(res.GEO.Checks, "geo_assertion_evidence_pairing")
+	if c.Pass {
+		t.Fatalf("expected h3 section without evidence to fail, got %q", c.Label)
+	}
+	if len(c.Evidence) == 0 || c.Evidence[0].Selector != "h3" {
+		t.Errorf("expected evidence pointing at the lacking h3, got %+v", c.Evidence)
+	}
+
+	docGood := "<!DOCTYPE html><html><body><h1>Report</h1>" +
+		"<h2>Evidence</h2><p>" + good + "</p>" +
+		"<h3>More opinion</h3><p>" + rhet + "<a href='https://research.example/x'>source</a></p>" +
+		"</body></html>"
+	res2 := Analyze("https://example.com", docGood, "", make(http.Header), 200)
+	if c2 := findCheck(res2.GEO.Checks, "geo_assertion_evidence_pairing"); !c2.Pass {
+		t.Errorf("expected external link in h3 section to pass, got %q evidence=%+v", c2.Label, c2.Evidence)
+	}
+}
+
 func TestGEOKnowledgeGraphAndTrustSignals(t *testing.T) {
 	kgHTML := `<!DOCTYPE html><html><head>
 	<script type="application/ld+json">

@@ -225,7 +225,8 @@ var registry = map[string]Meta{
 	"aeo_ai_robots":             {SeverityCritical, TierDocumented, "Remove the noindex (or none) robots meta so AI answer engines can cite this page.", ""},
 
 	// GEO
-	"geo_statistics_density":          {SeverityLow, TierHeuristic, "Add concrete numbers and units to support claims.", ""},
+	"geo_statistics_density":          {SeverityLow, TierHeuristic, "Add concrete numbers and units: at least one data point per 300 words of body text.", ""},
+	"geo_assertion_evidence_pairing":  {SeverityMedium, TierHeuristic, "Pair claims in each content section with a figure, a date, or a citation link (Princeton GEO benchmark).", ""},
 	"geo_data_viz":                    {SeverityInfo, TierHeuristic, "Present data in tables or charts.", ""},
 	"geo_comparison":                  {SeverityInfo, TierHeuristic, "Add comparison sections or tables.", ""},
 	"geo_expert_quotes":               {SeverityLow, TierHeuristic, "Quote named experts with attribution.", ""},
