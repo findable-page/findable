@@ -72,6 +72,7 @@ findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-score-model
          [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-top N]
          [-min-severity LEVEL] [-config path] [-allow-private] <url or file>
 findable bots [-bots OAI-SearchBot,PerplexityBot] [-path /] [-format text|json] <url>
+findable fanout -query TOPIC [-format text|json] <url or file>
 findable mcp
 findable serve 127.0.0.1:8080
 ```
@@ -91,6 +92,7 @@ findable serve 127.0.0.1:8080
 | `-serve 127.0.0.1:8080` | Legacy flag (or `findable serve`); local API and web UI. Bind to localhost; `:8080` listens on every interface. |
 | `-mcp` | Legacy flag (or `findable mcp`); MCP server over stdio. |
 | `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts, ignores `HTTPS_PROXY`/`HTTP_PROXY`, and only connects to ports 80 and 443. With it the CLI uses a plain HTTP client: no address guard, any port, proxy variables honoured. `-serve` is always guarded and ignores this flag. |
+| `fanout` | Expand `-query` into eight sub-intents (definition, how-to, comparison, pros/cons, pricing, examples, problems, practices) and mark which ones the page's headings, paragraphs or tables cover. |
 
 ```bash
 findable -q -format sarif -fail-under 70 https://example.com
