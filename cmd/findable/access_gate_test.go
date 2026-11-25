@@ -24,4 +24,7 @@ func TestAuditPrintsAccessBlockedBanner(t *testing.T) {
 	if !strings.Contains(out, "robots_meta") {
 		t.Fatalf("stdout missing robots_meta reason:\n%s", out)
 	}
+	if strings.Contains(out, "No robots meta tag blocking crawling") || !strings.Contains(out, "noindex") {
+		t.Fatalf("access reason should name the blocking directive, got:\n%s", out)
+	}
 }

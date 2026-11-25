@@ -86,7 +86,7 @@ var registry = map[string]Meta{
 	"hreflang_absolute":     {SeverityMedium, TierDocumented, "Use absolute URLs in hreflang annotations.", ""},
 
 	// SEO: robots and canonicals
-	"robots_meta":                    {SeverityCritical, TierDocumented, "Remove noindex or none from the robots meta tag so the page can be indexed.", ""},
+	checkRobotsMeta:                  {SeverityCritical, TierDocumented, "Remove noindex or none from the robots meta tag so the page can be indexed.", ""},
 	"robots_nofollow":                {SeverityHigh, TierDocumented, "Remove nofollow or none from the robots meta tag so links can be followed.", ""},
 	"meta_robots_conflict":           {SeverityHigh, TierDocumented, "Remove contradictory robots meta directives such as index together with noindex.", ""},
 	"meta_robots_snippet_directives": {SeverityMedium, TierDocumented, "Use max-snippet:-1, max-image-preview:large and max-video-preview:-1 in the robots meta.", ""},
@@ -254,7 +254,7 @@ var registry = map[string]Meta{
 	"geo_modified_after_published":    {SeverityLow, TierDocumented, "Keep dateModified at or after datePublished.", ""},
 	"geo_intent_clarity":              {SeverityLow, TierHeuristic, "Align the title with the H1 so the page's subject is unambiguous.", ""},
 	"geo_format_variety":              {SeverityInfo, TierHeuristic, "Vary formatting: lists, tables, quotes and definitions.", ""},
-	"geo_snippet_control":             {SeverityMedium, TierDocumented, "Remove nosnippet or max-snippet:0 so search and AI snippets can quote the page.", ""},
+	checkSnippetControl:               {SeverityMedium, TierDocumented, "Remove nosnippet or max-snippet:0 so search and AI snippets can quote the page.", ""},
 	"geo_schema_knows_about":          {SeverityLow, TierReported, "List 3 or more core topics in knowsAbout on the Organization or WebSite JSON-LD.", ""},
 	"geo_snippet_boilerplate_control": {SeverityLow, TierDocumented, "Wrap long nav/header/footer text in data-nosnippet div/span/section elements.", ""},
 	"geo_quote_attribution":           {SeverityLow, TierHeuristic, "Attribute quotes to a named source.", ""},
@@ -267,11 +267,11 @@ var registry = map[string]Meta{
 	"geo_ssr_content_parity":          {SeverityHigh, TierHeuristic, "Server-render the body copy so raw text is at least half of the rendered text.", ""},
 
 	// site-level (robots.txt, llms.txt)
-	"robots-txt":           {SeverityLow, TierDocumented, "Publish a robots.txt at the site root so crawlers can read your rules.", ""},
-	checkRobotsPage:        {SeverityCritical, TierDocumented, "Allow crawlers to fetch this page in robots.txt; a Disallow here removes it from search.", ""},
-	"x_robots_tag_noindex": {SeverityCritical, TierDocumented, "Remove noindex or none from the X-Robots-Tag response header so the page can be indexed.", ""},
-	"llms-txt":             {SeverityLow, TierHeuristic, "Optionally publish /llms.txt describing the site for AI tools; it is not a ranking signal.", ""},
-	"llms-txt-spec":        {SeverityLow, TierDocumented, "Structure /llms.txt per llmstxt.org: one H1 title first, the > summary right after it, then H2 sections whose lists are - [Title](url) links with absolute URLs.", ""},
+	"robots-txt":        {SeverityLow, TierDocumented, "Publish a robots.txt at the site root so crawlers can read your rules.", ""},
+	checkRobotsPage:     {SeverityCritical, TierDocumented, "Allow crawlers to fetch this page in robots.txt; a Disallow here removes it from search.", ""},
+	checkXRobotsNoindex: {SeverityCritical, TierDocumented, "Remove noindex or none from the X-Robots-Tag response header so the page can be indexed.", ""},
+	"llms-txt":          {SeverityLow, TierHeuristic, "Optionally publish /llms.txt describing the site for AI tools; it is not a ranking signal.", ""},
+	"llms-txt-spec":     {SeverityLow, TierDocumented, "Structure /llms.txt per llmstxt.org: one H1 title first, the > summary right after it, then H2 sections whose lists are - [Title](url) links with absolute URLs.", ""},
 }
 
 // MetaFor returns registry metadata for a check ID. Dynamic robots-<bot>
@@ -281,7 +281,7 @@ func MetaFor(id string) Meta {
 	if m, ok := registry[id]; ok {
 		return m
 	}
-	if bot, ok := strings.CutPrefix(id, "robots-"); ok && bot != "" && bot != "txt" && bot != "page" {
+	if bot, ok := strings.CutPrefix(id, "robots-"); ok && bot != "" && bot != robotsTxtBot && bot != robotsPageBot {
 		return robotsBotMeta(bot)
 	}
 	return Meta{Severity: SeverityMedium, Tier: TierHeuristic, Fix: "Fix the issue described in the check label."}

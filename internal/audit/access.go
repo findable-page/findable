@@ -33,7 +33,7 @@ func (s *Scan) RefreshAccess() {
 		for _, check := range named.Cat.Checks {
 			if gate1Failure(check) && !seen[check.ID] {
 				seen[check.ID] = true
-				reasons = append(reasons, AccessReason{ID: check.ID, Detail: check.Label})
+				reasons = append(reasons, AccessReason{ID: check.ID, Detail: accessDetail(check)})
 			}
 		}
 	}
@@ -62,16 +62,50 @@ func httpStatusReason(status int) []AccessReason {
 	return nil
 }
 
+// accessDetail says why a failed gate check closed access. Check labels
+// describe the passing state ("robots.txt lets OAI-SearchBot fetch this
+// page"), so copying the label makes a block read as if the crawler were
+// allowed.
+func accessDetail(check Check) string {
+	switch check.ID {
+	case checkRobotsMeta:
+		return detailWithValue("robots meta blocks indexing", check)
+	case checkXRobotsNoindex:
+		return detailWithValue("X-Robots-Tag blocks indexing", check)
+	case checkSnippetControl:
+		return "robots nosnippet blocks snippets"
+	case checkRobotsPage:
+		return "robots.txt disallows crawlers for this page"
+	}
+	botName, ok := strings.CutPrefix(check.ID, "robots-")
+	if !ok || botName == robotsTxtBot {
+		return check.Label
+	}
+	if bot, found := BotByName(botName); found {
+		botName = bot.Name
+	}
+	return "robots.txt disallows " + botName + " for this page"
+}
+
+func detailWithValue(detail string, check Check) string {
+	for _, ev := range check.Evidence {
+		if v := strings.TrimSpace(ev.Value); v != "" {
+			return detail + ": " + v
+		}
+	}
+	return detail
+}
+
 func gate1Failure(check Check) bool {
 	if Status(check) != StatusFail {
 		return false
 	}
 	switch check.ID {
-	case "robots_meta", "x_robots_tag_noindex", "geo_snippet_control", checkRobotsPage:
+	case checkRobotsMeta, checkXRobotsNoindex, checkSnippetControl, checkRobotsPage:
 		return true
 	}
 	bot, ok := strings.CutPrefix(check.ID, "robots-")
-	if !ok || bot == "txt" {
+	if !ok || bot == robotsTxtBot {
 		return false
 	}
 	for _, known := range Bots {

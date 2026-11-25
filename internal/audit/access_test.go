@@ -82,6 +82,57 @@ func TestAccessGateTreatsNoneAndCrawlerSpecificDirectivesAsBlocks(t *testing.T) 
 	}
 }
 
+func TestAccessReasonsDescribeTheBlock(t *testing.T) {
+	noindex := `<!DOCTYPE html><html><head><meta name="robots" content="noindex, nofollow"><title>Hidden</title></head><body><h1>Hidden</h1></body></html>`
+	scan := Analyze("https://example.com", noindex, "", make(http.Header), http.StatusOK)
+	detail := reasonDetail(t, scan, "robots_meta")
+	if !strings.Contains(detail, "noindex") || strings.Contains(detail, "No robots meta tag blocking") {
+		t.Fatalf("robots_meta detail = %q", detail)
+	}
+
+	nosnippet := `<!DOCTYPE html><html><head><meta name="robots" content="nosnippet"><title>Snip</title></head><body><h1>Snip</h1></body></html>`
+	scan = Analyze("https://example.com", nosnippet, "", make(http.Header), http.StatusOK)
+	detail = reasonDetail(t, scan, "geo_snippet_control")
+	if !strings.Contains(strings.ToLower(detail), "nosnippet") || strings.Contains(detail, "No restrictive") {
+		t.Fatalf("geo_snippet_control detail = %q", detail)
+	}
+
+	headers := make(http.Header)
+	headers.Set("X-Robots-Tag", "noindex")
+	scan = Analyze("https://example.com", `<!DOCTYPE html><html><head><title>T</title></head><body><h1>T</h1></body></html>`, "", headers, http.StatusOK)
+	detail = reasonDetail(t, scan, "x_robots_tag_noindex")
+	if !strings.Contains(strings.ToLower(detail), "noindex") || strings.Contains(detail, "does not noindex") {
+		t.Fatalf("x_robots_tag detail = %q", detail)
+	}
+
+	search := botByPurpose(PurposeSearch)
+	blocked := "User-agent: " + search.Name + "\nDisallow: /\n"
+	page := `<!DOCTYPE html><html><head><title>News page with a long enough title</title></head><body><h1>News</h1></body></html>`
+	scan = Analyze("https://www.bbc.com/news", page, "", make(http.Header), http.StatusOK)
+	site := SiteCategory("/news", &blocked, nil)
+	scan.Site = &site
+	scan.RefreshAccess()
+	id := "robots-" + strings.ToLower(search.Name)
+	detail = reasonDetail(t, scan, id)
+	if !strings.Contains(detail, "disallows") || strings.Contains(detail, "lets") {
+		t.Fatalf("search crawler detail = %q", detail)
+	}
+}
+
+func reasonDetail(t *testing.T, scan Scan, id string) string {
+	t.Helper()
+	if scan.Access == nil {
+		t.Fatal("missing access gate")
+	}
+	for _, reason := range scan.Access.Reasons {
+		if reason.ID == id {
+			return reason.Detail
+		}
+	}
+	t.Fatalf("reasons %+v missing %s", scan.Access.Reasons, id)
+	return ""
+}
+
 func TestAccessGateUsesSiteRobotsForSearchCrawlersOnly(t *testing.T) {
 	page := `<!DOCTYPE html><html><head><title>Open page with a long enough title here</title></head><body><h1>Open</h1></body></html>`
 	scan := Analyze("https://example.com/docs", page, "", make(http.Header), http.StatusOK)

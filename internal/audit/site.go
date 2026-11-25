@@ -128,7 +128,14 @@ func RobotsAllows(robots, agent, path string) bool {
 	return best.allow
 }
 
-const checkRobotsPage = "robots-page"
+const (
+	checkRobotsMeta     = "robots_meta"
+	checkXRobotsNoindex = "x_robots_tag_noindex"
+	checkSnippetControl = "geo_snippet_control"
+	checkRobotsPage     = "robots-page"
+	robotsTxtBot        = "txt"
+	robotsPageBot       = "page"
+)
 
 func SiteCategory(pagePath string, robots, llms *string) Category {
 	robotsText := ""
