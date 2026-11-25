@@ -13,6 +13,7 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 	"commands:\n" +
 	"  audit    (default) audit one page, a crawl or a sitemap\n" +
 	"  bots     probe how AI crawlers are actually treated by the server\n" +
+	"  hydrate  compare raw HTML with a rendered DOM\n" +
 	"  mcp      run MCP server over stdio\n" +
 	"  serve    run HTTP API server\n" +
 	"\n" +
@@ -22,10 +23,11 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 // legacy flag parser, which exits 2 on an unexpected positional argument.
 // Entries are added as each Phase 1 slice lands.
 var subcommands = map[string]func([]string){
-	"audit": auditCmd,
-	"bots":  botsCmd,
-	"mcp":   mcpCmd,
-	"serve": serveCmd,
+	"audit":   auditCmd,
+	"bots":    botsCmd,
+	"hydrate": hydrateCmd,
+	"mcp":     mcpCmd,
+	"serve":   serveCmd,
 }
 
 func main() {

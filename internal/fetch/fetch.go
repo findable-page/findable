@@ -63,6 +63,36 @@ func fetchAndAudit(client *http.Client, target, keyphrase string) (audit.Scan, e
 	return audit.Analyze(resp.Request.URL.String(), string(body), keyphrase, resp.Header, resp.StatusCode), nil
 }
 
+// ReadHTML returns the raw document for a local file or an http(s) URL.
+// Callers that need the SSRF guard pass a client from NewGuardedClient.
+func ReadHTML(client *http.Client, target string) (string, error) {
+	if !IsHTTPURL(target) {
+		content, err := os.ReadFile(strings.TrimPrefix(target, fileSchemePrefix)) //nolint:gosec // reading the user-named file is the feature; see the SSRF policy in SECURITY.md
+		if err != nil {
+			return "", fmt.Errorf("read file: %w", err)
+		}
+		return string(content), nil
+	}
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, target, http.NoBody)
+	if err != nil {
+		return "", fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("User-Agent", userAgent)
+	resp, err := client.Do(req) //nolint:gosec // fetching the user-named URL is the feature; see the SSRF policy in SECURITY.md
+	if err != nil {
+		return "", fmt.Errorf("fetch %s: %w", target, err)
+	}
+	defer closeBody(resp)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, MaxPageBytes+1))
+	if err != nil {
+		return "", fmt.Errorf("read body: %w", err)
+	}
+	if len(body) > MaxPageBytes {
+		return "", fmt.Errorf("%s: %w", target, ErrPageTooLarge)
+	}
+	return string(body), nil
+}
+
 func closeBody(resp *http.Response) {
 	_ = resp.Body.Close()
 }
