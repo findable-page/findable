@@ -56,6 +56,44 @@ func TestReadAnswerIgnoresEmbeddedTermsAndNormalizesHosts(t *testing.T) {
 	}
 }
 
+func TestReadAnswerSentimentTieIgnoresDistantWords(t *testing.T) {
+	tied := ReadAnswer(EngineResponse{Text: "Findable is the best and the worst scanner."}, "q", "e", "findable", "findable.page")
+	if !tied.BrandMentioned || tied.Sentiment != sentimentNeutral {
+		t.Fatalf("tie = %+v", tied)
+	}
+	far := "Findable. " + strings.Repeat("pad ", 80) + "terrible results"
+	distant := ReadAnswer(EngineResponse{Text: far}, "q", "e", "Findable", "findable.page")
+	if !distant.BrandMentioned || distant.Sentiment != sentimentNeutral {
+		t.Fatalf("distant = %+v", distant)
+	}
+	if ReadAnswer(EngineResponse{Text: "Findable is great"}, "q", "e", "  ", "findable.page").BrandMentioned {
+		t.Fatal("blank brand matched")
+	}
+}
+
+func TestReadAnswerCitationHosts(t *testing.T) {
+	report := ReadAnswer(EngineResponse{Citations: []Citation{
+		{URL: "https://findable.page.evil.com/a"},
+		{URL: "https://www.g2.com:443/products"},
+		{URL: ""},
+		{URL: "javascript:alert(1)"},
+		{URL: "https://docs.findable.page/guide"},
+	}}, "q", "e", "findable", "findable.page/docs")
+	if !report.Cited {
+		t.Fatal("own subdomain should count as cited")
+	}
+	if got := strings.Join(report.CompetitorDomains, ","); got != "findable.page.evil.com,g2.com" {
+		t.Fatalf("competitors = %q", got)
+	}
+}
+
+func TestRedactSecretStripsTokenAndUserinfo(t *testing.T) {
+	msg := redactSecret("tok=abc pass=xyz", "abc", "http://user:xyz@engine.test/q")
+	if strings.Contains(msg, "abc") || strings.Contains(msg, "xyz") {
+		t.Fatalf("secret left in %q", msg)
+	}
+}
+
 func TestQueryErrorOmitsToken(t *testing.T) {
 	const token = "secret-token"
 	_, err := Query(context.Background(), &http.Client{Timeout: time.Second}, "http://127.0.0.1:1/?access_token="+token, "q", token)
