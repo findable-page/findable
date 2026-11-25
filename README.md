@@ -50,7 +50,7 @@ One overall score from 0 to 100, built from three families. The default model is
 | AEO (answer engine optimization) | 25% | 38 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
 | GEO (generative engine optimization) | 25% | 34 | Author and organization markup, knowsAbout topics, author credentials, entity sameAs and @id graph, brand-name consistency, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
 
-The Go engine runs 172 page checks. Four more SEO checks run when you pass a focus keyphrase with `-k`. The hosted API at [findable.page](https://findable.page) is a separate TypeScript engine. Eighteen site checks are opt-in (`-site`) and unscored. Every failing check names what to fix. `llms.txt` is optional hygiene, not a documented ranking signal.
+The Go engine runs 172 page checks. Four more SEO checks run when you pass a focus keyphrase with `-k`. Every scan also reports an `access` gate. When robots `noindex`, `none` or `nosnippet`, a non-2xx response, or a disallowed AI search crawler closes that gate, the CLI and web report show `BLOCKED_FROM_INDEXING` and the JSON field `access.accessBlocked` is true. Content scores are still returned so the two problems stay separate. The hosted API at [findable.page](https://findable.page) is a separate TypeScript engine. Eighteen site checks are opt-in (`-site`) and unscored. Every failing check names what to fix. `llms.txt` is optional hygiene, not a documented ranking signal.
 
 <details>
 <summary>The 18 site checks (<code>-site</code>)</summary>

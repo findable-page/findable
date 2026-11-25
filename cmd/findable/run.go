@@ -62,10 +62,12 @@ func runAudit(client *http.Client, target string, opts options) {
 	}
 	if opts.site {
 		s.Site = fetch.SiteChecks(client, target)
+		s.RefreshAccess()
 	}
 	path := reportPath(opts.outDir, "findable-report", hostName, opts.format)
 	writeReport(path, report.PageReport(opts.format, hostName, audit.Page{URL: target, Scan: s}))
 
+	printAccessGate(s)
 	fmt.Printf("overall %d  SEO %s  AEO %s  GEO %s\n", audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO))
 	if !opts.quiet {
 		printFixList([]audit.Page{{URL: target, Scan: s}}, opts.cfg, opts.top, opts.minSeverity)
@@ -143,8 +145,20 @@ func exitIfBelow(pages []audit.Page, minimum int) {
 	}
 }
 
+func printAccessGate(s audit.Scan) {
+	if s.Access == nil || !s.Access.AccessBlocked {
+		return
+	}
+	fmt.Println("BLOCKED_FROM_INDEXING")
+	fmt.Println(s.Access.Message)
+	for _, reason := range s.Access.Reasons {
+		fmt.Printf("  - %s: %s\n", reason.ID, reason.Detail)
+	}
+}
+
 func printCrawlProgress(done, limit int, p audit.Page) {
 	s := p.Scan
+	printAccessGate(s)
 	fmt.Printf("[%d/%d] %s  overall %d  SEO %s  AEO %s  GEO %s  failed %d\n",
 		done, limit, p.URL, audit.Overall(s), audit.ScoreText(s.SEO), audit.ScoreText(s.AEO), audit.ScoreText(s.GEO), audit.FailedCount(s))
 }

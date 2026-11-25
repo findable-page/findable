@@ -106,7 +106,7 @@ func seoRobotsDirectives(l *checkList, s *PageSignals) {
 	tokens := robotsTokens(s)
 	conflict := (tokens["index"] && (tokens["noindex"] || tokens["none"])) || (tokens["follow"] && (tokens["nofollow"] || tokens["none"]))
 	l.add("meta_robots_conflict", "Robots meta directives do not contradict each other", !conflict)
-	l.add("robots_nofollow", "Page does not nofollow all its links via robots meta", !tokens["nofollow"] && !tokens["none"])
+	l.add("robots_nofollow", "Page does not nofollow all its links via robots meta", !tokens["nofollow"] && !tokens[robotsNoneToken])
 	seoSnippetDirectives(l, s)
 }
 

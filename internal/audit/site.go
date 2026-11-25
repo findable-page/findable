@@ -128,6 +128,8 @@ func RobotsAllows(robots, agent, path string) bool {
 	return best.allow
 }
 
+const checkRobotsPage = "robots-page"
+
 func SiteCategory(pagePath string, robots, llms *string) Category {
 	robotsText := ""
 	if robots != nil {
@@ -136,7 +138,7 @@ func SiteCategory(pagePath string, robots, llms *string) Category {
 	checks := make([]Check, 0, len(aiSearchCrawlers)+len(trainingCrawlers)+3)
 	checks = append(checks,
 		Check{ID: "robots-txt", Label: "robots.txt is present", Pass: robots != nil},
-		Check{ID: "robots-page", Label: "robots.txt lets crawlers fetch this page", Pass: RobotsAllows(robotsText, pageCrawler, pagePath)},
+		Check{ID: checkRobotsPage, Label: "robots.txt lets crawlers fetch this page", Pass: RobotsAllows(robotsText, pageCrawler, pagePath)},
 	)
 	for _, bot := range aiSearchCrawlers {
 		checks = append(checks, crawlerCheck(robotsText, pagePath, bot))
