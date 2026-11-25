@@ -580,3 +580,93 @@ func TestLocalAuditEngineAll10Archetypes(t *testing.T) {
 		}
 	}
 }
+
+func TestAEORAGChunkBudgetSections(t *testing.T) {
+	words := func(n int) string { return strings.Repeat("word ", n) }
+
+	// One 380-word h2 section (~506 tokens) exceeds the 500-token budget.
+	monolith := `<!DOCTYPE html><html><body><h2>Latency tuning</h2><p>` + words(380) + `</p></body></html>`
+	res := Analyze("https://example.com", monolith, "", make(http.Header), 200)
+	c := findCheck(res.AEO.Checks, "aeo_chunk_token_budget")
+	if c == nil || c.Pass {
+		t.Errorf("expected 380-word section to fail aeo_chunk_token_budget, got %+v", c)
+	}
+	if len(c.Evidence) == 0 || c.Evidence[0].Selector != "h2" {
+		t.Errorf("expected evidence anchored at the opening h2, got %+v", c.Evidence)
+	}
+	want := fmt.Sprintf("~%d tokens", approxTokens(380))
+	if !strings.HasSuffix(c.Evidence[0].Value, want) {
+		t.Errorf("expected %q token estimate in evidence, got %q", want, c.Evidence[0].Value)
+	}
+
+	// An h3 subheading splits the same 380 words into two in-budget sections.
+	split := `<!DOCTYPE html><html><body><h2>Latency tuning</h2><p>` + words(190) + `</p><h3>Measuring tail latency</h3><p>` + words(190) + `</p></body></html>`
+	res = Analyze("https://example.com", split, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget"); c == nil || !c.Pass {
+		t.Errorf("expected subheadings to keep sections within budget, got %+v", c)
+	}
+
+	// h5/h6 do not delimit sections, so this is still one oversized chunk.
+	shallow := `<!DOCTYPE html><html><body><h2>Latency tuning</h2><h5>part one</h5><p>` + words(190) + `</p><h6>part two</h6><p>` + words(190) + `</p></body></html>`
+	res = Analyze("https://example.com", shallow, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget"); c == nil || c.Pass {
+		t.Errorf("expected h5/h6 not to split sections, got %+v", c)
+	}
+
+	// A li carries its nested sub-list text, so nested li words must not
+	// count twice: 300 visible words stay at ~400 tokens and pass.
+	nested := `<!DOCTYPE html><html><body><h2>List section</h2><ul><li>` + words(150) + `<ul><li>` + words(150) + `</li></ul></li></ul></body></html>`
+	res = Analyze("https://example.com", nested, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget"); c == nil || !c.Pass {
+		t.Errorf("expected nested list words to count once, got %+v", c)
+	}
+
+	// No h2-h4 headings: not applicable rather than failed.
+	plain := `<!DOCTYPE html><html><body><p>` + words(400) + `</p></body></html>`
+	res = Analyze("https://example.com", plain, "", make(http.Header), 200)
+	c = findCheck(res.AEO.Checks, "aeo_chunk_token_budget")
+	if c == nil || c.Applicable == nil || *c.Applicable {
+		t.Errorf("expected aeo_chunk_token_budget not applicable without h2-h4, got %+v", c)
+	}
+}
+
+func TestAEOHeadingSemanticSpecificity(t *testing.T) {
+	generic := `<!DOCTYPE html><html><body>
+	<h2>Overview</h2><p>x</p>
+	<h3>How caching helps</h3><p>y</p>
+	<h3>Section 2</h3><p>z</p>
+	<h3>mehr Infos</h3><p>w</p>
+	</body></html>`
+	res := Analyze("https://example.com", generic, "", make(http.Header), 200)
+	c := findCheck(res.AEO.Checks, "aeo_heading_semantic_specificity")
+	if c == nil || c.Pass {
+		t.Errorf("expected generic headings to fail aeo_heading_semantic_specificity, got %+v", c)
+	}
+	flagged := map[string]bool{}
+	for _, ev := range c.Evidence {
+		flagged[ev.Value] = true
+	}
+	for _, want := range []string{"Overview", "Section 2", "mehr Infos"} {
+		if !flagged[want] {
+			t.Errorf("expected heading %q flagged, got %v", want, flagged)
+		}
+	}
+	if flagged["How caching helps"] {
+		t.Errorf("descriptive heading wrongly flagged: %v", flagged)
+	}
+
+	descriptive := `<!DOCTYPE html><html><body>
+	<h2>How caching cuts tail latency</h2><p>x</p>
+	<h3>Overview of pricing tiers</h3><p>y</p>
+	</body></html>`
+	res = Analyze("https://example.com", descriptive, "", make(http.Header), 200)
+	if c = findCheck(res.AEO.Checks, "aeo_heading_semantic_specificity"); c == nil || !c.Pass {
+		t.Errorf("expected descriptive headings to pass, got %+v", c)
+	}
+
+	res = Analyze("https://example.com", "<!DOCTYPE html><html><body><p>no headings</p></body></html>", "", make(http.Header), 200)
+	c = findCheck(res.AEO.Checks, "aeo_heading_semantic_specificity")
+	if c == nil || c.Applicable == nil || *c.Applicable {
+		t.Errorf("expected not applicable without h2/h3, got %+v", c)
+	}
+}

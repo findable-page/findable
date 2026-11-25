@@ -1,6 +1,6 @@
 ---
 title: "Every findable AEO Check ID and How to Fix It"
-description: "All 36 AEO checks in findable explained, from aeo_faq to aeo_summary. See what each id tests, how loose the test is and how to fix it. AEO is 25% of the score."
+description: "All 38 AEO checks in findable explained, from aeo_faq to aeo_summary. See what each id tests, how loose the test is and how to fix it. AEO is 25% of the score."
 slug: aeo-checks
 date: 2026-10-14
 updated: 2026-10-14
@@ -18,11 +18,11 @@ faq:
 
 # Every AEO check findable runs, and how to fix each one
 
-AEO is about making your page easy to answer from. People ask a question. A search feature or an assistant looks for a clean passage that answers it. These 35 checks test whether your page offers that. Most are simple pattern matches on your HTML or text.
+AEO is about making your page easy to answer from. People ask a question. A search feature or an assistant looks for a clean passage that answers it. These 38 checks test whether your page offers that. Most are simple pattern matches on your HTML or text.
 
 ## What does the AEO family test in findable?
 
-AEO is 25% of your findable score. It has 36 checks on answer shape: structured data, FAQ markup, short direct paragraphs, question headings, lists, tables, plain language and clean markup. Every check is a pattern test on your HTML and text, so each one is only a proxy.
+AEO is 25% of your findable score. It has 38 checks on answer shape: structured data, FAQ markup, short direct paragraphs, question headings, lists, tables, plain language and clean markup. Every check is a pattern test on your HTML and text, so each one is only a proxy.
 
 | Check id | What it checks | Fix in one line |
 | --- | --- | --- |
@@ -62,6 +62,8 @@ AEO is 25% of your findable score. It has 36 checks on answer shape: structured 
 | `aeo_figure_captions` | Figures have a figcaption (N/A without figures) | Add `figcaption` |
 | `aeo_details_summary` | Each details has a summary (N/A without details) | Add `summary` |
 | `aeo_lead_direct_answer` | A 20-80 word definition paragraph within 100 words of the H1 (N/A without H1 or paragraph) | Answer in the first paragraph |
+| `aeo_chunk_token_budget` | Every h2-h4 section fits ~500 tokens (about 375 words) so RAG chunkers do not cut it mid-passage (N/A without h2-h4) | Split long sections with subheadings |
+| `aeo_heading_semantic_specificity` | h2/h3 headings avoid generic labels like Overview, Details or Section 2 | Name the topic in the heading |
 
 ## How do I fix the structured data and FAQ checks?
 
@@ -136,7 +138,7 @@ Despite the name, `aeo_ai_robots` only checks the robots meta tag for `noindex` 
 
 ## Key takeaways
 
-- AEO is 25% of the findable score and has 36 checks.
+- AEO is 25% of the findable score and has 38 checks.
 - Most checks only test that an element or phrase exists. They are proxies.
 - Put a 30 to 80 word answer right under a question heading.
 - Use lists, tables, steps and code blocks where the content calls for them.
