@@ -207,3 +207,13 @@ func TestRobotsIgnoresPatternsWithMoreThanTenWildcards(t *testing.T) {
 		}
 	}
 }
+
+func TestRobotsIgnoresALeadingByteOrderMark(t *testing.T) {
+	robots := "\ufeffUser-agent: *\nDisallow: /\n"
+	if RobotsAllows(robots, googlebot, "/") {
+		t.Error("a UTF-8 BOM before the first User-agent line dropped the whole group")
+	}
+	if RobotsAllows(robots, "GPTBot", "/page") {
+		t.Error("GPTBot should fall back to the * group that disallows everything")
+	}
+}

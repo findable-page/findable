@@ -8,10 +8,6 @@ updates:
     directory: /mcp
     schedule:
       interval: weekly
-  - package-ecosystem: bun
-    directory: /worker
-    schedule:
-      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     schedule:
