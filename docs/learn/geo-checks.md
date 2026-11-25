@@ -47,7 +47,7 @@ GEO is 25% of your findable score. It has 34 checks on citability: numbers, tabl
 | `geo_freshness` | `<time>`, a year in text, or `dateModified` | Show a date |
 | `geo_time_element` | A `<time>` element | Wrap dates in `<time>` |
 | `geo_content_length` | 300 or more words | Write enough to be useful |
-| `geo_intent_clarity` | 2 or more title words (over 3 letters) in the first heading | Match h1 to title |
+| `geo_intent_clarity` | H1 shares the title's subject: two words over 3 letters, the only such word, or a short name (URL, Go) as a whole word. A `Topic - Site` suffix is compared on its own | Match h1 to title |
 | `geo_format_variety` | 3 or more of lists, tables, quotes, code, dl | Mix formats |
 | `geo_snippet_control` | No `nosnippet` in the robots meta | Remove `nosnippet` |
 | `geo_date_published` | A valid publish date in schema or meta (N/A unless the page is an article) | Add `datePublished` |
@@ -102,13 +102,13 @@ The `geo_trust` check looks for the strings "about" and "contact" in your intern
 
 ## How do I fix the freshness, intent and format checks?
 
-Five checks cover shape and dates: `geo_freshness`, `geo_time_element`, `geo_intent_clarity`, `geo_format_variety` and `geo_snippet_control`. Show a date in a `<time>` element, share words between title and first heading, mix 3 formats, and avoid `nosnippet` in the robots meta. The five formats counted are lists, tables, blockquotes, code and definition lists.
+Five checks cover shape and dates: `geo_freshness`, `geo_time_element`, `geo_intent_clarity`, `geo_format_variety` and `geo_snippet_control`. Show a date in a `<time>` element, share the title's subject with the H1, mix 3 formats, and avoid `nosnippet` in the robots meta. The five formats counted are lists, tables, blockquotes, code and definition lists.
 
 ```html
 <time datetime="2026-10-14">October 14, 2026</time>
 ```
 
-`geo_freshness` passes on a `<time>` element, a year from 2024 to 2029 in the text, or a `dateModified` in schema. A year in the text is a weak signal, and a 2023 date does not count. `geo_intent_clarity` counts shared words longer than 3 letters between the title and the first heading. `geo_snippet_control` fails if `nosnippet` limits what can be shown.
+`geo_freshness` passes on a `<time>` element, a year from 2024 to 2029 in the text, or a `dateModified` in schema. A year in the text is a weak signal, and a 2023 date does not count. `geo_intent_clarity` compares the title with the primary H1. Two shared words longer than 3 letters still pass, and so does the only long word (`React` / `React`) or a short name matched as a whole word (`URL - Wikipedia` / `URL`). `AI` does not match `Email`. `geo_snippet_control` fails if `nosnippet` limits what can be shown.
 
 ## What are the Site checks and why do AI crawlers care?
 

@@ -379,14 +379,45 @@ func firstH1Text(headings []Heading) string {
 }
 
 func titleMatchesHeading(title, h1 string) bool {
-	firstHeading := strings.ToLower(h1)
-	matches := 0
-	for _, word := range strings.Fields(strings.ToLower(title)) {
-		if len(word) > 3 && strings.Contains(firstHeading, word) {
-			matches++
+	if headingCovers(title, h1) {
+		return true
+	}
+	// "URL - Wikipedia" puts the subject on one side of the site suffix.
+	// Either side may be the H1.
+	parts := titleBrandParts(title)
+	if len(parts) != 2 {
+		return false
+	}
+	return headingCovers(parts[0], h1) || headingCovers(parts[1], h1)
+}
+
+// headingCovers reports whether text and the H1 name the same subject.
+// Several long words still need two hits, so one shared word is not enough.
+// The only long word ("React") or a short name ("URL", "Go") matches on its
+// own. Short names must be a whole word, so "AI" does not match "Email".
+func headingCovers(text, h1 string) bool {
+	h1 = strings.ToLower(h1)
+	var words []string
+	for _, word := range strings.Fields(strings.ToLower(text)) {
+		word = strings.Trim(word, ".,;:!?\"'()[]")
+		if len(word) > 3 {
+			words = append(words, word)
 		}
 	}
-	return matches >= 2
+	if len(words) == 0 {
+		compact := strings.Trim(strings.Join(strings.Fields(strings.ToLower(text)), " "), ".,;:!?\"'()[]-")
+		return compact != "" && brandContains(h1, compact)
+	}
+	if len(words) == 1 {
+		return brandContains(h1, words[0])
+	}
+	matched := 0
+	for _, word := range words {
+		if strings.Contains(h1, word) {
+			matched++
+		}
+	}
+	return matched >= 2
 }
 
 func formattingTypeCount(s *PageSignals) int {

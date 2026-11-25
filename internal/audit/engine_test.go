@@ -539,6 +539,38 @@ func TestGEOIntentClarityComparesTitleWithH1(t *testing.T) {
 	}
 }
 
+func TestGEOIntentClarityAcceptsShortSubjects(t *testing.T) {
+	page := func(title, h1 string) string {
+		return "<!DOCTYPE html><html><head><title>" + title + "</title></head><body><h1>" + h1 + "</h1></body></html>"
+	}
+	react := "React"
+	pass := [][2]string{
+		{react, react},
+		{react, react + " Videos"},
+		{"URL - Wikipedia", "URL"},
+		{"Wikipedia - URL", "URL"},
+		{"Go", "Build simple systems with Go"},
+	}
+	for _, pair := range pass {
+		scan := Analyze("https://example.com", page(pair[0], pair[1]), "", make(http.Header), 200)
+		if c := findCheck(scan.GEO.Checks, "geo_intent_clarity"); c == nil || !c.Pass || (c.Applicable != nil && !*c.Applicable) {
+			t.Errorf("%q vs %q should pass, got %+v", pair[0], pair[1], c)
+		}
+	}
+	fail := [][2]string{
+		{"AI", "Email marketing guide"},
+		{"Go", "Golang weekly"},
+		{"Port", "Portfolio redesign"},
+		{"Products Catalog", "Artisan Bakery in Dhaka"},
+	}
+	for _, pair := range fail {
+		scan := Analyze("https://example.com", page(pair[0], pair[1]), "", make(http.Header), 200)
+		if c := findCheck(scan.GEO.Checks, "geo_intent_clarity"); c == nil || c.Pass {
+			t.Errorf("%q vs %q should fail, got %+v", pair[0], pair[1], c)
+		}
+	}
+}
+
 func TestLocalAuditEngineOnThinPage(t *testing.T) {
 	htmlBytes, err := os.ReadFile("../../testdata/site/01-thin-poor.html")
 	if err != nil {
