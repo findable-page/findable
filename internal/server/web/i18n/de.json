@@ -158,5 +158,8 @@
 "geo_authoritative_links":{"name":"Verlinkung autoritativer Quellen","fix":"Zitiere Primärquellen, etwa .gov-, .edu- oder Referenzseiten."},
 "geo_source_diversity":{"name":"Vielfalt der Quellen","fix":"Zitiere mehr als eine Quelle, mindestens drei verschiedene Domains."},
 "geo_quote_attribution":{"name":"Zitate mit Quellenangabe","fix":"Füge cite oder ein cite-Element zu Zitaten hinzu."},
-"geo_policy_links":{"name":"Links zu Datenschutz und Bedingungen","fix":"Verlinke Datenschutzerklärung und Nutzungsbedingungen."}
+"geo_policy_links":{"name":"Links zu Datenschutz und Bedingungen","fix":"Verlinke Datenschutzerklärung und Nutzungsbedingungen."},
+"meta_robots_snippet_directives":{"name":"Robots-Meta begrenzt Snippets nicht","fix":"Nutze max-snippet:-1, max-image-preview:large und max-video-preview:-1 oder lass die Begrenzungen weg."},
+"aeo_lead_direct_answer":{"name":"Direkte Antwort nach der H1","fix":"Beginne mit einem 20-80 Wörter langen Absatz, der das Thema definiert oder beantwortet."},
+"geo_snippet_boilerplate_control":{"name":"Blindtext unter data-nosnippet","fix":"Umschließe lange Navigations-, Header- und Footer-Texte mit einem div, span oder section mit data-nosnippet."}
 }

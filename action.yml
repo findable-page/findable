@@ -12,6 +12,10 @@ inputs:
     description: Fail the step when any page's overall score is below this number (0 never fails).
     required: false
     default: "0"
+  score-model:
+    description: Scoring model; use flat to retain legacy CI thresholds.
+    required: false
+    default: flat
   args:
     description: Extra CLI flags, for example "-site" or "-crawl -limit 10".
     required: false
@@ -44,12 +48,13 @@ runs:
       env:
         AUDIT_URL: ${{ inputs.url }}
         FAIL_UNDER: ${{ inputs.fail-under }}
+        SCORE_MODEL: ${{ inputs.score-model }}
         EXTRA_ARGS: ${{ inputs.args }}
       run: |
         out="$RUNNER_TEMP/findable-report"
         mkdir -p "$out"
         set +e
-        "$RUNNER_TEMP/findable" -q -format sarif -fail-under "$FAIL_UNDER" -o "$out" $EXTRA_ARGS ${AUDIT_URL:+"$AUDIT_URL"}
+        "$RUNNER_TEMP/findable" -q -format sarif -fail-under "$FAIL_UNDER" -score-model "$SCORE_MODEL" -o "$out" $EXTRA_ARGS ${AUDIT_URL:+"$AUDIT_URL"}
         code=$?
         set -e
         sarif="$(find "$out" -name '*.sarif' -print -quit)"

@@ -116,7 +116,7 @@ func Crawl(client *http.Client, start string, opts CrawlOptions) ([]audit.Page, 
 func (c *crawler) anchorTo(links []string) {
 	for _, link := range links {
 		u, err := url.Parse(link)
-		if err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Hostname() != "" {
+		if err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Hostname() != "" { //nolint:goconst // standard URL schemes
 			c.start = u
 			return
 		}

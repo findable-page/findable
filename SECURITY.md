@@ -20,4 +20,6 @@ Expect a first reply within 7 days. Only the latest release gets fixes.
 
 The Go `-serve` API applies the same address, port, redirect, timeout and size rules and refuses local files. The CLI itself reads any URL or file you name, because that is its job.
 
+`findable bots` sends one baseline request plus bot user-agent requests (roughly 15 by default) from your IP. Some WAFs may rate-limit or ban that IP; use it only on sites you are authorized to probe.
+
 To report a bypass, use the advisory link above.
