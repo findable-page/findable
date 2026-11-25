@@ -72,6 +72,7 @@ findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-score-model
          [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-top N]
          [-min-severity LEVEL] [-config path] [-allow-private] <url or file>
 findable bots [-bots OAI-SearchBot,PerplexityBot] [-path /] [-format text|json] <url>
+findable diff [-fail-on-regression] [-max-drop N] [-markdown] <baseline.json> <current.json>
 findable mcp
 findable serve 127.0.0.1:8080
 ```
@@ -81,6 +82,7 @@ findable serve 127.0.0.1:8080
 | `-format csv\|json\|sarif` | Report format. `json` is the same object `/api/scan` returns, `sarif` is SARIF 2.1.0 for GitHub code scanning. Default `csv`. |
 | `-fail-under N` | Exit 1 and name every page whose overall score is below N. |
 | `-score-model weighted\|flat` | Scoring formula. Default `weighted`. `flat` keeps legacy passed/total scores. |
+| `diff` | Compare a JSON report against a stored baseline: per-page score movement (overall, SEO, AEO, GEO), checks that stopped passing, and improvements. Accepts page, crawl and sitemap JSON reports; `-markdown` prints a PR-comment table, `-fail-on-regression` exits 1 when any check regressed or a page's overall score dropped by more than `-max-drop` (default 0). |
 | `-sitemap URL` | Audit the pages a sitemap lists. Sitemap indexes are followed. |
 | `-site` | Also run the 17 site checks (robots.txt, AI search, user-fetch and training crawlers, llms.txt). |
 | `-crawl` | Follow internal links, up to `-limit` pages (default 20). |
@@ -96,6 +98,8 @@ findable serve 127.0.0.1:8080
 findable -q -format sarif -fail-under 70 https://example.com
 findable -sitemap https://example.com/sitemap.xml -limit 50
 findable -site -crawl -limit 10 https://example.com
+findable -q -format json https://example.com -o baseline
+findable diff -fail-on-regression baseline.json <current-report>.json
 findable bots -bots OAI-SearchBot,Claude-SearchBot https://example.com
 ```
 
