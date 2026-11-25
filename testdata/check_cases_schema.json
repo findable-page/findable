@@ -379,6 +379,10 @@
     "pass": [
       {
         "head": "<title>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</title>"
+      },
+      {
+        "head": "<title>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</title>",
+        "body": "<svg><title>icon</title></svg>"
       }
     ],
     "fail": [
