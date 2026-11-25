@@ -3,6 +3,8 @@ package audit
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func evalAEO(s *PageSignals) []Check {
@@ -38,12 +40,45 @@ func aeoAnswerShape(l *checkList, s *PageSignals) {
 
 func hasQuestionHeading(headings []Heading) bool {
 	for _, h := range headings {
-		t := strings.ToLower(h.Text)
-		if strings.HasPrefix(t, "what") || strings.HasPrefix(t, "how") || strings.HasPrefix(t, "why") || strings.HasSuffix(t, "?") {
+		if questionHeading(h.Text) {
 			return true
 		}
 	}
 	return false
+}
+
+// questionHeading matches a heading that starts with the word What, How, or
+// Why, or ends with a question mark. "However" and "Whatever" do not.
+func questionHeading(text string) bool {
+	t := strings.ToLower(strings.TrimSpace(text))
+	if t == "" {
+		return false
+	}
+	if endsWithQuestion(t) {
+		return true
+	}
+	for _, lead := range []string{"what", "how", "why"} {
+		if hasWordPrefix(t, lead) {
+			return true
+		}
+	}
+	return false
+}
+
+func endsWithQuestion(text string) bool {
+	r, _ := utf8.DecodeLastRuneInString(text)
+	return r == '?' || r == '？' || r == '؟'
+}
+
+func hasWordPrefix(text, word string) bool {
+	if !strings.HasPrefix(text, word) {
+		return false
+	}
+	if len(text) == len(word) {
+		return true
+	}
+	r, _ := utf8.DecodeRuneInString(text[len(word):])
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }
 
 func aeoFormatting(l *checkList, s *PageSignals) {
