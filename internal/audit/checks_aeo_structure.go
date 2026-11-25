@@ -56,6 +56,8 @@ func aeoStructure(l *checkList, s *PageSignals) {
 	aeoAnswerPhrasing(l, s, blocks)
 	aeoLeadDirectAnswer(l, blocks)
 	aeoMediaStructure(l, s)
+	aeoChunkTokenBudget(l, s)
+	aeoHeadingSpecificity(l, s)
 }
 
 const leadAnswerWindowWords = 100
@@ -282,4 +284,112 @@ func aeoMediaStructure(l *checkList, s *PageSignals) {
 	skipUnless(l, figures > 0, "aeo_figure_captions", fmt.Sprintf("%d figcaption(s) for %d figure(s)", figcaptions, figures), "No figures to caption", figcaptions >= figures)
 	details, summaries := len(s.Tags["details"]), len(s.Tags["summary"])
 	skipUnless(l, details > 0, "aeo_details_summary", fmt.Sprintf("%d summary element(s) for %d details block(s)", summaries, details), "No details blocks to check", summaries >= details)
+}
+
+// RAG pipelines chunk pages along heading boundaries into roughly 200-500
+// token windows; sections longer than chunkTokenBudget without a subheading
+// get cut mid-passage. Tokens are approximated at words x 4/3 (a fast
+// word-to-token ratio, not a BPE tokenizer).
+const chunkTokenBudget = 500
+
+func approxTokens(words int) int { return words * 4 / 3 }
+
+type headingSection struct {
+	text  string
+	sel   string
+	words int
+}
+
+// headingSections splits the recorded h2-h4, p and li tags into runs between
+// consecutive h1-h4 headings; h5/h6 are too shallow to chunk on, so they are
+// ignored entirely and their paragraphs keep counting toward the enclosing
+// section. Copy nested inside a li (sub-lists, wrapped paragraphs) is skipped
+// because the enclosing li already carries its text, so words count once.
+func headingSections(s *PageSignals) []headingSection {
+	type entry struct {
+		pos       int
+		boundary  bool // h1-h4 delimit sections
+		opens     bool // h2-h4 open a section, h1 only closes one
+		sel, text string
+	}
+	var entries []entry
+	for _, name := range []string{"h1", "h2", "h3", "h4", "p", "li"} {
+		for _, t := range s.Tags[name] {
+			if name == "p" || name == "li" {
+				if strings.Contains(t.Selector, "li > ") {
+					continue
+				}
+			}
+			e := entry{pos: t.Pos, sel: t.Selector, text: strings.Join(strings.Fields(t.Text), " ")}
+			e.boundary = name == "h1" || name == "h2" || name == "h3" || name == "h4"
+			e.opens = name == "h2" || name == "h3" || name == "h4"
+			entries = append(entries, e)
+		}
+	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].pos < entries[j].pos })
+	var out []headingSection
+	open := false
+	for _, e := range entries {
+		if e.boundary {
+			open = e.opens
+			if open {
+				out = append(out, headingSection{text: e.text, sel: e.sel})
+			}
+			continue
+		}
+		if open {
+			out[len(out)-1].words += len(strings.Fields(e.text))
+		}
+	}
+	return out
+}
+
+func aeoChunkTokenBudget(l *checkList, s *PageSignals) {
+	sections := headingSections(s)
+	if len(sections) == 0 {
+		l.skip("aeo_chunk_token_budget", "No h2/h3/h4 sections to chunk")
+		return
+	}
+	worst, over := 0, 0
+	var ev []Evidence
+	for _, sec := range sections {
+		tokens := approxTokens(sec.words)
+		if tokens > worst {
+			worst = tokens
+		}
+		if tokens > chunkTokenBudget {
+			over++
+			ev = append(ev, evidence(sec.sel, fmt.Sprintf("%s: ~%d tokens", sec.text, tokens)))
+		}
+	}
+	label := fmt.Sprintf("All %d sections stay within the ~%d token RAG chunk window", len(sections), chunkTokenBudget)
+	if over > 0 {
+		label = fmt.Sprintf("Largest section is ~%d tokens; %d of %d sections exceed the ~%d token RAG chunk limit", worst, over, len(sections), chunkTokenBudget)
+	}
+	l.addEv("aeo_chunk_token_budget", label, over == 0, ev...)
+}
+
+// genericHeadingRegex matches low-information structural headings that carry
+// no entity context for metadata-assisted vector retrieval. English, German,
+// Spanish and French labels, plus numbered placeholders like "Section 2".
+// Input is pre-lowercased and whitespace-collapsed by the caller.
+var genericHeadingRegex = regexp.MustCompile(`^(more|overview|details|info|information|more info|more information|intro|introduction|miscellaneous|section \d+|ueberblick|überblick|einfuehrung|einführung|einzelheiten|mehr infos|mehr informationen|informacion|información|detalles|introduccion|introducción|mas informacion|más información|datos|apercu|aperçu|en savoir plus|a propos|à propos|divers|diverses)$`) //nolint:misspell // Spanish/French generic labels are intentional
+
+func aeoHeadingSpecificity(l *checkList, s *PageSignals) {
+	var ev []Evidence
+	heads := 0
+	for _, name := range []string{"h2", "h3"} {
+		for _, t := range s.Tags[name] {
+			heads++
+			key := strings.ToLower(strings.TrimSpace(strings.Join(strings.Fields(t.Text), " ")))
+			if genericHeadingRegex.MatchString(key) {
+				ev = append(ev, evidence(t.Selector, t.Text))
+			}
+		}
+	}
+	if heads == 0 {
+		l.skip("aeo_heading_semantic_specificity", "No h2/h3 headings to check")
+		return
+	}
+	l.addEv("aeo_heading_semantic_specificity", fmt.Sprintf("%d of %d h2/h3 headings are specific enough for RAG chunk metadata", heads-len(ev), heads), len(ev) == 0, ev...)
 }

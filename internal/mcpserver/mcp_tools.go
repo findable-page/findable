@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/findable-page/findable/internal/audit"
@@ -131,6 +132,7 @@ func toolAuditPage(a toolArgs, client *http.Client) (text string, isError bool) 
 	}
 	if site, _ := a["site"].(bool); site && fetch.IsHTTPURL(targetURL) {
 		res.Site = fetch.SiteChecks(client, targetURL)
+		res.RefreshAccess()
 	}
 	return toolResult(scanSummary(targetURL, res))
 }
@@ -199,11 +201,12 @@ func followLinks(client *http.Client, first audit.Page, keyphrase string, limit 
 	pages := []audit.Page{first}
 	visited := map[string]bool{first.URL: true}
 	queue := append([]string{}, first.Scan.InternalLinks...)
+	start, _ := url.Parse(first.URL)
 
 	for len(queue) > 0 && len(pages) < limit {
 		curr := queue[0]
 		queue = queue[1:]
-		if visited[curr] {
+		if visited[curr] || !onStartHost(start, curr) {
 			continue
 		}
 		visited[curr] = true
@@ -220,6 +223,17 @@ func followLinks(client *http.Client, first audit.Page, keyphrase string, limit 
 		}
 	}
 	return pages
+}
+
+// onStartHost reports whether link is an http(s) URL on the crawl's start
+// host. Anything else (file: links, relative paths from a local start file,
+// other hosts) would make fetch.Scan read a local file or leave the site.
+func onStartHost(start *url.URL, link string) bool {
+	u, err := url.Parse(link)
+	if err != nil || start == nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
+		return false
+	}
+	return strings.EqualFold(strings.TrimSuffix(u.Hostname(), "."), strings.TrimSuffix(start.Hostname(), "."))
 }
 
 func toolCSVReport(a toolArgs, client *http.Client) (text string, isError bool) {

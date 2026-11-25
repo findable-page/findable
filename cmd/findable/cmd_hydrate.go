@@ -22,7 +22,7 @@ func hydrateCmd(args []string) {
 	fs := flag.NewFlagSet("hydrate", flag.ContinueOnError)
 	renderedPath := fs.String("rendered", "", "HTML file of the page after client rendering")
 	renderCmd := fs.String("render-cmd", "", "program that prints rendered HTML; the target is its first argument")
-	format := fs.String("format", "text", "output format: text or json")
+	format := fs.String("format", formatText, "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow fetching localhost and private-network targets")
 	fs.Usage = func() { fmt.Fprintln(os.Stderr, hydrateUsage) }
 	if err := fs.Parse(args); err != nil {
@@ -48,9 +48,9 @@ func hydrateCmd(args []string) {
 	}
 	result := audit.CompareHydration(target, raw, rendered)
 	switch strings.ToLower(*format) {
-	case "json":
+	case formatJSON:
 		fmt.Print(report.EncodeJSON(result))
-	case "text":
+	case formatText:
 		printHydration(result)
 	default:
 		fmt.Fprintf(os.Stderr, "findable: unknown hydrate format %q (want text or json)\n", *format)
