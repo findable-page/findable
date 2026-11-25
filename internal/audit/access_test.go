@@ -108,6 +108,69 @@ func TestAccessGateUsesSiteRobotsForSearchCrawlersOnly(t *testing.T) {
 	}
 }
 
+func TestAccessGateShapeAndNon2xxStatuses(t *testing.T) {
+	page := `<!DOCTYPE html><html><head><title>Open page with a long enough title here</title></head><body><h1>Open</h1></body></html>`
+	open := Analyze("https://example.com", page, "", make(http.Header), 0)
+	if open.Access == nil || open.Access.Gate != "open" || open.Access.Status != "OPEN" || open.Access.AccessBlocked || open.Access.Message != "" || len(open.Access.Reasons) != 0 {
+		t.Fatalf("status 0 gate = %+v", open.Access)
+	}
+	for _, status := range []int{http.StatusOK, 299} {
+		scan := Analyze("https://example.com", page, "", make(http.Header), status)
+		if scan.Access == nil || scan.Access.AccessBlocked {
+			t.Fatalf("HTTP %d closed the gate: %+v", status, scan.Access)
+		}
+	}
+	for _, status := range []int{199, http.StatusInternalServerError, http.StatusMultipleChoices} {
+		scan := Analyze("https://example.com", page, "", make(http.Header), status)
+		assertBlocked(t, scan, "http_status")
+	}
+}
+
+func TestAccessGateRobotsPageAndNonSearchChecks(t *testing.T) {
+	page := `<!DOCTYPE html><html><head><title>Open page with a long enough title here</title></head><body><h1>Open</h1></body></html>`
+	scan := Analyze("https://example.com/hidden", page, "", make(http.Header), http.StatusOK)
+	allowed := "User-agent: *\nDisallow:\n"
+	site := SiteCategory("/hidden", &allowed, nil)
+	scan.Site = &site
+	scan.RefreshAccess()
+	if scan.Access == nil || scan.Access.AccessBlocked {
+		t.Fatalf("missing llms.txt closed the gate: %+v", scan.Access)
+	}
+
+	blocked := "User-agent: *\nDisallow: /hidden\n"
+	site = SiteCategory("/hidden", &blocked, nil)
+	scan.Site = &site
+	scan.RefreshAccess()
+	assertBlocked(t, scan, checkRobotsPage)
+	userID := "robots-" + strings.ToLower(botByPurpose(PurposeUserFetch).Name)
+	for _, reason := range scan.Access.Reasons {
+		if reason.ID == userID {
+			t.Fatalf("user-fetch crawler closed the gate: %+v", scan.Access.Reasons)
+		}
+	}
+}
+
+func TestAccessGateSearchCrawlerSnippetAndNone(t *testing.T) {
+	search := botByPurpose(PurposeSearch)
+	id := "robots-" + strings.ToLower(search.Name)
+	snippet := `<!DOCTYPE html><html><head><meta name="` + search.Name + `" content="nosnippet"><title>T</title></head><body><h1>T</h1></body></html>`
+	scan := Analyze("https://example.com", snippet, "", make(http.Header), http.StatusOK)
+	assertBlocked(t, scan, id)
+
+	training := botByPurpose(PurposeTraining)
+	headers := make(http.Header)
+	headers.Set("X-Robots-Tag", training.Name+": nosnippet")
+	scan = Analyze("https://example.com", `<!DOCTYPE html><html><head><title>T</title></head><body><h1>T</h1></body></html>`, "", headers, http.StatusOK)
+	if scan.Access == nil || scan.Access.AccessBlocked {
+		t.Fatalf("training nosnippet closed the gate: %+v", scan.Access)
+	}
+
+	headers = make(http.Header)
+	headers.Set("X-Robots-Tag", search.Name+": none")
+	scan = Analyze("https://example.com", `<!DOCTYPE html><html><head><title>T</title></head><body><h1>T</h1></body></html>`, "", headers, http.StatusOK)
+	assertBlocked(t, scan, id)
+}
+
 func botByPurpose(purpose string) Bot {
 	for _, bot := range Bots {
 		if bot.Purpose == purpose {
