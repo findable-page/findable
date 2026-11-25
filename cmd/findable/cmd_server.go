@@ -11,17 +11,23 @@ func mcpCmd(args []string) {
 	allowPrivate := false
 	fs := flag.NewFlagSet("mcp", flag.ContinueOnError)
 	fs.BoolVar(&allowPrivate, "allow-private", false, "allow scanning localhost and private-network targets")
-	if err := fs.Parse(args); err != nil || fs.NArg() != 0 {
-		os.Exit(exitUsage)
+	commandUsage(fs, mcpUsage)
+	parseCommand(fs, args)
+	if fs.NArg() != 0 {
+		failUsage("mcp does not take a URL or other arguments", mcpUsage)
 	}
 	runMCP(newClient(allowPrivate))
 }
 
 // serveCmd runs the HTTP API server (`findable serve <addr>`).
 func serveCmd(args []string) {
+	if len(args) == 1 && helpArg(args[0]) {
+		fmt.Fprintln(os.Stderr, serveUsage)
+		fmt.Fprintln(os.Stderr, "127.0.0.1:8080 serves localhost. :8080 listens on every interface.")
+		os.Exit(0)
+	}
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: findable serve <host:port>")
-		os.Exit(exitUsage)
+		failUsage("serve needs one address, for example 127.0.0.1:8080", serveUsage)
 	}
 	serveHTTP(args[0])
 }

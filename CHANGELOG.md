@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed (breaking)
 - CLI audits now default to severity/evidence-weighted scoring; use `-score-model flat` to retain legacy scores and CI thresholds. The GitHub Action defaults its new `score-model` input to `flat` for existing gates.
+
+### Changed
+- `findable -h` and `findable <command> -h` list that command's flags and exit 0. A missing or extra argument names what was wrong (previously `bots` and `mcp` exited 2 with no message, and `audit -h` exited 2). Invalid usage still exits 2.
 - Audit findings now carry severity, evidence tier, fix and evidence fields in reports. `bots` probes crawler access; config loading and runtime errors can exit with code 2 and 3 respectively.
 
 ### Added
@@ -24,6 +27,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - Site checks now distinguish AI search retrieval crawlers (`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, `Googlebot`) from AI model training crawlers (`GPTBot`, `ClaudeBot`, `Google-Extended`, `Applebot-Extended`, `meta-externalagent`), with labels explaining that blocking training bots does not affect AI search citations and that `Google-Extended` governs Gemini training, not AI Overviews.
 
 ### Fixed
+- `geo_assertion_evidence_pairing` treated a same-site link as an external citation when the host differed only by case, a trailing dot, or an explicit default port (`:443` / `:80`). Those links already count as internal everywhere else, so a section with no real citation no longer passes.
+- Category scores printed by the CLI now use the same half-away-from-zero rounding as the overall score. `10.5` prints as `11`, not `10`.
 - Percentages like `9%.` never matched the quantitative-statistics pattern because a word boundary after `%` can never hold; percentages are now a dedicated alternative, so they count toward `geo_statistics_density` and section evidence.
 - `link_noopener` now matches whole `rel` tokens; values such as `notnoopener` no longer hide unsafe `_blank` links.
 - Signal extraction no longer runs HTML element collectors on SVG/MathML elements: an inline SVG icon's `<title>` (an accessibility label for the graphic) no longer overwrites the page `<title>` used by `title_exists`, `title_length`, `keyphrase_in_title` and `geo_intent_clarity`.

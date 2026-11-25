@@ -14,20 +14,15 @@ import (
 	"github.com/findable-page/findable/internal/report"
 )
 
-const fanoutUsage = "usage: findable fanout -query TOPIC [-format text|json] [-allow-private] <url or file>"
-
 func fanoutCmd(args []string) {
 	fs := flag.NewFlagSet("fanout", flag.ContinueOnError)
 	query := fs.String("query", "", "topic to expand into sub-intents")
 	format := fs.String("format", formatText, "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow fetching localhost and private-network targets")
-	fs.Usage = func() { fmt.Fprintln(os.Stderr, fanoutUsage) }
-	if err := fs.Parse(args); err != nil {
-		os.Exit(exitUsage)
-	}
+	commandUsage(fs, fanoutUsage)
+	parseCommand(fs, args)
 	if fs.NArg() != 1 || strings.TrimSpace(*query) == "" {
-		fmt.Fprintln(os.Stderr, fanoutUsage)
-		os.Exit(exitUsage)
+		failUsage("fanout needs -query and one URL or HTML file", fanoutUsage)
 	}
 	target := fs.Arg(0)
 	html, err := loadPageHTML(newClient(*allowPrivate), target)
@@ -41,7 +36,7 @@ func fanoutCmd(args []string) {
 	case formatText:
 		printFanout(result)
 	default:
-		fmt.Fprintf(os.Stderr, "findable: unknown fanout format %q (want text or json)\n", *format)
+		fmt.Fprintf(os.Stderr, "findable: unknown fanout format %q (want text or json)\n%s\n", *format, fanoutUsage)
 		os.Exit(exitUsage)
 	}
 }

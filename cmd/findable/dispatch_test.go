@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"os"
@@ -35,17 +36,26 @@ func findableBinary(t *testing.T) string {
 
 func runFindable(t *testing.T, workDir string, args ...string) (stdout string, exitCode int) {
 	t.Helper()
+	stdout, _, exitCode = runFindableIO(t, workDir, args...)
+	return stdout, exitCode
+}
+
+func runFindableIO(t *testing.T, workDir string, args ...string) (stdout, stderr string, exitCode int) {
+	t.Helper()
 	cmd := exec.CommandContext(context.Background(), findableBinary(t), args...) //nolint:gosec // test invokes its own built binary with test-controlled arguments
 	cmd.Dir = workDir
-	out, err := cmd.Output()
+	var out, errb bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errb
+	err := cmd.Run()
 	var ee *exec.ExitError
 	if errors.As(err, &ee) {
-		return string(out), ee.ExitCode()
+		return out.String(), errb.String(), ee.ExitCode()
 	}
 	if err != nil {
-		t.Fatalf("run findable %v: %v", args, err)
+		t.Fatalf("run findable %v: %v\n%s", args, err, errb.String())
 	}
-	return string(out), 0
+	return out.String(), errb.String(), 0
 }
 
 func TestAuditSubcommandMatchesLegacyFlags(t *testing.T) {

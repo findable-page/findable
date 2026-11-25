@@ -16,25 +16,19 @@ import (
 	"github.com/findable-page/findable/internal/report"
 )
 
-const hydrateUsage = "usage: findable hydrate [-rendered file | -render-cmd program] [-format text|json] [-allow-private] <url or file>"
-
 func hydrateCmd(args []string) {
 	fs := flag.NewFlagSet("hydrate", flag.ContinueOnError)
 	renderedPath := fs.String("rendered", "", "HTML file of the page after client rendering")
 	renderCmd := fs.String("render-cmd", "", "program that prints rendered HTML; the target is its first argument")
 	format := fs.String("format", formatText, "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow fetching localhost and private-network targets")
-	fs.Usage = func() { fmt.Fprintln(os.Stderr, hydrateUsage) }
-	if err := fs.Parse(args); err != nil {
-		os.Exit(exitUsage)
-	}
+	commandUsage(fs, hydrateUsage)
+	parseCommand(fs, args)
 	if fs.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, hydrateUsage)
-		os.Exit(exitUsage)
+		failUsage("hydrate needs one URL or HTML file", hydrateUsage)
 	}
 	if (*renderedPath == "") == (*renderCmd == "") {
-		fmt.Fprintln(os.Stderr, "findable: pass exactly one of -rendered or -render-cmd")
-		os.Exit(exitUsage)
+		failUsage("pass exactly one of -rendered or -render-cmd", hydrateUsage)
 	}
 	target := fs.Arg(0)
 	client := newClient(*allowPrivate)
@@ -53,7 +47,7 @@ func hydrateCmd(args []string) {
 	case formatText:
 		printHydration(result)
 	default:
-		fmt.Fprintf(os.Stderr, "findable: unknown hydrate format %q (want text or json)\n", *format)
+		fmt.Fprintf(os.Stderr, "findable: unknown hydrate format %q (want text or json)\n%s\n", *format, hydrateUsage)
 		os.Exit(exitUsage)
 	}
 }

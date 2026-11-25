@@ -1,8 +1,8 @@
 package audit
 
 import (
-	"fmt"
 	"math"
+	"strconv"
 )
 
 type Check struct {
@@ -90,7 +90,12 @@ func ScoreValue(c Category) float64 {
 	return *c.Score
 }
 
-func ScoreText(c Category) string { return fmt.Sprintf("%.0f", ScoreValue(c)) }
+// ScoreText prints a category score with the same half-away-from-zero
+// rounding as Overall and buildCategory. fmt's %f rounds ties to even,
+// which would show 10.5 as 10.
+func ScoreText(c Category) string {
+	return strconv.Itoa(int(math.Round(ScoreValue(c))))
+}
 
 func Overall(s Scan) int {
 	return int(math.Round(ScoreValue(s.SEO)*.5 + ScoreValue(s.AEO)*.25 + ScoreValue(s.GEO)*.25))

@@ -154,18 +154,23 @@ func mergeHeadingBounds(h2s, h3s []TagInfo) ([]sectionBound, []geoSection) {
 }
 
 // isExternalHref mirrors classifyLink's external test without mutating signals.
+// Host comparison goes through sameHost, so a different case, a trailing dot
+// or an explicit default port (:443 / :80) stays on-site.
 func isExternalHref(s *PageSignals, href string) bool {
+	if s.URL == nil {
+		return false
+	}
 	for _, prefix := range nonNavigableHrefPrefixes {
 		if strings.HasPrefix(href, prefix) {
 			return false
 		}
 	}
 	u, err := url.Parse(href)
-	if err != nil || s.URL == nil {
+	if err != nil {
 		return false
 	}
 	resolved := s.URL.ResolveReference(u)
-	return resolved.Host != "" && resolved.Host != s.URL.Host
+	return resolved.Host != "" && !sameHost(resolved, s.URL)
 }
 
 func geoAuthority(l *checkList, s *PageSignals) {

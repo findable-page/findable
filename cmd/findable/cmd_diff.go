@@ -9,22 +9,17 @@ import (
 	"github.com/findable-page/findable/internal/report"
 )
 
-const diffUsage = "usage: findable diff [-fail-on-regression] [-max-drop N] [-markdown] <baseline.json> <current.json>"
-
 // diffCmd implements `findable diff`: compare a current JSON report against a
 // stored baseline and flag score regressions and checks that stopped passing.
 func diffCmd(args []string) {
 	fs := flag.NewFlagSet("diff", flag.ContinueOnError)
 	failOnRegression := fs.Bool("fail-on-regression", false, "exit 1 when a check regresses or the overall score drops by more than -max-drop")
-	maxDrop := fs.Int("max-drop", 0, "allowed overall score drop per page before -fail-on-regression trips")
+	maxDrop := fs.Int("max-drop", 0, "allowed overall score drop per page before -fail-on-regression trips (default 0)")
 	markdown := fs.Bool("markdown", false, "print a markdown table instead of the terminal table")
-	fs.Usage = func() { fmt.Fprintln(os.Stderr, diffUsage) }
-	if err := fs.Parse(args); err != nil {
-		os.Exit(exitUsage)
-	}
+	commandUsage(fs, diffUsage)
+	parseCommand(fs, args)
 	if fs.NArg() != 2 {
-		fmt.Fprintln(os.Stderr, diffUsage)
-		os.Exit(exitUsage)
+		failUsage("diff needs two JSON reports: the baseline and the current report", diffUsage)
 	}
 	baseline, err := readReportFile(fs.Arg(0))
 	if err != nil {

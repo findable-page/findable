@@ -11,8 +11,6 @@ import (
 	"github.com/findable-page/findable/internal/simulate"
 )
 
-const simulateUsage = "usage: findable simulate -query TEXT -brand NAME -domain HOST [-engine URL] [-format text|json]"
-
 func simulateCmd(args []string) {
 	fs := flag.NewFlagSet("simulate", flag.ContinueOnError)
 	query := fs.String("query", "", "prompt to send to the engine")
@@ -20,13 +18,10 @@ func simulateCmd(args []string) {
 	domain := fs.String("domain", "", "site host that counts as a direct citation")
 	engine := fs.String("engine", os.Getenv("FINDABLE_SIMULATE_ENGINE"), "answer engine URL (or FINDABLE_SIMULATE_ENGINE)")
 	format := fs.String("format", formatText, "output format: text or json")
-	fs.Usage = func() { fmt.Fprintln(os.Stderr, simulateUsage) }
-	if err := fs.Parse(args); err != nil {
-		os.Exit(exitUsage)
-	}
+	commandUsage(fs, simulateUsage)
+	parseCommand(fs, args)
 	if strings.TrimSpace(*query) == "" || strings.TrimSpace(*brand) == "" || strings.TrimSpace(*domain) == "" || strings.TrimSpace(*engine) == "" {
-		fmt.Fprintln(os.Stderr, simulateUsage)
-		os.Exit(exitUsage)
+		failUsage("simulate needs -query, -brand, -domain, and an engine URL (-engine or FINDABLE_SIMULATE_ENGINE)", simulateUsage)
 	}
 	answer, err := simulate.Query(context.Background(), nil, *engine, *query, os.Getenv("FINDABLE_SIMULATE_TOKEN"))
 	if err != nil {
@@ -39,7 +34,7 @@ func simulateCmd(args []string) {
 	case formatText:
 		printSimulation(result)
 	default:
-		fmt.Fprintf(os.Stderr, "findable: unknown simulate format %q (want text or json)\n", *format)
+		fmt.Fprintf(os.Stderr, "findable: unknown simulate format %q (want text or json)\n%s\n", *format, simulateUsage)
 		os.Exit(exitUsage)
 	}
 }
