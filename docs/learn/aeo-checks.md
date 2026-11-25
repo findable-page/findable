@@ -42,7 +42,7 @@ AEO is 25% of your findable score. It has 36 checks on answer shape: structured 
 | `aeo_summary` | Text has "key takeaway", "summary" or "conclusion" | Add a summary section |
 | `aeo_clean_url` | Path is lowercase with no underscores | Use lowercase hyphen URLs |
 | `aeo_semantic_html` | 4 or more semantic HTML5 elements | Use header, main, article, nav |
-| `aeo_ai_robots` | No `noindex` in the robots meta | Remove `noindex` |
+| `aeo_ai_robots` | No `noindex` or `none` in the robots meta | Remove `noindex` or `none` |
 | `aeo_speakable` | Speakable markup | Add `speakable` to Article schema |
 | `aeo_answer_after_question` | Question headings are followed by a paragraph | Answer right under the question |
 | `aeo_answer_length_ideal` | Answers of 20 to 80 words | Tighten or expand the answer |
@@ -122,7 +122,7 @@ Do the real thing anyway. End the page with a "Key takeaways" section of 3 to 6 
 
 ## How do I fix the URL, semantic HTML and robots checks?
 
-Three checks cover housekeeping: `aeo_clean_url` wants a lowercase path with no underscores, `aeo_semantic_html` wants 4 or more semantic HTML5 elements, and `aeo_ai_robots` fails if the robots meta contains `noindex`. Use hyphens, landmark elements and no noindex. The elements counted are article, section, main, nav, aside, header, footer, time, figure and details.
+Three checks cover housekeeping: `aeo_clean_url` wants a lowercase path with no underscores, `aeo_semantic_html` wants 4 or more semantic HTML5 elements, and `aeo_ai_robots` fails if the robots meta contains `noindex` or `none`. Use hyphens, landmark elements and no noindex. The elements counted are article, section, main, nav, aside, header, footer, time, figure and details.
 
 ```html
 <!-- good path: /learn/aeo-checks  bad path: /Learn/AEO_Checks -->
@@ -132,7 +132,7 @@ Three checks cover housekeeping: `aeo_clean_url` wants a lowercase path with no 
 <footer>...</footer>
 ```
 
-Despite the name, `aeo_ai_robots` only checks the robots meta tag for `noindex`. It does not read robots.txt, and it ignores `nofollow` and `nosnippet`. For AI crawler rules in robots.txt, run with `-site` and read the unscored Site checks in the GEO guide.
+Despite the name, `aeo_ai_robots` only checks the robots meta tag for `noindex` and `none` (which means `noindex, nofollow`). It does not read robots.txt, and it ignores `nofollow` and `nosnippet`. For AI crawler rules in robots.txt, run with `-site` and read the unscored Site checks in the GEO guide.
 
 ## Key takeaways
 

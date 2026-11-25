@@ -123,7 +123,7 @@ The npm server exposes `audit_page`, `crawl_site` and the `seo_audit_prompt` pro
 
 ## API
 
-Hosted at https://findable.page (source: [findable-page/findable-page](https://github.com/findable-page/findable-page)), or run your own local server with `findable serve 127.0.0.1:8080`.
+Hosted at https://findable.page, or run your own local server with `findable serve 127.0.0.1:8080`.
 
 ```bash
 curl -s -X POST https://findable.page/api/scan \
