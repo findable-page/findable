@@ -234,7 +234,20 @@ func seoSecurityHeaders(l *checkList, s *PageSignals) {
 func seoStructure(l *checkList, s *PageSignals) {
 	l.add("jsonld", fmt.Sprintf("%d JSON-LD schema block(s) found", len(s.JSONLDs)), len(s.JSONLDs) > 0)
 	l.add("aria_landmarks", "ARIA landmarks present", s.SemanticCounts["main"] > 0 && s.SemanticCounts["nav"] > 0)
-	l.add("duplicate_ids", fmt.Sprintf("No duplicate IDs found (%d duplicates)", s.DuplicateIDs), s.DuplicateIDs == 0)
+	l.add("duplicate_ids", duplicateIDLabel(s.DuplicateIDs), s.DuplicateIDs == 0)
+}
+
+// duplicateIDLabel states the result. The old label always started with
+// "No duplicate IDs found", then appended "(6 duplicates)" on a failure.
+func duplicateIDLabel(n int) string {
+	switch n {
+	case 0:
+		return "No duplicate IDs found"
+	case 1:
+		return "1 duplicate ID found"
+	default:
+		return fmt.Sprintf("%d duplicate IDs found", n)
+	}
 }
 
 func seoKeyphrase(l *checkList, s *PageSignals) {

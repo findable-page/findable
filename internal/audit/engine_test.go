@@ -539,6 +539,29 @@ func TestGEOIntentClarityComparesTitleWithH1(t *testing.T) {
 	}
 }
 
+func TestDuplicateIDLabelNamesTheCount(t *testing.T) {
+	unique := `<!DOCTYPE html><html><body><div id="a"></div><div id="b"></div></body></html>`
+	scan := Analyze("https://example.com", unique, "", make(http.Header), 200)
+	c := findCheck(scan.SEO.Checks, "duplicate_ids")
+	if c == nil || !c.Pass || c.Label != "No duplicate IDs found" {
+		t.Fatalf("unique ids: %+v", c)
+	}
+
+	one := `<!DOCTYPE html><html><body><div id="a"></div><span id="a"></span></body></html>`
+	scan = Analyze("https://example.com", one, "", make(http.Header), 200)
+	c = findCheck(scan.SEO.Checks, "duplicate_ids")
+	if c == nil || c.Pass || c.Label != "1 duplicate ID found" {
+		t.Fatalf("one duplicated id: %+v", c)
+	}
+
+	three := `<!DOCTYPE html><html><body><div id="a"></div><div id="a"></div><div id="b"></div><div id="b"></div><div id="c"></div><div id="c"></div></body></html>`
+	scan = Analyze("https://example.com", three, "", make(http.Header), 200)
+	c = findCheck(scan.SEO.Checks, "duplicate_ids")
+	if c == nil || c.Pass || c.Label != "3 duplicate IDs found" {
+		t.Fatalf("three duplicated ids: %+v", c)
+	}
+}
+
 func TestLocalAuditEngineOnThinPage(t *testing.T) {
 	htmlBytes, err := os.ReadFile("../../testdata/site/01-thin-poor.html")
 	if err != nil {
