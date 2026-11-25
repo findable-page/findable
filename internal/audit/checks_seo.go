@@ -156,8 +156,7 @@ func emptyHrefEvidence(s *PageSignals) []Evidence {
 func openerEvidence(s *PageSignals) []Evidence {
 	var out []Evidence
 	for _, a := range s.Tags["a"] {
-		rel := strings.ToLower(a.Attrs["rel"])
-		if strings.EqualFold(strings.TrimSpace(a.Attrs["target"]), "_blank") && !strings.Contains(rel, "noopener") && !strings.Contains(rel, "noreferrer") {
+		if strings.EqualFold(strings.TrimSpace(a.Attrs["target"]), "_blank") && !safeBlankRel(a.Attrs["rel"]) {
 			out = append(out, evidence(a.Selector, a.Attrs["href"]))
 		}
 	}
