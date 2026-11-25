@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"net"
 	"net/url"
 	"strings"
 )
@@ -65,13 +66,21 @@ func canonicalKey(raw string) string {
 	if err != nil || parsed.Host == "" {
 		return normSignal(raw)
 	}
-	host := strings.ToLower(parsed.Hostname())
-	if port := parsed.Port(); (parsed.Scheme == schemeHTTP && port == "80") || (parsed.Scheme == schemeHTTPS && port == "443") {
-		parsed.Host = host
-	} else {
-		parsed.Host = strings.ToLower(parsed.Host)
-	}
 	parsed.Scheme = strings.ToLower(parsed.Scheme)
+	host := strings.TrimSuffix(strings.ToLower(parsed.Hostname()), ".")
+	port := parsed.Port()
+	if port == defaultPorts[parsed.Scheme] {
+		port = ""
+	}
+	switch {
+	case port == "" && strings.Contains(host, ":"):
+		parsed.Host = "[" + host + "]"
+	case port == "":
+		parsed.Host = host
+	default:
+		parsed.Host = net.JoinHostPort(host, port)
+	}
+	parsed.Path = strings.TrimSuffix(parsed.Path, "/")
 	parsed.Fragment = ""
 	return parsed.String()
 }
