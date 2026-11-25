@@ -40,6 +40,8 @@ func geoAuthority(l *checkList, s *PageSignals) {
 	l.add("geo_org_schema", "Organization or Business schema markup declared", hasOrg)
 	l.add("geo_knowledge_graph", fmt.Sprintf("%d sameAs entity links in schema", len(s.SameAsLinks)), len(s.SameAsLinks) > 0)
 	geoEntityAuthoritativeSameAs(l, s)
+	geoSchemaIDGraph(l, s)
+	geoBrandEntityConsistency(l, s)
 }
 
 // authoritativeEntityDomains are the entity registries answer engines use to

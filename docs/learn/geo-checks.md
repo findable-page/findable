@@ -37,6 +37,9 @@ GEO is 25% of your findable score. It has 28 checks on citability: numbers, tabl
 | `geo_author_credentials` | A visible "by " byline or schema author | Show who wrote it |
 | `geo_org_schema` | Organization or LocalBusiness schema | Add Organization JSON-LD |
 | `geo_knowledge_graph` | `sameAs` links in schema | Link your profiles |
+| `geo_entity_authoritative_sameas` | `sameAs` host is Wikidata, Wikipedia or Crunchbase | Anchor the entity in a registry |
+| `geo_schema_id_graph_coherence` | `@id` references resolve inside the graph | Define every referenced node |
+| `geo_brand_entity_consistency` | Organization, WebSite, og:site_name and title suffix agree | Use one brand name |
 | `geo_trust` | Internal links to about and contact | Link both pages |
 | `geo_entity_markup` | 2 or more schema types | Mark up more entities |
 | `geo_freshness` | `<time>`, a year in text, or `dateModified` | Show a date |
@@ -77,7 +80,7 @@ A passage is citable when you can lift it out and it still makes sense. Name the
 
 ## How do I fix the author and organization checks?
 
-Six checks cover who is behind the page: `geo_author_schema`, `geo_author_credentials`, `geo_org_schema`, `geo_knowledge_graph`, `geo_trust` and `geo_entity_markup`. Show a byline, add Person and Organization JSON-LD with `sameAs` links, link to your about and contact pages, and use at least 2 schema types.
+Authority checks cover who is behind the page: `geo_author_schema`, `geo_author_credentials`, `geo_org_schema`, `geo_knowledge_graph`, `geo_entity_authoritative_sameas`, `geo_schema_id_graph_coherence`, `geo_brand_entity_consistency`, `geo_trust` and `geo_entity_markup`. Show a byline, add Person and Organization JSON-LD with `sameAs` links to Wikidata, Wikipedia or Crunchbase, make `@id` references resolve, keep the brand name consistent, link to your about and contact pages, and use at least 2 schema types.
 
 ```html
 <p>By Alex Morgan</p>
