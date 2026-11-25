@@ -70,12 +70,31 @@ findable -crawl -limit 25 https://example.com
 findable -sitemap https://example.com/sitemap.xml
 ```
 
+## How do you compare reports, citations and rendered HTML?
+
+`diff`, `fanout`, `hydrate` and `simulate` run on the Go CLI. `npx -y findable` starts the MCP server.
+
+```bash
+findable diff -fail-on-regression baseline.json current.json
+findable fanout -query "offline seo scanner" page.html
+findable hydrate -rendered rendered.html page.html
+findable simulate -query "best offline seo scanner" -brand findable -domain findable.page -engine "$FINDABLE_SIMULATE_ENGINE"
+```
+
+`FINDABLE_SIMULATE_TOKEN`, when set, is sent as a bearer token and is left out of the report.
+
 ## How do you set up MCP?
 
-Run findable as an MCP server so your editor agent can audit pages for you. Add this to your MCP config. To run it without Go, build the server from source: `cd mcp && bun install && bun run build`, then point `"command": "node"` with `"args": ["/path/to/findable/mcp/dist/index.js"]` at it. The tools are `audit_page`, `audit_html_content`, `crawl_site` and `generate_csv_report`.
+Run findable as an MCP server so your editor agent can audit pages for you. Add this to your MCP config. The Go server tools are `audit_page`, `audit_html_content`, `crawl_site` and `generate_csv_report`.
 
 ```json
-{"mcpServers":{"findable":{"command":"findable","args":["-mcp"]}}}
+{"mcpServers":{"findable":{"command":"findable","args":["mcp"]}}}
+```
+
+With no Go toolchain, `npx -y findable` starts the npm server. It calls `https://findable.page/api/scan` and exposes `audit_page`, `crawl_site` and the `seo_audit_prompt` prompt.
+
+```json
+{"mcpServers":{"findable":{"command":"npx","args":["-y","findable"]}}}
 ```
 
 The server also offers a prompt called `seo_audit_prompt`. It speaks over stdio, so there is no port to open and nothing is exposed to your network. Ask your agent to audit a page, and it calls these tools for you.
