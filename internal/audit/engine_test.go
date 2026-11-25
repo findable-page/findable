@@ -262,6 +262,35 @@ func TestSEOLinkSafetyAndOpener(t *testing.T) {
 	}
 }
 
+func TestSEOLinkOpenerRelTokens(t *testing.T) {
+	for _, tc := range []struct {
+		rel  string
+		pass bool
+	}{
+		{"noopener", true},
+		{"NOREFERRER external", true},
+		{"notnoopener", false},
+		{"noopenerish noreferrer-other", false},
+		{"external", false},
+	} {
+		t.Run(tc.rel, func(t *testing.T) {
+			raw := fmt.Sprintf(`<html><body><a href="https://external.com" target="_blank" rel="%s">External</a></body></html>`, tc.rel)
+			res := Analyze("https://example.com", raw, "", make(http.Header), 200)
+			check := findCheck(res.SEO.Checks, "link_noopener")
+			if check == nil || check.Pass != tc.pass {
+				t.Errorf("rel=%q: check=%+v, want pass=%v", tc.rel, check, tc.pass)
+			}
+			if !tc.pass && check != nil && (len(check.Evidence) != 1 || check.Evidence[0].Value != "https://external.com") {
+				t.Errorf("rel=%q: missing unsafe-link evidence: %+v", tc.rel, check.Evidence)
+			}
+			signals := extractSignals("https://example.com", raw, make(http.Header), 200)
+			if tc.pass && signals.MissingOpenerCount != 0 || !tc.pass && signals.MissingOpenerCount != 1 {
+				t.Errorf("rel=%q: missing opener count=%d", tc.rel, signals.MissingOpenerCount)
+			}
+		})
+	}
+}
+
 func TestSEOImageAltAndDimensions(t *testing.T) {
 	// Image with alt, width, height
 	goodImgHTML := `<!DOCTYPE html><html><body><img src="pic.jpg" alt="Description" width="300" height="200"></body></html>`

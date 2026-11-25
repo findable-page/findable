@@ -391,7 +391,7 @@ func collectAnchor(sig *PageSignals, n *html.Node) {
 	}
 	if strings.ToLower(trimmedAttr(a, "target")) == "_blank" {
 		sig.TargetBlankCount++
-		if !strings.Contains(rel, "noopener") && !strings.Contains(rel, "noreferrer") {
+		if !safeBlankRel(rel) {
 			sig.MissingOpenerCount++
 		}
 	}
@@ -399,6 +399,15 @@ func collectAnchor(sig *PageSignals, n *html.Node) {
 	if strings.Contains(strings.ToLower(collectText(n)), "skip to") {
 		sig.HasSkipLink = true
 	}
+}
+
+func safeBlankRel(rel string) bool {
+	for _, token := range strings.Fields(strings.ToLower(rel)) {
+		if token == "noopener" || token == "noreferrer" {
+			return true
+		}
+	}
+	return false
 }
 
 var nonNavigableHrefPrefixes = []string{"#", "javascript:", "mailto:", "tel:"}

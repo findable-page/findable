@@ -11,6 +11,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Added
 - Three answer-extractability checks: `aeo_lead_direct_answer` (a 20-80 word direct-answer paragraph within the first 100 words after the H1), `geo_snippet_boilerplate_control` (long nav/header/footer text should sit under `data-nosnippet` div/span/section wrappers, the only elements Google honours), and `meta_robots_snippet_directives` (flags explicitly restrictive `max-snippet`, `max-image-preview` or `max-video-preview` robots meta values; omitted directives keep Google's defaults and pass).
 ### Fixed
+- `link_noopener` now matches whole `rel` tokens; values such as `notnoopener` no longer hide unsafe `_blank` links.
 - Signal extraction no longer runs HTML element collectors on SVG/MathML elements: an inline SVG icon's `<title>` (an accessibility label for the graphic) no longer overwrites the page `<title>` used by `title_exists`, `title_length`, `keyphrase_in_title` and `geo_intent_clarity`.
 - Robots meta and X-Robots-Tag `none` directive (documented by Google as `noindex, nofollow`) is now treated as noindex by `robots_meta`, `aeo_ai_robots`, `x_robots_tag_noindex`, the `bots` probe verdicts and `meta_robots_conflict`, instead of silently passing.
 - `title_length`, `desc_length` and `img_alt_length` now count characters instead of bytes, so titles, meta descriptions and alt text containing non-ASCII text (CJK, Arabic, accented Latin, emoji) are no longer penalized as too long.
