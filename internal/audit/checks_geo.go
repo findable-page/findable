@@ -38,6 +38,132 @@ func geoAuthority(l *checkList, s *PageSignals) {
 	l.add("geo_author_credentials", "Visible author byline with credentials or dates", lowerContainsAny(s.TextContent, "by ") || s.AuthorInSchema != "")
 	l.add("geo_org_schema", "Organization or Business schema markup declared", hasOrg)
 	l.add("geo_knowledge_graph", fmt.Sprintf("%d authoritative sameAs links in schema", len(s.SameAsLinks)), len(s.SameAsLinks) > 0)
+	geoSchemaKnowsAbout(l, s)
+	geoAuthorCredentialDepth(l, s)
+}
+
+const knowsAboutMinimum = 3
+
+var credentialKeys = []string{"jobTitle", "alumniOf", "hasCredential"}
+
+// professionalProfileHints are sameAs hosts that signal an academic or
+// professional identity rather than a generic social profile.
+var professionalProfileHints = []string{"orcid.org", "scholar.google.com", "researchgate.net", "academia.edu", "linkedin.com"}
+
+// geoSchemaKnowsAbout rewards topical authority signaling: schema.org
+// documents knowsAbout on Person and Organization, and GEO guides also place
+// it on WebSite nodes, so both are accepted here.
+func geoSchemaKnowsAbout(l *checkList, s *PageSignals) {
+	doc := parseSchemaDoc(s)
+	nodes := doc.ofType(append(append([]string{}, orgTypes...), localTypes...)...)
+	nodes = append(nodes, doc.ofType("website")...)
+	if len(nodes) == 0 {
+		l.skip("geo_schema_knows_about", "No Organization or WebSite schema to validate")
+		return
+	}
+	seen := map[string]bool{}
+	for _, node := range nodes {
+		for _, entry := range jsonItems(node["knowsAbout"]) {
+			if topic := schemaTextOrName(entry); topic != "" && !seen[strings.ToLower(topic)] {
+				seen[strings.ToLower(topic)] = true
+			}
+		}
+	}
+	l.add("geo_schema_knows_about", fmt.Sprintf("%d distinct topic(s) in knowsAbout on Organization or WebSite schema (%d or more recommended)", len(seen), knowsAboutMinimum), len(seen) >= knowsAboutMinimum)
+}
+
+func schemaTextOrName(v any) string {
+	switch t := v.(type) {
+	case string:
+		return strings.TrimSpace(t)
+	case map[string]any:
+		if name, ok := t["name"].(string); ok {
+			return strings.TrimSpace(name)
+		}
+	}
+	return ""
+}
+
+// geoAuthorCredentialDepth checks that author Person entities in schema carry
+// a verifiable credential: jobTitle, alumniOf, hasCredential, or an academic
+// or professional profile in sameAs.
+func geoAuthorCredentialDepth(l *checkList, s *PageSignals) {
+	authors := schemaAuthorEntities(parseSchemaDoc(s))
+	if len(authors) == 0 {
+		l.skip("geo_author_credential_depth", "No author Person schema to validate")
+		return
+	}
+	credentialed := 0
+	for _, author := range authors {
+		if authorHasCredential(author) {
+			credentialed++
+		}
+	}
+	l.add("geo_author_credential_depth", fmt.Sprintf("%d of %d schema author(s) carry a credential (jobTitle, alumniOf, hasCredential or a professional profile)", credentialed, len(authors)), credentialed == len(authors))
+}
+
+// schemaAuthorEntities collects Person authors from every schema node: map
+// values (typed Person or untyped, whose default type is Person), and @id or
+// URL references resolved through the document's nodes. Explicitly
+// other-typed authors (such as Organization bylines) are out of scope.
+func schemaAuthorEntities(doc schemaDoc) []map[string]any {
+	var authors []map[string]any
+	for _, node := range doc.nodes {
+		for _, value := range jsonItems(node["author"]) {
+			switch a := value.(type) {
+			case map[string]any:
+				if id, _ := a["@id"].(string); id != "" && !jsonPresent(a["name"]) && len(nodeTypes(a)) == 0 {
+					if target := doc.nodeByID(id); target != nil && authorEntityIsPerson(target) {
+						authors = append(authors, target)
+					}
+				} else if authorEntityIsPerson(a) {
+					authors = append(authors, a)
+				}
+			case string:
+				if target := doc.nodeByID(strings.TrimSpace(a)); target != nil && authorEntityIsPerson(target) {
+					authors = append(authors, target)
+				}
+			}
+		}
+	}
+	return authors
+}
+
+// authorEntityIsPerson accepts Person-typed entities and untyped author
+// objects, whose default type is Person. Explicitly other-typed authors
+// (such as Organization bylines) are out of scope.
+func authorEntityIsPerson(m map[string]any) bool {
+	types := nodeTypes(m)
+	if len(types) == 0 {
+		return true
+	}
+	return containsString(types, "person")
+}
+
+func (d schemaDoc) nodeByID(id string) map[string]any {
+	for _, node := range d.nodes {
+		if value, _ := node["@id"].(string); value == id {
+			return node
+		}
+	}
+	return nil
+}
+
+func authorHasCredential(author map[string]any) bool {
+	for _, key := range credentialKeys {
+		if jsonPresent(author[key]) {
+			return true
+		}
+	}
+	for _, link := range sameAsLinks(author["sameAs"]) {
+		lower := strings.ToLower(link)
+		for _, hint := range professionalProfileHints {
+			if strings.Contains(lower, hint) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func geoTrust(l *checkList, s *PageSignals) {

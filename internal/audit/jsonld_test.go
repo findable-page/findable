@@ -97,3 +97,81 @@ func TestJSONLDSpeakableDetection(t *testing.T) {
 		})
 	}
 }
+
+func TestGeoSchemaKnowsAbout(t *testing.T) {
+	cases := map[string]struct {
+		ld   string
+		want bool // pass or fail; skip cases handled separately
+	}{
+		"org with three topics":      {`{"@type":"Organization","knowsAbout":["SEO","AEO","GEO"]}`, true},
+		"website with three topics":  {`{"@type":"WebSite","knowsAbout":["SEO","AEO","GEO"]}`, true},
+		"topic objects with names":   {`{"@type":"Organization","knowsAbout":[{"name":"SEO"},{"name":"AEO"},"GEO"]}`, true},
+		"website with one topic":     {`{"@type":"WebSite","knowsAbout":["SEO"]}`, false},
+		"localbusiness with three":   {`{"@type":"LocalBusiness","knowsAbout":["SEO","AEO","GEO"]}`, true},
+		"org with two topics":        {`{"@type":"Organization","knowsAbout":["SEO","AEO"]}`, false},
+		"single string topic":        {`{"@type":"Organization","knowsAbout":"SEO"}`, false},
+		"empty and duplicate topics": {`{"@type":"Organization","knowsAbout":["SEO","seo","AEO"]}`, false},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			check := findCheck(analyzeLD(t, tc.ld, "").GEO.Checks, "geo_schema_knows_about")
+			if check == nil {
+				t.Fatal("check missing")
+			}
+			if check.Pass != tc.want {
+				t.Errorf("pass = %v, want %v for %s", check.Pass, tc.want, tc.ld)
+			}
+		})
+	}
+	combined := `{"@graph":[{"@type":"Organization","knowsAbout":["SEO"]},{"@type":"WebSite","knowsAbout":["AEO","GEO"]}]}`
+	check := findCheck(analyzeLD(t, combined, "").GEO.Checks, "geo_schema_knows_about")
+	if check == nil || !check.Pass {
+		t.Errorf("combined org+website topics should pass, got %+v", check)
+	}
+	noSchema := findCheck(analyzeLD(t, `{"@type":"WebPage"}`, "").GEO.Checks, "geo_schema_knows_about")
+	if noSchema == nil || noSchema.Applicable == nil || *noSchema.Applicable {
+		t.Errorf("page without Organization or WebSite schema should skip, got %+v", noSchema)
+	}
+}
+
+func TestGeoAuthorCredentialDepth(t *testing.T) {
+	cases := map[string]struct {
+		ld   string
+		want bool
+	}{
+		"jobTitle":               {`{"@type":"Article","author":{"@type":"Person","name":"A","jobTitle":"Editor"}}`, true},
+		"alumniOf":               {`{"@type":"Article","author":{"@type":"Person","name":"A","alumniOf":"MIT"}}`, true},
+		"hasCredential":          {`{"@type":"Article","author":{"@type":"Person","name":"A","hasCredential":"PhD"}}`, true},
+		"orcid in sameAs":        {`{"@type":"Article","author":{"@type":"Person","name":"A","sameAs":["https://orcid.org/0000-0002-1825-0097"]}}`, true},
+		"linkedin in sameAs":     {`{"@type":"Article","author":{"name":"A","sameAs":["https://www.linkedin.com/in/a"]}}`, true},
+		"untyped author map":     {`{"@type":"Article","author":{"name":"A","jobTitle":"Reporter"}}`, true},
+		"multiple authors all":   {`{"@type":"Article","author":[{"@type":"Person","jobTitle":"E"},{"@type":"Person","hasCredential":"MD"}]}`, true},
+		"multiple authors mixed": {`{"@type":"Article","author":[{"@type":"Person","jobTitle":"E"},{"@type":"Person","name":"B"}]}`, false},
+		"name only":              {`{"@type":"Article","author":{"@type":"Person","name":"A"}}`, false},
+		"social sameAs only":     {`{"@type":"Article","author":{"@type":"Person","name":"A","sameAs":["https://instagram.com/a"]}}`, false},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			check := findCheck(analyzeLD(t, tc.ld, "").GEO.Checks, "geo_author_credential_depth")
+			if check == nil {
+				t.Fatal("check missing")
+			}
+			if check.Pass != tc.want {
+				t.Errorf("pass = %v, want %v for %s", check.Pass, tc.want, tc.ld)
+			}
+		})
+	}
+	graph := `{"@graph":[{"@type":"Article","author":{"@id":"#a"}},{"@id":"#a","@type":"Person","name":"A","jobTitle":"Editor"}]}`
+	check := findCheck(analyzeLD(t, graph, "").GEO.Checks, "geo_author_credential_depth")
+	if check == nil || !check.Pass {
+		t.Errorf("author resolved through @id reference should pass, got %+v", check)
+	}
+	noAuthor := findCheck(analyzeLD(t, `{"@type":"WebPage"}`, "").GEO.Checks, "geo_author_credential_depth")
+	if noAuthor == nil || noAuthor.Applicable == nil || *noAuthor.Applicable {
+		t.Errorf("page without author schema should skip, got %+v", noAuthor)
+	}
+	orgAuthor := findCheck(analyzeLD(t, `{"@type":"Article","author":{"@type":"Organization","name":"Desk"}}`, "").GEO.Checks, "geo_author_credential_depth")
+	if orgAuthor == nil || orgAuthor.Applicable == nil || *orgAuthor.Applicable {
+		t.Errorf("organization author should skip the Person credential check, got %+v", orgAuthor)
+	}
+}
