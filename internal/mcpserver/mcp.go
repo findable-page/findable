@@ -31,7 +31,7 @@ const (
 
 type jsonRPCRequest struct {
 	JSONRPC string          `json:"jsonrpc"`
-	ID      any             `json:"id"`
+	ID      json.RawMessage `json:"id"`
 	Method  string          `json:"method"`
 	Params  json.RawMessage `json:"params"`
 }
@@ -84,11 +84,16 @@ func (m mcpSession) replyError(id any, code int, message string) error {
 }
 
 func (m mcpSession) handle(req jsonRPCRequest) error {
+	// A message without an id is a notification: JSON-RPC 2.0 forbids
+	// replying to it, whatever its method.
+	if req.ID == nil {
+		return nil
+	}
 	switch req.Method {
 	case "initialize":
 		return m.reply(req.ID, initializeResult())
-	case "notifications/initialized":
-		return nil
+	case "ping":
+		return m.reply(req.ID, map[string]any{})
 	case "tools/list":
 		return m.reply(req.ID, map[string]any{"tools": toolDefinitions()})
 	case "tools/call":
@@ -106,9 +111,8 @@ func initializeResult() map[string]any {
 	return map[string]any{
 		"protocolVersion": mcpProtocolVersion,
 		"capabilities": map[string]any{
-			"tools":     map[string]any{},
-			"prompts":   map[string]any{},
-			"resources": map[string]any{},
+			"tools":   map[string]any{},
+			"prompts": map[string]any{},
 		},
 		"serverInfo": map[string]any{
 			"name":    "findable-mcp",

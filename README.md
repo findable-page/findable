@@ -1,17 +1,38 @@
-<p align="center"><img src="docs/cover.png" alt="findable: is your site findable by Google and by ChatGPT and Perplexity?" width="100%"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/banner-dark.svg">
+    <img src="docs/images/banner-light.svg" alt="findable: is your site findable by Google and by AI answer engines?" width="100%">
+  </picture>
+</p>
 
 # Is your site findable by Google AND by ChatGPT/Perplexity?
 
-**findable: SEO + AEO + GEO auditor for the AI search era (CLI, MCP, edge API).** Scores summarise findable's own checks; they do not measure Google rankings or AI citations.
+**findable** is an SEO + AEO + GEO auditor for the AI search era (CLI, MCP, GitHub Action, edge API). Scores summarise findable's own checks; they do not measure Google rankings or AI citations.
 
 [![CI](https://github.com/findable-page/findable/actions/workflows/ci.yml/badge.svg)](https://github.com/findable-page/findable/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/findable-page/findable)](https://goreportcard.com/report/github.com/findable-page/findable)
 [![Release](https://img.shields.io/github/v/release/findable-page/findable?include_prereleases)](https://github.com/findable-page/findable/releases)
+[![npm](https://img.shields.io/npm/v/findable)](https://www.npmjs.com/package/findable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Live demo: https://findable.page** · **Learn: https://findable.page/learn** · [The build story](docs/STORY.md)
+**Live demo: [findable.page](https://findable.page)** · **Learn: [findable.page/learn](https://findable.page/learn)** · [The build story](docs/STORY.md)
 
-![findable web UI showing a score hero, family cards and a failing-first issue list](docs/screenshots/after-light-1280.png)
+## Quick start
+
+```bash
+go install github.com/findable-page/findable/cmd/findable@latest   # Go 1.26+
+
+findable https://example.com
+findable ./page.html          # local file, no server needed
+```
+
+It prints scores and a prioritized fix list (severity × evidence tier), and writes a report in `-o` (default `.`). Homebrew is not available yet.
+
+<p align="center">
+  <img src="docs/images/cli-audit.svg" alt="Terminal output of findable auditing https://findable.page: overall 95, SEO 95, AEO 95, GEO 96, followed by a nine-item fix list and a saved CSV report." width="100%">
+</p>
+
+<p align="center"><sub>A real audit of https://findable.page on 16 November 2026. Scores are findable's own checks, not rankings or citations.</sub></p>
 
 ## Why
 
@@ -21,38 +42,35 @@ findable checks the signals answer engines are documented or commonly reported t
 
 ## Scoring model
 
-One overall score from 0 to 100, built from three families:
+One overall score from 0 to 100, built from three families. The default model is weighted by severity × evidence tier; use `-score-model flat` for the legacy passed/total scores (the GitHub Action still defaults to `flat` so existing gates do not move).
 
 | Family | Weight | Page checks | What it measures |
 |---|---|---|---|
-| SEO | 50% | 98 | Title and meta tags, headings, canonical, Open Graph and Twitter cards, mobile, HTTPS and security headers, accessibility landmarks |
-| AEO (answer engine optimization) | 25% | 35 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
-| GEO (generative engine optimization) | 25% | 27 | Author and organization markup, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
+| SEO | 50% | 100 | Title and meta tags, headings, canonical, Open Graph and Twitter cards, mobile, HTTPS and security headers, accessibility landmarks |
+| AEO (answer engine optimization) | 25% | 36 | Structured data, FAQ markup, short direct answers, question headings, lists, tables, steps, readability |
+| GEO (generative engine optimization) | 25% | 30 | Author and organization markup, knowsAbout topics, author credentials, dates, citations and quotes, passage-ready blocks, trust links, no snippet blocking |
 
-The Go engine runs 167 page checks; the edge API runs a separate port. Seventeen site checks are opt-in (`-site`) and unscored: robots.txt present, the page allowed for `*`, four AI search crawlers (OAI-SearchBot, PerplexityBot, Claude-SearchBot, Googlebot), five AI training crawlers (GPTBot, ClaudeBot, Google-Extended, Applebot-Extended, meta-externalagent), and `/llms.txt` present. Every failing check names what to fix.
+The Go engine runs 166 page checks. Four more SEO checks run when you pass a focus keyphrase with `-k`. The hosted API at [findable.page](https://findable.page) is a separate TypeScript engine. Seventeen site checks are opt-in (`-site`) and unscored. Every failing check names what to fix. `llms.txt` is optional hygiene, not a documented ranking signal.
 
-## Quickstart
+<details>
+<summary>The 17 site checks (<code>-site</code>)</summary>
 
-```bash
-go install github.com/findable-page/findable/cmd/findable@latest   # Go 1.26+
-```
+- `robots.txt` is present, and the page is allowed for `*`
+- AI search crawlers: OAI-SearchBot, PerplexityBot, Claude-SearchBot, Googlebot, Bingbot
+- On-demand user-fetch crawlers: ChatGPT-User, Perplexity-User, Claude-User
+- AI training crawlers: GPTBot, ClaudeBot, Google-Extended, Applebot-Extended, meta-externalagent, CCBot
+- `/llms.txt` is present
 
-Homebrew: planned for first release; use go install.
+Blocking a training crawler does not affect AI search citations. `Google-Extended` governs Gemini training, not AI Overviews.
 
-Then:
-
-```bash
-findable https://example.com
-findable ./page.html          # local file, no server needed
-```
-
-It prints scores and a prioritized fix list (severity × evidence tier), and saves a report file in `-o` (default `.`). Scores are weighted; `llms.txt` is optional hygiene, not a documented ranking signal.
+</details>
 
 ## CLI
 
 ```
-findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase]
-         [-site] [-crawl] [-sitemap url] [-limit N] [-allow-private] <url or file>
+findable [audit] [-o dir] [-format csv|json|sarif] [-fail-under N] [-score-model weighted|flat]
+         [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-top N]
+         [-min-severity LEVEL] [-config path] [-allow-private] <url or file>
 findable bots [-bots OAI-SearchBot,PerplexityBot] [-path /] [-format text|json] <url>
 findable mcp
 findable serve 127.0.0.1:8080
@@ -62,13 +80,14 @@ findable serve 127.0.0.1:8080
 |---|---|
 | `-format csv\|json\|sarif` | Report format. `json` is the same object `/api/scan` returns, `sarif` is SARIF 2.1.0 for GitHub code scanning. Default `csv`. |
 | `-fail-under N` | Exit 1 and name every page whose overall score is below N. |
+| `-score-model weighted\|flat` | Scoring formula. Default `weighted`. `flat` keeps legacy passed/total scores. |
 | `-sitemap URL` | Audit the pages a sitemap lists. Sitemap indexes are followed. |
-| `-site` | Also run the 17 site checks (robots.txt, AI search crawlers, AI training crawlers, llms.txt). |
+| `-site` | Also run the 17 site checks (robots.txt, AI search, user-fetch and training crawlers, llms.txt). |
 | `-crawl` | Follow internal links, up to `-limit` pages (default 20). |
-| `-k` | Focus keyphrase. The Go engine runs the four keyphrase checks. |
-| `-top N`, `-min-severity LEVEL` | Limit the terminal fix list (critical, high, medium, low). |
+| `-k` | Focus keyphrase. Adds the four keyphrase checks (title, description, H1, body). |
+| `-top N`, `-min-severity LEVEL` | Limit the terminal fix list (default 10 items; levels are critical, high, medium, low). |
 | `-config path` | Load strict JSON config; defaults to `findable.json` if present. Gate, crawl, bots, baseline and ignore sections currently return a usage error rather than silently doing nothing. |
-| `-o`, `-q` | Report directory; `-q` hides the failing-check list. |
+| `-o`, `-q` | Report directory (default `.`); `-q` hides the failing-check list. |
 | `-serve 127.0.0.1:8080` | Legacy flag (or `findable serve`); local API and web UI. Bind to localhost; `:8080` listens on every interface. |
 | `-mcp` | Legacy flag (or `findable mcp`); MCP server over stdio. |
 | `-allow-private` | Allow localhost and private-network targets. Without it every fetch, including crawl and sitemap links and MCP, refuses non-public hosts, ignores `HTTPS_PROXY`/`HTTP_PROXY`, and only connects to ports 80 and 443. With it the CLI uses a plain HTTP client: no address guard, any port, proxy variables honoured. `-serve` is always guarded and ignores this flag. |
@@ -80,23 +99,27 @@ findable -site -crawl -limit 10 https://example.com
 findable bots -bots OAI-SearchBot,Claude-SearchBot https://example.com
 ```
 
-Bot probes use spoofed user agents from **your IP**, not vendor IP ranges. A WAF may treat the real bot differently. `0` means success, `1` means score gate failed, `2` means invalid usage, `3` means runtime/network or report-write error.
+Bot probes use spoofed user agents from **your IP**, not vendor IP ranges. A WAF may treat the real bot differently. Exit codes: `0` success, `1` score gate failed, `2` invalid usage, `3` runtime/network or report-write error.
 
 ## MCP for agents
 
-Add to Claude Desktop, Cursor or Windsurf:
+No Go toolchain? Use the npm package, which calls `https://findable.page/api/scan`:
 
 ```json
-{ "mcpServers": { "findable": { "command": "findable", "args": ["-mcp"] } } }
+{ "mcpServers": { "findable": { "command": "npx", "args": ["-y", "findable"] } } }
 ```
 
-No Go toolchain? Build the MCP server from source: `(cd mcp && bun install && bun run build)`, then use `{ "command": "node", "args": ["/path/to/findable/mcp/dist/index.js"] }`.
+Or run the local Go engine, including file and raw-HTML audits, with no network to the hosted API:
 
-Tools: `audit_page` (URL or file), `audit_html_content` (raw HTML, no network), `crawl_site`, `generate_csv_report`. Prompt: `seo_audit_prompt`.
+```json
+{ "mcpServers": { "findable": { "command": "findable", "args": ["mcp"] } } }
+```
+
+The npm server exposes `audit_page`, `crawl_site` and the `seo_audit_prompt` prompt. The Go server adds `audit_html_content` (raw HTML, no network) and `generate_csv_report`. `findable -mcp` is the same as `findable mcp`.
 
 ## API
 
-Hosted at https://findable.page (source: [findable-page/findable-page](https://github.com/findable-page/findable-page)), or run your own local server with `findable -serve 127.0.0.1:8080`.
+Hosted at https://findable.page (source: [findable-page/findable-page](https://github.com/findable-page/findable-page)), or run your own local server with `findable serve 127.0.0.1:8080`.
 
 ```bash
 curl -s -X POST https://findable.page/api/scan \
@@ -112,14 +135,14 @@ curl -s -X POST https://findable.page/api/scan \
 permissions:
   security-events: write
 steps:
-  - uses: findable-page/findable@v0.2.0
+  - uses: findable-page/findable@v0.4.0
     with:
       url: https://example.com
       fail-under: 70
       args: -site
 ```
 
-The action builds the CLI, uploads failing checks to code scanning as SARIF, then fails the job below `fail-under`.
+The action builds the CLI, uploads failing checks to code scanning as SARIF, then fails the job below `fail-under`. Its `score-model` input defaults to `flat` so existing score gates stay put; set `score-model: weighted` to match the CLI default.
 
 ## Development
 
