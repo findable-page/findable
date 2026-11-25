@@ -28,17 +28,29 @@ func articleContainsHeading(s *PageSignals) bool {
 	if len(s.Tags["article"]) != 1 {
 		return false
 	}
-	lower := strings.ToLower(s.RawHTML)
-	start := strings.Index(lower, "<article")
-	if start == -1 {
-		return false
+	for _, h := range s.Tags["h1"] {
+		// RawHTML contains <article and <h1 inside comments, scripts,
+		// noscript, and attribute values. The parsed selector only names
+		// elements that are actually in the tree.
+		if selectorHasTag(h.Selector, "article") {
+			return true
+		}
 	}
-	end := len(lower)
-	if closeAt := strings.Index(lower[start:], "</article"); closeAt != -1 {
-		end = start + closeAt
+	return false
+}
+
+// selectorHasTag reports whether a recorded selector names tag as the
+// element or one of its ancestors. An :nth-of-type() suffix is ignored.
+func selectorHasTag(sel, tag string) bool {
+	for _, part := range strings.Split(sel, " > ") {
+		if i := strings.IndexByte(part, ':'); i >= 0 {
+			part = part[:i]
+		}
+		if part == tag {
+			return true
+		}
 	}
-	h1 := strings.Index(lower[start:end], "<h1")
-	return h1 != -1
+	return false
 }
 
 func metaProperty(s *PageSignals, prop string) string {
