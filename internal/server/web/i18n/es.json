@@ -156,6 +156,8 @@
 "geo_modified_after_published":{"name":"Modificación posterior a la publicación","fix":"Corrige el orden de las fechas: la modificación no puede ser anterior a la publicación."},
 "geo_visible_date":{"name":"Fecha visible","fix":"Muestra la fecha en el texto, como \"Actualizado\" o \"Publicado\"."},
 "geo_authoritative_links":{"name":"Enlaces a fuentes autorizadas","fix":"Cita fuentes primarias, como sitios .gov, .edu o de referencia."},
+"geo_schema_knows_about":{"name":"Profundidad temática del esquema","fix":"Añade knowsAbout con al menos tres temas clave a tu esquema de Organization o WebSite."},
+"geo_author_credential_depth":{"name":"Credenciales del autor","fix":"Da al esquema Person del autor un jobTitle, alumniOf, hasCredential o un sameAs de perfil profesional."},
 "geo_source_diversity":{"name":"Diversidad de fuentes","fix":"Cita más de una fuente, al menos tres dominios distintos."},
 "geo_quote_attribution":{"name":"Citas con atribución","fix":"Añade cite o un elemento cite a las citas."},
 "geo_policy_links":{"name":"Enlaces a privacidad y términos","fix":"Enlaza tu política de privacidad y tus términos de uso."},

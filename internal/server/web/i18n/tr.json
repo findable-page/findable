@@ -156,6 +156,8 @@
 "geo_modified_after_published":{"name":"Değişiklik yayından sonra","fix":"Tarih sırasını düzelt: değişiklik tarihi yayın tarihinden önce olamaz."},
 "geo_visible_date":{"name":"Görünür tarih","fix":"Tarihi metinde göster, örneğin \"Güncellendi\" veya \"Yayınlandı\"."},
 "geo_authoritative_links":{"name":"Güvenilir kaynak bağlantıları","fix":"Birincil kaynaklara atıf yap: .gov, .edu veya referans siteleri."},
+"geo_schema_knows_about":{"name":"Şema konu derinliği","fix":"Organization veya WebSite şemana en az üç ana konu içeren knowsAbout ekle."},
+"geo_author_credential_depth":{"name":"Yazar yetkinliği","fix":"Yazarın Person şemasına jobTitle, alumniOf, hasCredential veya LinkedIn gibi profil sameAs ekle."},
 "geo_source_diversity":{"name":"Kaynak çeşitliliği","fix":"Birden fazla kaynağa atıf yap, en az üç farklı alan adı olsun."},
 "geo_quote_attribution":{"name":"Alıntılarda kaynak belirtme","fix":"Alıntılara cite özniteliği veya cite öğesi ekle."},
 "geo_policy_links":{"name":"Gizlilik ve koşul bağlantıları","fix":"Gizlilik politikasına ve kullanım koşullarına link ver."},
