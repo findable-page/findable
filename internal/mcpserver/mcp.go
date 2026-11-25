@@ -116,7 +116,7 @@ func initializeResult() map[string]any {
 		},
 		"serverInfo": map[string]any{
 			"name":    "findable-mcp",
-			"version": "0.3.0",
+			"version": "0.4.0",
 		},
 	}
 }
