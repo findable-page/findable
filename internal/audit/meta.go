@@ -260,6 +260,11 @@ var registry = map[string]Meta{
 	"geo_quote_attribution":           {SeverityLow, TierHeuristic, "Attribute quotes to a named source.", ""},
 	"geo_source_diversity":            {SeverityInfo, TierHeuristic, "Cite several distinct domains.", ""},
 	"geo_authoritative_links":         {SeverityLow, TierHeuristic, "Link authoritative sources such as standards and research.", ""},
+	"seo_ssr_title_match":             {SeverityHigh, TierDocumented, "Put the final title in the server HTML so non-JS crawlers see it.", ""},
+	"seo_ssr_canonical_match":         {SeverityHigh, TierDocumented, "Put the canonical link in the server HTML, not only in client-rendered DOM.", ""},
+	"seo_ssr_headings_present":        {SeverityMedium, TierDocumented, "Render h1-h3 headings in the server HTML.", ""},
+	"aeo_ssr_schema_present":          {SeverityHigh, TierDocumented, "Include JSON-LD in the server HTML, not only after hydration.", ""},
+	"geo_ssr_content_parity":          {SeverityHigh, TierHeuristic, "Server-render the body copy so raw text is at least half of the rendered text.", ""},
 
 	// site-level (robots.txt, llms.txt)
 	"robots-txt":           {SeverityLow, TierDocumented, "Publish a robots.txt at the site root so crawlers can read your rules.", ""},

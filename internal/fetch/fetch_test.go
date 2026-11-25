@@ -91,3 +91,13 @@ func TestScanAddsKeyphraseChecksOnlyWhenKeyphraseGiven(t *testing.T) {
 		}
 	}
 }
+
+func TestReadHTMLRejectsErrorStatus(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "missing", http.StatusNotFound)
+	}))
+	t.Cleanup(srv.Close)
+	if _, err := ReadHTML(srv.Client(), srv.URL); err == nil || !strings.Contains(err.Error(), "HTTP 404") {
+		t.Fatalf("error = %v, want HTTP 404", err)
+	}
+}
