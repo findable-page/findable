@@ -13,6 +13,7 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 	"commands:\n" +
 	"  audit    (default) audit one page, a crawl or a sitemap\n" +
 	"  bots     probe how AI crawlers are actually treated by the server\n" +
+	"  diff     compare a JSON report against a baseline and flag regressions\n" +
 	"  mcp      run MCP server over stdio\n" +
 	"  serve    run HTTP API server\n" +
 	"\n" +
@@ -24,6 +25,7 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 var subcommands = map[string]func([]string){
 	"audit": auditCmd,
 	"bots":  botsCmd,
+	"diff":  diffCmd,
 	"mcp":   mcpCmd,
 	"serve": serveCmd,
 }

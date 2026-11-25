@@ -74,6 +74,11 @@ func (w *sitemapWalk) visit(sitemapURL string, depth int) error {
 		if len(w.urls) == w.limit {
 			return nil
 		}
+		// A <loc> that is not a web URL would make Scan read a local file.
+		if !IsHTTPURL(p) {
+			fmt.Fprintf(os.Stderr, "sitemap %s: skipping non-http(s) location %q\n", sitemapURL, p)
+			continue
+		}
 		if !w.seen[p] {
 			w.seen[p] = true
 			w.urls = append(w.urls, p)
@@ -85,6 +90,9 @@ func (w *sitemapWalk) visit(sitemapURL string, depth int) error {
 	for _, child := range children {
 		if len(w.urls) == w.limit {
 			return nil
+		}
+		if !IsHTTPURL(child) {
+			continue
 		}
 		if err := w.visit(child, depth+1); err != nil {
 			fmt.Fprintf(os.Stderr, "sitemap %s: %v\n", child, err)

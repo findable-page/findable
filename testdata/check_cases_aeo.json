@@ -1,4 +1,11 @@
 {
+  "aeo_ai_robots": {
+    "pass": [{"head": "<meta name='robots' content='index, follow'>"}, {"head": "<meta name='robots' content='nofollow'>"}],
+    "fail": [
+      {"head": "<meta name='robots' content='noindex'>"},
+      {"head": "<meta name='robots' content='none'>"}
+    ]
+  },
   "aeo_answer_after_question": {
     "pass": [{}, {"body": "<h2>What is it?</h2><p>It is a tool.</p>"}],
     "fail": [
