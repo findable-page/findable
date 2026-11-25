@@ -44,3 +44,13 @@ func TestQueryFanoutLeavesMissingIntentsUncovered(t *testing.T) {
 		}
 	}
 }
+
+func TestQueryFanoutDoesNotTreatEveryTableAsComparison(t *testing.T) {
+	page := `<!DOCTYPE html><html><body><table><tr><td>Monday</td><td>Tuesday</td></tr></table></body></html>`
+	report := QueryFanout("https://example.com", page, "findable")
+	for _, intent := range report.Intents {
+		if intent.ID == "comparison" && intent.Covered {
+			t.Fatal("a calendar table covered comparison")
+		}
+	}
+}

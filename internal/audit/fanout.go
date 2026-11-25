@@ -3,6 +3,8 @@ package audit
 import (
 	"fmt"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 // FanoutIntent is one predictable sub-query an answer engine fans out from a topic.
@@ -82,9 +84,28 @@ func fanoutSpots(sig *PageSignals) []fanoutSpot {
 	for i, paragraph := range sig.Paragraphs {
 		spots = append(spots, fanoutSpot{where: fmt.Sprintf("p:%d", i+1), text: paragraph})
 	}
-	if sig.TableCount > 0 {
-		spots = append(spots, fanoutSpot{where: "table", text: "comparison table"})
+	return append(spots, tableTextSpots(sig.RawHTML)...)
+}
+
+func tableTextSpots(raw string) []fanoutSpot {
+	doc, err := html.Parse(strings.NewReader(raw))
+	if err != nil {
+		return nil
 	}
+	var spots []fanoutSpot
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "table" {
+			if text := strings.TrimSpace(collectText(n)); text != "" {
+				spots = append(spots, fanoutSpot{where: n.Data, text: text})
+			}
+			return
+		}
+		for child := n.FirstChild; child != nil; child = child.NextSibling {
+			walk(child)
+		}
+	}
+	walk(doc)
 	return spots
 }
 

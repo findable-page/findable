@@ -22,7 +22,10 @@ func fanoutCmd(args []string) {
 	format := fs.String("format", "text", "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow fetching localhost and private-network targets")
 	fs.Usage = func() { fmt.Fprintln(os.Stderr, fanoutUsage) }
-	if err := fs.Parse(args); err != nil || fs.NArg() != 1 || strings.TrimSpace(*query) == "" {
+	if err := fs.Parse(args); err != nil {
+		os.Exit(exitUsage)
+	}
+	if fs.NArg() != 1 || strings.TrimSpace(*query) == "" {
 		fmt.Fprintln(os.Stderr, fanoutUsage)
 		os.Exit(exitUsage)
 	}
@@ -45,7 +48,7 @@ func fanoutCmd(args []string) {
 
 func loadPageHTML(client *http.Client, target string) (string, error) {
 	if !fetch.IsHTTPURL(target) {
-		body, err := os.ReadFile(target) //nolint:gosec // reading the user-named file is the feature
+		body, err := os.ReadFile(strings.TrimPrefix(target, "file://")) //nolint:gosec // reading the user-named file is the feature
 		if err != nil {
 			return "", fmt.Errorf("read file: %w", err)
 		}
@@ -61,6 +64,9 @@ func loadPageHTML(client *http.Client, target string) (string, error) {
 		return "", fmt.Errorf("fetch %s: %w", target, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("fetch %s: HTTP %d", target, resp.StatusCode)
+	}
 	body, err := io.ReadAll(io.LimitReader(resp.Body, fetch.MaxPageBytes+1))
 	if err != nil {
 		return "", fmt.Errorf("read body: %w", err)

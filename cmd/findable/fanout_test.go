@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,5 +26,20 @@ func TestFanoutCommandPrintsCoverageMatrix(t *testing.T) {
 	jsonOut, code := runFindable(t, workDir, "fanout", "-query", "findable", "-format", "json", page)
 	if code != 0 || !strings.Contains(jsonOut, `"covered":true`) {
 		t.Fatalf("json exit = %d\n%s", code, jsonOut)
+	}
+
+	fileOut, code := runFindable(t, workDir, "fanout", "-query", "findable", "file://"+page)
+	if code != 0 || !strings.Contains(fileOut, "definition") {
+		t.Fatalf("file URL exit = %d\n%s", code, fileOut)
+	}
+}
+
+func TestLoadPageHTMLRejectsErrorStatus(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "missing", http.StatusNotFound)
+	}))
+	t.Cleanup(srv.Close)
+	if _, err := loadPageHTML(srv.Client(), srv.URL); err == nil || !strings.Contains(err.Error(), "HTTP 404") {
+		t.Fatalf("error = %v, want HTTP 404", err)
 	}
 }
