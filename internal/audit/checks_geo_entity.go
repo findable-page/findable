@@ -95,7 +95,9 @@ func recordURIRef(raw string, graph *idGraph) {
 	if id == "" {
 		return
 	}
-	if strings.HasPrefix(id, "#") || strings.Contains(id, "://") {
+	// A bare name ("Ada Lovelace") is text, not an entity reference. Root-relative
+	// paths, fragments and absolute IRIs are the forms JSON-LD uses for @id.
+	if strings.HasPrefix(id, "#") || strings.HasPrefix(id, "/") || strings.Contains(id, "://") {
 		graph.refs = append(graph.refs, id)
 	}
 }
