@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestReadAnswerClassifiesBrandCitationAndCompetitors(t *testing.T) {
@@ -20,7 +21,7 @@ func TestReadAnswerClassifiesBrandCitationAndCompetitors(t *testing.T) {
 		},
 	}
 	report := ReadAnswer(resp, "best offline scanner", "https://engine.test/answer", "findable", "findable.page")
-	if !report.BrandMentioned || report.Sentiment != "positive" || !report.Cited {
+	if !report.BrandMentioned || report.Sentiment != sentimentPositive || !report.Cited {
 		t.Fatalf("report = %+v", report)
 	}
 	if strings.Join(report.CompetitorDomains, ",") != "g2.com,reddit.com" {
@@ -28,8 +29,38 @@ func TestReadAnswerClassifiesBrandCitationAndCompetitors(t *testing.T) {
 	}
 
 	negative := ReadAnswer(EngineResponse{Text: "Avoid findable; the results were terrible."}, "q", "e", "Findable", "findable.page")
-	if !negative.BrandMentioned || negative.Sentiment != "negative" || negative.Cited {
+	if !negative.BrandMentioned || negative.Sentiment != sentimentNegative || negative.Cited {
 		t.Fatalf("negative report = %+v", negative)
+	}
+}
+
+func TestReadAnswerIgnoresEmbeddedTermsAndNormalizesHosts(t *testing.T) {
+	embedded := ReadAnswer(EngineResponse{
+		Text: "An unfindable badge is not a brand mention.",
+		Citations: []Citation{
+			{URL: "https://notfindable.page/about"},
+			{URL: "findable.page/docs"},
+			{URL: "https://docs.findable.page/guide"},
+		},
+	}, "q", "e", "findable", "https://www.findable.page/path")
+	if embedded.BrandMentioned || embedded.Sentiment != "" || !embedded.Cited {
+		t.Fatalf("embedded report = %+v", embedded)
+	}
+	if strings.Join(embedded.CompetitorDomains, ",") != "notfindable.page" {
+		t.Fatalf("competitors = %v", embedded.CompetitorDomains)
+	}
+
+	neutral := ReadAnswer(EngineResponse{Text: "Findable published a changelog."}, "q", "e", "Findable", "findable.page:443")
+	if !neutral.BrandMentioned || neutral.Sentiment != sentimentNeutral {
+		t.Fatalf("neutral report = %+v", neutral)
+	}
+}
+
+func TestQueryErrorOmitsToken(t *testing.T) {
+	const token = "secret-token"
+	_, err := Query(context.Background(), &http.Client{Timeout: time.Second}, "http://127.0.0.1:1/?access_token="+token, "q", token)
+	if err == nil || strings.Contains(err.Error(), token) {
+		t.Fatal("engine error included the token or did not fail")
 	}
 }
 

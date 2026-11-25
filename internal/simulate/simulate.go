@@ -6,14 +6,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
-const engineTimeout = 30 * time.Second
+const (
+	engineTimeout       = 30 * time.Second
+	sentimentPositive   = "positive"
+	sentimentNegative   = "negative"
+	sentimentNeutral    = "neutral"
+	sentimentWindowRune = 80
+)
 
 // Citation is one source the engine attached to an answer.
 type Citation struct {
@@ -75,56 +84,124 @@ func ReadAnswer(resp EngineResponse, query, engine, brand, domain string) Report
 func brandSentiment(text, brand string) (bool, string) {
 	lower := strings.ToLower(text)
 	brand = strings.ToLower(strings.TrimSpace(brand))
-	if brand == "" {
-		return false, ""
-	}
-	at := strings.Index(lower, brand)
+	at := termIndex(lower, brand)
 	if at < 0 {
 		return false, ""
 	}
-	start := at - 80
-	if start < 0 {
-		start = 0
-	}
-	end := at + len(brand) + 80
-	if end > len(lower) {
-		end = len(lower)
-	}
-	window := lower[start:end]
-	positive := countWords(window, "best", "great", "leading", "excellent", "recommended")
-	negative := countWords(window, "worst", "avoid", "bad", "terrible", "poor")
+	window := runeWindow(lower, at, len(brand), sentimentWindowRune)
+	positive := countTerms(window, "best", "great", "leading", "excellent", "recommended")
+	negative := countTerms(window, "worst", "avoid", "bad", "terrible", "poor")
 	switch {
 	case positive > negative:
-		return true, "positive"
+		return true, sentimentPositive
 	case negative > positive:
-		return true, "negative"
+		return true, sentimentNegative
 	default:
-		return true, "neutral"
+		return true, sentimentNeutral
 	}
 }
 
-func countWords(text string, words ...string) int {
+func countTerms(text string, words ...string) int {
 	count := 0
 	for _, word := range words {
-		if strings.Contains(text, word) {
+		if termIndex(text, word) >= 0 {
 			count++
 		}
 	}
 	return count
 }
 
+// termIndex reports the byte offset of term when it is not glued to another
+// letter or digit. "findable" does not match "unfindable", and "bad" does not
+// match "badge".
+func termIndex(text, term string) int {
+	if term == "" {
+		return -1
+	}
+	for start := 0; start < len(text); {
+		rel := strings.Index(text[start:], term)
+		if rel < 0 {
+			return -1
+		}
+		at := start + rel
+		if termBounded(text, at, at+len(term)) {
+			return at
+		}
+		start = at + 1
+	}
+	return -1
+}
+
+func termBounded(text string, start, end int) bool {
+	if start > 0 {
+		r, _ := utf8.DecodeLastRuneInString(text[:start])
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			return false
+		}
+	}
+	if end < len(text) {
+		r, _ := utf8.DecodeRuneInString(text[end:])
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func runeWindow(text string, at, termLen, pad int) string {
+	start := at
+	for i := 0; i < pad && start > 0; i++ {
+		_, size := utf8.DecodeLastRuneInString(text[:start])
+		if size <= 0 {
+			break
+		}
+		start -= size
+	}
+	end := at + termLen
+	for i := 0; i < pad && end < len(text); i++ {
+		_, size := utf8.DecodeRuneInString(text[end:])
+		if size <= 0 {
+			break
+		}
+		end += size
+	}
+	return text[start:end]
+}
+
 func citationHost(raw string) string {
-	parsed, err := url.Parse(raw)
-	if err != nil {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	candidate := raw
+	if !strings.Contains(candidate, "://") && !strings.HasPrefix(candidate, "//") {
+		candidate = "https://" + candidate
+	}
+	parsed, err := url.Parse(candidate)
+	if err != nil || parsed.Hostname() == "" {
 		return ""
 	}
 	return hostKey(parsed.Hostname())
 }
 
-func hostKey(host string) string {
-	host = strings.ToLower(strings.TrimSpace(host))
-	host = strings.TrimPrefix(host, "www.")
-	return strings.TrimSuffix(host, ".")
+func hostKey(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	if strings.Contains(raw, "://") || strings.HasPrefix(raw, "//") {
+		if parsed, err := url.Parse(raw); err == nil && parsed.Hostname() != "" {
+			raw = parsed.Hostname()
+		}
+	}
+	if slash := strings.IndexByte(raw, '/'); slash >= 0 {
+		raw = raw[:slash]
+	}
+	raw = strings.TrimSuffix(raw, ".")
+	if host, _, err := net.SplitHostPort(raw); err == nil {
+		raw = host
+	}
+	return strings.TrimPrefix(strings.ToLower(raw), "www.")
 }
 
 // Query posts the prompt to a simulate provider and decodes its answer.
@@ -139,7 +216,7 @@ func Query(ctx context.Context, client *http.Client, engineURL, prompt, token st
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, engineURL, bytes.NewReader(payload))
 	if err != nil {
-		return EngineResponse{}, fmt.Errorf("create request: %w", err)
+		return EngineResponse{}, fmt.Errorf("create request: %s", redactSecret(err.Error(), token, engineURL))
 	}
 	req.Header.Set("Content-Type", "application/json")
 	if token != "" {
@@ -147,7 +224,7 @@ func Query(ctx context.Context, client *http.Client, engineURL, prompt, token st
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return EngineResponse{}, fmt.Errorf("query engine: %w", err)
+		return EngineResponse{}, fmt.Errorf("query engine: %s", redactSecret(err.Error(), token, engineURL))
 	}
 	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
@@ -162,4 +239,20 @@ func Query(ctx context.Context, client *http.Client, engineURL, prompt, token st
 		return EngineResponse{}, fmt.Errorf("decode engine response: %w", err)
 	}
 	return parsed, nil
+}
+
+// redactSecret removes the bearer token and any userinfo password from a
+// transport error. Engine URLs sometimes carry the credential in the query.
+func redactSecret(msg, token, engineURL string) string {
+	if token != "" {
+		msg = strings.ReplaceAll(msg, token, "redacted")
+	}
+	parsed, err := url.Parse(engineURL)
+	if err != nil || parsed.User == nil {
+		return msg
+	}
+	if password, ok := parsed.User.Password(); ok && password != "" {
+		msg = strings.ReplaceAll(msg, password, "redacted")
+	}
+	return msg
 }
