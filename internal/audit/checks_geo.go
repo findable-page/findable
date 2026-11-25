@@ -340,7 +340,7 @@ func geoIntent(l *checkList, s *PageSignals) {
 	skipUnless(l, s.Title != "" && h1 != "", "geo_intent_clarity", "Title keywords match primary H1 heading", "No title or H1 heading to compare", titleMatchesHeading(s.Title, h1))
 	formats := formattingTypeCount(s)
 	l.add("geo_format_variety", fmt.Sprintf("%d formatting types used (tables, lists, quotes, code, dl)", formats), formats >= 3)
-	l.add("geo_snippet_control", "No restrictive nosnippet over-blocking", !lowerContainsAny(s.RobotsMeta, "nosnippet"))
+	l.add(checkSnippetControl, "No restrictive nosnippet over-blocking", !lowerContainsAny(s.RobotsMeta, "nosnippet"))
 	geoSnippetBoilerplateControl(l, s)
 }
 

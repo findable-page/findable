@@ -67,13 +67,13 @@ func seoTechnicalMeta(l *checkList, s *PageSignals) {
 	l.add("lang_attr", "Language attribute set on HTML tag", s.Lang != "")
 	l.add("html_doctype", "<!DOCTYPE html> declared", s.HTMLDoctype)
 	l.add("meta_refresh", "No meta refresh redirect (good)", s.MetaRefresh == "")
-	l.addEv("robots_meta", "No robots meta tag blocking crawling", !robotsBlocksIndex(s), evidence(`head > meta[name=robots]`, s.RobotsMeta))
+	l.addEv(checkRobotsMeta, "No robots meta tag blocking crawling", !robotsBlocksIndex(s), evidence(`head > meta[name=robots]`, s.RobotsMeta))
 	xTagHeaders := s.Headers.Values("X-Robots-Tag")
 	if len(xTagHeaders) == 0 {
-		l.skip("x_robots_tag_noindex", "No X-Robots-Tag header to check")
+		l.skip(checkXRobotsNoindex, "No X-Robots-Tag header to check")
 	} else {
 		xTag := strings.Join(xTagHeaders, ", ")
-		l.addEv("x_robots_tag_noindex", "X-Robots-Tag header does not noindex this page", !ParseXRobotsTag(xTagHeaders).NoIndexFor(pageCrawler), evidence("X-Robots-Tag", xTag))
+		l.addEv(checkXRobotsNoindex, "X-Robots-Tag header does not noindex this page", !ParseXRobotsTag(xTagHeaders).NoIndexFor(pageCrawler), evidence("X-Robots-Tag", xTag))
 	}
 }
 
