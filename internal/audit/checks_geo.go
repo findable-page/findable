@@ -59,19 +59,52 @@ func geoFreshness(l *checkList, s *PageSignals) {
 }
 
 func geoIntent(l *checkList, s *PageSignals) {
-	l.add("geo_intent_clarity", "Title keywords match primary H1 heading", titleMatchesFirstHeading(s))
+	h1 := firstH1Text(s.Headings)
+	skipUnless(l, s.Title != "" && h1 != "", "geo_intent_clarity", "Title keywords match primary H1 heading", "No title or H1 heading to compare", titleMatchesHeading(s.Title, h1))
 	formats := formattingTypeCount(s)
 	l.add("geo_format_variety", fmt.Sprintf("%d formatting types used (tables, lists, quotes, code, dl)", formats), formats >= 3)
 	l.add("geo_snippet_control", "No restrictive nosnippet over-blocking", !lowerContainsAny(s.RobotsMeta, "nosnippet"))
+	geoSnippetBoilerplateControl(l, s)
 }
 
-func titleMatchesFirstHeading(s *PageSignals) bool {
-	if s.Title == "" || len(s.Headings) == 0 {
-		return false
+const boilerplateWordThreshold = 30
+
+// geoSnippetBoilerplateControl flags long navigation, header and footer text
+// that AI engines can lift into snippets. data-nosnippet only counts on div,
+// span and section elements, so the attribute on the nav or footer itself is
+// ignored. A block passes when most of its words sit under data-nosnippet
+// wrappers.
+func geoSnippetBoilerplateControl(l *checkList, s *PageSignals) {
+	significant, controlled := 0, 0
+	for _, b := range s.Boilerplate {
+		if b.Words < boilerplateWordThreshold {
+			continue
+		}
+		significant++
+		if b.CoveredWords*2 >= b.Words {
+			controlled++
+		}
 	}
-	firstHeading := strings.ToLower(s.Headings[0].Text)
+	if significant == 0 {
+		l.skip("geo_snippet_boilerplate_control", "No long nav, header or footer text to scope")
+		return
+	}
+	l.add("geo_snippet_boilerplate_control", fmt.Sprintf("%d of %d long nav/header/footer block(s) mostly wrapped in data-nosnippet div/span/section", controlled, significant), controlled == significant)
+}
+
+func firstH1Text(headings []Heading) string {
+	for _, h := range headings {
+		if h.Level == 1 {
+			return h.Text
+		}
+	}
+	return ""
+}
+
+func titleMatchesHeading(title, h1 string) bool {
+	firstHeading := strings.ToLower(h1)
 	matches := 0
-	for _, word := range strings.Fields(strings.ToLower(s.Title)) {
+	for _, word := range strings.Fields(strings.ToLower(title)) {
 		if len(word) > 3 && strings.Contains(firstHeading, word) {
 			matches++
 		}

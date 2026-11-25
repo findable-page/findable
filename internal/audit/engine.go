@@ -22,21 +22,43 @@ func Analyze(targetURL, rawHTML, keyphrase string, headers http.Header, statusCo
 	return s
 }
 
+// ScoreModel selects the scoring formula. Weighted (default) multiplies
+// each check's severity weight by its evidence tier factor; "flat" keeps
+// the legacy passed/total behavior for one minor release.
+var ScoreModel = ScoreModelWeighted
+
+const (
+	ScoreModelWeighted = "weighted"
+	ScoreModelFlat     = "flat"
+)
+
 func buildCategory(checks []Check) Category {
+	attachMeta(checks)
 	passed := 0
 	total := 0
+	var weightedPass, weightedTotal float64
 	for _, c := range checks {
 		if c.Applicable != nil && !*c.Applicable {
 			continue
 		}
 		total++
+		weight := c.Severity.Weight() * c.Tier.Factor()
+		weightedTotal += weight
 		if c.Pass {
 			passed++
+			weightedPass += weight
 		}
 	}
 	var scoreVal float64
-	if total > 0 {
-		scoreVal = math.Round((float64(passed) / float64(total)) * 100)
+	switch ScoreModel {
+	case ScoreModelFlat:
+		if total > 0 {
+			scoreVal = math.Round((float64(passed) / float64(total)) * 100)
+		}
+	default:
+		if weightedTotal > 0 {
+			scoreVal = math.Round((weightedPass / weightedTotal) * 100)
+		}
 	}
 	return Category{
 		Score:  &scoreVal,
@@ -46,10 +68,39 @@ func buildCategory(checks []Check) Category {
 	}
 }
 
+// attachMeta fills Severity, Tier and Fix from the registry by check ID.
+func attachMeta(checks []Check) {
+	for i := range checks {
+		m := MetaFor(checks[i].ID)
+		checks[i].Severity = m.Severity
+		checks[i].Tier = m.Tier
+		checks[i].Fix = m.Fix
+	}
+}
+
 type checkList []Check
 
 func (l *checkList) add(id, label string, pass bool) {
 	*l = append(*l, Check{ID: id, Label: label, Pass: pass})
+}
+
+const maxEvidence = 20
+
+// addEv records a check with evidence for the failure case, capped at 20
+// items so reports stay readable on pathological pages.
+func (l *checkList) addEv(id, label string, pass bool, ev ...Evidence) {
+	l.add(id, label, pass)
+	if pass {
+		return
+	}
+	if len(ev) > maxEvidence {
+		ev = ev[:maxEvidence]
+	}
+	(*l)[len(*l)-1].Evidence = ev
+}
+
+func evidence(sel, val string) Evidence {
+	return Evidence{Selector: sel, Value: val}
 }
 
 func (l *checkList) skip(id, label string) {

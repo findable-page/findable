@@ -158,5 +158,8 @@
 "geo_authoritative_links":{"name":"Güvenilir kaynak bağlantıları","fix":"Birincil kaynaklara atıf yap: .gov, .edu veya referans siteleri."},
 "geo_source_diversity":{"name":"Kaynak çeşitliliği","fix":"Birden fazla kaynağa atıf yap, en az üç farklı alan adı olsun."},
 "geo_quote_attribution":{"name":"Alıntılarda kaynak belirtme","fix":"Alıntılara cite özniteliği veya cite öğesi ekle."},
-"geo_policy_links":{"name":"Gizlilik ve koşul bağlantıları","fix":"Gizlilik politikasına ve kullanım koşullarına link ver."}
+"geo_policy_links":{"name":"Gizlilik ve koşul bağlantıları","fix":"Gizlilik politikasına ve kullanım koşullarına link ver."},
+"meta_robots_snippet_directives":{"name":"Robots meta snippet sınırı yok","fix":"max-snippet:-1, max-image-preview:large ve max-video-preview:-1 kullan ya da sınırları kaldır."},
+"aeo_lead_direct_answer":{"name":"H1 sonrası doğrudan cevap","fix":"Konuyu tanımlayan veya yanıtlayan 20-80 kelimelik bir paragrafla başla."},
+"geo_snippet_boilerplate_control":{"name":"Kalıp metin data-nosnippet altında","fix":"Uzun gezinme, üstbilgi ve altbilgi metinlerini data-nosnippet özniteliğine sahip bir div, span veya section içine al."}
 }

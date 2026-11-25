@@ -88,5 +88,9 @@
   "aeo_details_summary": {
     "pass": [{}, {"body": "<details><summary>S</summary>x</details>"}],
     "fail": [{"body": "<details>x</details>"}]
+  },
+  "aeo_lead_direct_answer": {
+    "pass": [{}, {"body": "<h1>T</h1><h2>Only headings</h2>"}, {"body": "<h1>Sourdough starter</h1><p>Sourdough starter is a live culture of flour and water that raises bread naturally. It needs daily feeding and rewards patience with complex flavour.</p>"}, {"body": "<h1>Sourdough starter</h1><p>Welcome to the guide, friend.</p><p>Sourdough starter is a live culture of flour and water that raises bread naturally. It needs daily feeding and rewards patience with complex flavour.</p>"}, {"body": "<h2>First</h2><h1>Sourdough starter</h1><p>Sourdough starter is a live culture of flour and water that raises bread naturally. It needs daily feeding and rewards patience with complex flavour.</p>"}],
+    "fail": [{"body": "<h1>Sourdough guide</h1><p>Baking sourdough at home takes patience, planning and a steady feeding schedule. You will learn how the dough feels and smells as the days go by.</p>"}, {"body": "<h1>Sourdough guide</h1><p>Preamble line number 1 fills the page before anything useful appears. Preamble line number 2 fills the page before anything useful appears. Preamble line number 3 fills the page before anything useful appears. Preamble line number 4 fills the page before anything useful appears. Preamble line number 5 fills the page before anything useful appears. Preamble line number 6 fills the page before anything useful appears. Preamble line number 7 fills the page before anything useful appears. Preamble line number 8 fills the page before anything useful appears. Preamble line number 9 fills the page before anything useful appears. Preamble line number 10 fills the page before anything useful appears.</p><p>Sourdough starter is a live culture of flour and water that raises bread naturally.</p>"}]
   }
 }
