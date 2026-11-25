@@ -100,5 +100,81 @@
   "geo_snippet_boilerplate_control": {
     "pass": [{}, {"body": "<nav><a href='/a'>Home</a> <a href='/b'>Docs</a></nav>"}, {"body": "<footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}, {"body": "<footer><section data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</section></footer>"}, {"body": "<header><nav><span data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</span></nav></header>"}],
     "fail": [{"body": "<footer>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<footer><div data-nosnippet>Short notice only.</div>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</footer>"}, {"body": "<nav>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</nav><footer><div data-nosnippet>This site uses cookies to improve your experience. By continuing you agree to our privacy policy and terms of service. All product names and logos are trademarks of their respective owners.</div></footer>"}]
+  },
+  "geo_entity_authoritative_sameas": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://www.wikidata.org/wiki/Q42\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Person\",\"sameAs\":[\"https://en.wikipedia.org/wiki/Ada_Lovelace\",\"https://example.com/me\"]}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":\"https://www.crunchbase.com/organization/global-tech\"}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://example.com/about\",\"https://linkedin.com/company/global-tech\"]}</script>", "evidence": ["sameAs"]},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Organization\",\"sameAs\":[\"https://wikipedia.org.example.com/wiki/SEO\"]}</script>"}
+    ]
+  },
+  "geo_schema_id_graph_coherence": {
+    "pass": [
+      {},
+      {"head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"author\":{\"@type\":\"Person\",\"name\":\"Ada\"}}</script>"},
+      {"head": "<script type='application/ld+json'>{\"@graph\":[{\"@type\":\"Article\",\"author\":{\"@id\":\"https://example.com/#author\"}},{\"@type\":\"Person\",\"@id\":\"https://example.com/#author\",\"name\":\"Ada\"}]}</script>"}
+    ],
+    "fail": [
+      {"head": "<script type='application/ld+json'>{\"@graph\":[{\"@type\":\"Article\",\"publisher\":{\"@id\":\"https://example.com/#missing\"}}]}</script>", "evidence": ["@id"]}
+    ]
+  },
+  "geo_brand_entity_consistency": {
+    "pass": [
+      {},
+      {"head": "<title>CleanPower announces a new plant</title><script type='application/ld+json'>{\"@type\":\"Organization\",\"name\":\"Atlantic Energy Tribune\"}</script>"},
+      {"head": "<title>Pricing | Acme Widgets</title><meta property='og:site_name' content='Acme'><script type='application/ld+json'>{\"@type\":\"Organization\",\"name\":\"Acme Widgets\"}</script>"}
+    ],
+    "fail": [
+      {"head": "<meta property='og:site_name' content='Acme'><script type='application/ld+json'>{\"@type\":\"Organization\",\"name\":\"Globex\"}</script>", "evidence": ["og:site_name vs Organization.name"]},
+      {"head": "<title>Pricing | Globex</title><meta property='og:site_name' content='Acme'>", "evidence": ["title"]}
+    ]
+  },
+  "geo_statistics_density": {
+    "pass": [
+      {},
+      {
+        "body": "<p>Conversion rose 9% this quarter.</p>"
+      },
+      {
+        "body": "<p>Revenue grew 9% while churn fell to 3% across every quarter we measured this year overall.</p>",
+        "repeat": 30
+      }
+    ],
+    "fail": [
+      {
+        "body": "<p>Plain prose without any numbers at all here to support the claims being made.</p>",
+        "repeat": 30
+      },
+      {
+        "body": "<p>Only one figure 42% appears inside this very long qualitative passage. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience. The team reviewed the draft again and agreed that the argument still needed stronger support before it could stand on its own as a persuasive piece of writing for the audience.</p>"
+      }
+    ]
+  },
+  "geo_assertion_evidence_pairing": {
+    "pass": [
+      {},
+      {
+        "body": "<h2>Short section</h2><p>Too few words to judge.</p>"
+      },
+      {
+        "body": "<h2>Results</h2><p>Benchmark results show a 12% lift with n=250 participants measured over six weeks of continuous production traffic. Benchmark results show a 12% lift with n=250 participants measured over six weeks of continuous production traffic. Benchmark results show a 12% lift with n=250 participants measured over six weeks of continuous production traffic. Benchmark results show a 12% lift with n=250 participants measured over six weeks of continuous production traffic. Benchmark results show a 12% lift with n=250 participants measured over six weeks of continuous production traffic. Benchmark results show a 12% lift with n=250 participants measured over six weeks of continuous production traffic. Benchmark results show a 12% lift with n=250 participants measured over six weeks of continuous production traffic. The same study also recorded a 9% drop in bounce rate for every cohort.</p>"
+      },
+      {
+        "body": "<h2>Method</h2><p>This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here.</p><a href='https://research.example/study'>Primary study</a>"
+      }
+    ],
+    "fail": [
+      {
+        "body": "<h2>Overview</h2><p>This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here. This long passage talks about strategy and quality without offering anything concrete to verify the claims being made here.</p>",
+        "evidence": [
+          "h2"
+        ]
+      }
+    ]
   }
 }

@@ -9,7 +9,7 @@ faq:
   - q: "Is llms.txt a standard?"
     a: "No. It is a proposal. Not every AI tool reads it, and findable does not claim it raises citations."
   - q: "What does the llms-txt check test?"
-    a: "Only that /llms.txt on your site's origin returns a 200 response. It does not grade the content."
+    a: "Two Site checks. llms-txt passes when /llms.txt on your site's origin returns a 200 response. llms-txt-spec then parses the file and verifies it follows the llmstxt.org structure."
   - q: "Does llms.txt replace robots.txt or sitemap.xml?"
     a: "No. robots.txt controls crawler access. sitemap.xml lists URLs for search engines. llms.txt is a short human-readable guide for language models."
   - q: "Where does the file go?"
@@ -22,7 +22,7 @@ llms.txt is a plain text file in Markdown that sits at the root of your site. It
 
 ## What does findable check?
 
-One Site check, `llms-txt`. It fetches `/llms.txt` from the origin of the page you scanned and passes when the response status is 200. The hosted API reads at most the first 512 KB; the CLI reads up to 10 MB. It does not judge the content.
+Two Site checks. `llms-txt` fetches `/llms.txt` from the origin of the page you scanned and passes when the response status is 200. The hosted API reads at most the first 512 KB; the CLI reads up to 10 MB. When the file is found, `llms-txt-spec` parses it against the llmstxt.org structure: one H1 title first, the blockquote summary immediately after it, and H2 sections whose lists are `- [Title](url)` links with absolute URLs. A malformed file fails with the line and reason, and the check is not applicable when the file is missing.
 
 The check is unscored and runs with the `-site` flag or the `site` option in the API. See [robots.txt and AI crawlers](/learn/robots-txt-ai-crawlers) for the other Site checks.
 
@@ -63,4 +63,4 @@ Nothing here guarantees that an AI tool will cite you. A page still has to be cr
 - Put `llms.txt` at the site root and make sure it returns 200.
 - Write Markdown: title, summary, links with notes.
 - It is a cheap proposal, not a ranking factor.
-- findable's `llms-txt` check tests presence only.
+- findable's `llms-txt` check tests presence, and `llms-txt-spec` verifies the llmstxt.org structure.

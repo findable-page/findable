@@ -17,7 +17,7 @@ func botsCmd(args []string) {
 	fs := flag.NewFlagSet("bots", flag.ContinueOnError)
 	bots := fs.String("bots", "", "comma-separated bot names to probe (default: all known bots)")
 	path := fs.String("path", "/", "page path to probe")
-	format := fs.String("format", "text", "output format: text or json")
+	format := fs.String("format", formatText, "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow probing localhost and private-network targets")
 	delayMs := fs.Int("delay-ms", 250, "pause between bot requests in milliseconds")
 	fs.Usage = func() {
@@ -29,6 +29,11 @@ func botsCmd(args []string) {
 	target := fs.Arg(0)
 	if !fetch.IsHTTPURL(target) {
 		fmt.Fprintln(os.Stderr, "findable: bots requires an http(s) URL")
+		os.Exit(exitUsage)
+	}
+	*format = strings.ToLower(*format)
+	if *format != formatText && *format != formatJSON {
+		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n", *format)
 		os.Exit(exitUsage)
 	}
 	var names []string
@@ -43,14 +48,10 @@ func botsCmd(args []string) {
 	if err != nil {
 		failRuntime("%v", err)
 	}
-	switch strings.ToLower(*format) {
-	case "text":
-		printBotVerdicts(verdicts)
-	case "json":
+	if *format == formatJSON {
 		fmt.Println(report.EncodeJSON(verdicts))
-	default:
-		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n", *format)
-		os.Exit(exitUsage)
+	} else {
+		printBotVerdicts(verdicts)
 	}
 	for _, v := range verdicts {
 		if v.Verdict == fetch.VerdictError {
