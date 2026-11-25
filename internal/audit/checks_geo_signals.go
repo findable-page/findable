@@ -77,21 +77,40 @@ func geoPublishingDates(l *checkList, s *PageSignals, article bool) {
 	doc := parseSchemaDoc(s)
 	published := schemaDateValue(doc, "datePublished")
 	if published == "" {
-		published = metaProperty(s, "article:published_time")
+		published = isoMetaDate(s, "article:published_time")
 	}
 	modified := schemaDateValue(doc, "dateModified")
 	if modified == "" {
-		modified = metaProperty(s, "article:modified_time")
+		modified = isoMetaDate(s, "article:modified_time")
 	}
 	notArticle := "Not an article page"
 	skipUnless(l, article, "geo_date_published", "Publish date declared in schema or article:published_time", notArticle, published != "")
 	skipUnless(l, article, "geo_date_modified", "Modified date declared in schema or article:modified_time", notArticle, modified != "")
-	if published == "" || modified == "" || len(published) < 10 || len(modified) < 10 {
+	pubDay, pubOK := isoDay(published)
+	modDay, modOK := isoDay(modified)
+	if !pubOK || !modOK {
 		l.skip("geo_modified_after_published", "Needs both a publish and a modified date")
 	} else {
-		l.add("geo_modified_after_published", "Modified date is not earlier than the publish date", modified[:10] >= published[:10])
+		l.add("geo_modified_after_published", "Modified date is not earlier than the publish date", modDay >= pubDay)
 	}
 	skipUnless(l, article, "geo_visible_date", "A visible published or updated date appears on the page", notArticle, visibleDateRegex.MatchString(strings.ToLower(s.TextContent)))
+}
+
+// isoMetaDate returns an article:* meta value only when it is ISO-8601.
+// "December 1, 2019" and "2025/01/02" are not ordered by string compare.
+func isoMetaDate(s *PageSignals, prop string) string {
+	value := metaProperty(s, prop)
+	if isoDateRegex.MatchString(value) {
+		return value
+	}
+	return ""
+}
+
+func isoDay(value string) (string, bool) {
+	if len(value) < 10 || !isoDateRegex.MatchString(value) {
+		return "", false
+	}
+	return value[:10], true
 }
 
 func hostWithoutWWW(host string) string {
