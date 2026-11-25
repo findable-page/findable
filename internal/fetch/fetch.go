@@ -83,6 +83,9 @@ func ReadHTML(client *http.Client, target string) (string, error) {
 		return "", fmt.Errorf("fetch %s: %w", target, err)
 	}
 	defer closeBody(resp)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("fetch %s: HTTP %d", target, resp.StatusCode)
+	}
 	body, err := io.ReadAll(io.LimitReader(resp.Body, MaxPageBytes+1))
 	if err != nil {
 		return "", fmt.Errorf("read body: %w", err)

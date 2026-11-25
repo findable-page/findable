@@ -26,7 +26,7 @@ func TestHydrateCommandReportsClientOnlyTitle(t *testing.T) {
 	}
 
 	jsonOut, code := runFindable(t, workDir, "hydrate", "-rendered", rendered, "-format", "json", raw)
-	if code != 0 || !strings.Contains(jsonOut, `"accessBlocked"`) && !strings.Contains(jsonOut, "seo_ssr_title_match") {
+	if code != 0 || !strings.Contains(jsonOut, "seo_ssr_title_match") {
 		t.Fatalf("json exit = %d\n%s", code, jsonOut)
 	}
 	if !strings.Contains(jsonOut, `"id":"seo_ssr_title_match"`) && !strings.Contains(jsonOut, `"id": "seo_ssr_title_match"`) {

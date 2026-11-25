@@ -36,3 +36,25 @@ func TestCompareHydrationPassesWhenRawMatchesRendered(t *testing.T) {
 		}
 	}
 }
+
+func TestCompareHydrationEquatesCosmeticCanonicalAndTitleDifferences(t *testing.T) {
+	raw := `<!DOCTYPE html><html><head><title>Real   Title</title>
+	<link rel="canonical" href="https://Example.com:443/docs">
+	</head><body><h1>Same</h1><p>Same words here.</p></body></html>`
+	rendered := `<!DOCTYPE html><html><head><title>Real Title</title>
+	<link rel="canonical" href="https://example.com/docs">
+	</head><body><h1>Same</h1><p>Same words here.</p></body></html>`
+	report := CompareHydration("https://example.com/docs", raw, rendered)
+	for _, id := range []string{"seo_ssr_title_match", "seo_ssr_canonical_match"} {
+		check := findCheck(report.Checks, id)
+		if check == nil || !check.Pass {
+			t.Errorf("%s = %+v, want pass", id, check)
+		}
+	}
+	scheme := `<!DOCTYPE html><html><head><link rel="canonical" href="http://example.com/docs"></head><body><p>x</p></body></html>`
+	https := `<!DOCTYPE html><html><head><link rel="canonical" href="https://example.com/docs"></head><body><p>x</p></body></html>`
+	mismatch := CompareHydration("https://example.com/docs", scheme, https)
+	if check := findCheck(mismatch.Checks, "seo_ssr_canonical_match"); check == nil || check.Pass {
+		t.Fatalf("scheme change should fail, got %+v", check)
+	}
+}

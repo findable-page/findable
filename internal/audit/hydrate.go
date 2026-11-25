@@ -1,6 +1,9 @@
 package audit
 
-import "strings"
+import (
+	"net/url"
+	"strings"
+)
 
 // HydrationReport compares the raw server HTML with a rendered DOM. The
 // checks are not part of the scored audit: they only run when a rendered
@@ -23,8 +26,8 @@ func CompareHydration(pageURL, rawHTML, renderedHTML string) HydrationReport {
 		TextRatio:     contentRatio(len(raw.Words), len(rendered.Words)),
 	}
 	checks := checkList{}
-	compareTextSignal(&checks, "seo_ssr_title_match", "Server HTML title matches the rendered title", "title", raw.Title, rendered.Title)
-	compareTextSignal(&checks, "seo_ssr_canonical_match", "Server HTML canonical matches the rendered canonical", "link[rel=canonical]", raw.Canonical, rendered.Canonical)
+	compareTextSignal(&checks, "seo_ssr_title_match", "Server HTML title matches the rendered title", "title", raw.Title, rendered.Title, sameTitle)
+	compareTextSignal(&checks, "seo_ssr_canonical_match", "Server HTML canonical matches the rendered canonical", "link[rel=canonical]", raw.Canonical, rendered.Canonical, sameCanonical)
 	compareHeadings(&checks, raw.Headings, rendered.Headings)
 	compareSchema(&checks, raw.SchemaTypes, rendered.SchemaTypes)
 	compareContentParity(&checks, report)
@@ -40,13 +43,37 @@ func contentRatio(raw, rendered int) float64 {
 	return float64(raw) / float64(rendered)
 }
 
-func compareTextSignal(checks *checkList, id, label, selector, raw, rendered string) {
+func compareTextSignal(checks *checkList, id, label, selector, raw, rendered string, same func(a, b string) bool) {
 	raw, rendered = strings.TrimSpace(raw), strings.TrimSpace(rendered)
 	if rendered == "" {
 		checks.add(id, label, true)
 		return
 	}
-	checks.addEv(id, label, raw == rendered, evidence(selector, rendered))
+	checks.addEv(id, label, same(raw, rendered), evidence(selector, rendered))
+}
+
+func sameTitle(raw, rendered string) bool {
+	return normSignal(raw) == normSignal(rendered)
+}
+
+func sameCanonical(raw, rendered string) bool {
+	return canonicalKey(raw) == canonicalKey(rendered)
+}
+
+func canonicalKey(raw string) string {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || parsed.Host == "" {
+		return normSignal(raw)
+	}
+	host := strings.ToLower(parsed.Hostname())
+	if port := parsed.Port(); (parsed.Scheme == schemeHTTP && port == "80") || (parsed.Scheme == schemeHTTPS && port == "443") {
+		parsed.Host = host
+	} else {
+		parsed.Host = strings.ToLower(parsed.Host)
+	}
+	parsed.Scheme = strings.ToLower(parsed.Scheme)
+	parsed.Fragment = ""
+	return parsed.String()
 }
 
 func compareHeadings(checks *checkList, raw, rendered []Heading) {
