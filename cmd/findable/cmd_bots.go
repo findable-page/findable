@@ -15,25 +15,23 @@ import (
 // URL. One request per bot, sequential, polite delay between requests.
 func botsCmd(args []string) {
 	fs := flag.NewFlagSet("bots", flag.ContinueOnError)
-	bots := fs.String("bots", "", "comma-separated bot names to probe (default: all known bots)")
-	path := fs.String("path", "/", "page path to probe")
+	bots := fs.String("bots", "", "comma-separated bot names to probe (default: every known bot)")
+	path := fs.String("path", "/", "path to request on the host")
 	format := fs.String("format", formatText, "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow probing localhost and private-network targets")
-	delayMs := fs.Int("delay-ms", 250, "pause between bot requests in milliseconds")
-	fs.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: findable bots [-bots list] [-path /x] [-format text|json] <url>")
-	}
-	if err := fs.Parse(args); err != nil || fs.NArg() != 1 {
-		os.Exit(exitUsage)
+	delayMs := fs.Int("delay-ms", 250, "pause between bot requests, in milliseconds")
+	commandUsage(fs, botsUsage)
+	parseCommand(fs, args)
+	if fs.NArg() != 1 {
+		failUsage("bots needs one http(s) URL", botsUsage)
 	}
 	target := fs.Arg(0)
 	if !fetch.IsHTTPURL(target) {
-		fmt.Fprintln(os.Stderr, "findable: bots requires an http(s) URL")
-		os.Exit(exitUsage)
+		failUsage("bots needs an http(s) URL, not a local file", botsUsage)
 	}
 	*format = strings.ToLower(*format)
 	if *format != formatText && *format != formatJSON {
-		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n", *format)
+		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n%s\n", *format, botsUsage)
 		os.Exit(exitUsage)
 	}
 	var names []string

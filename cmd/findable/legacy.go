@@ -34,22 +34,22 @@ type options struct {
 }
 
 // registerAuditFlags registers the shared audit flag set on fs, so the legacy
-// parser (flag.CommandLine) and `findable audit` stay in sync.
+// parser and `findable audit` stay in sync.
 func registerAuditFlags(fs *flag.FlagSet, o *options) (*string, string) {
 	var minSeverity string
-	fs.StringVar(&o.outDir, "o", ".", "directory for the report")
-	fs.BoolVar(&o.quiet, "q", false, "do not list failing checks")
-	fs.StringVar(&o.keyphrase, "k", "", "target keyphrase for audit")
-	fs.BoolVar(&o.crawl, "crawl", false, "crawl internal links up to limit pages")
-	fs.BoolVar(&o.site, "site", false, "also check robots.txt (search and AI crawlers) and /llms.txt")
-	fs.StringVar(&o.sitemap, "sitemap", "", "audit the pages listed in this sitemap.xml, up to limit pages")
-	fs.IntVar(&o.limit, "limit", 20, "max pages to crawl when -crawl or -sitemap is enabled")
-	fs.BoolVar(&o.allowPrivate, "allow-private", false, "allow scanning localhost and private-network targets")
-	fs.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when the overall score of any page is below N")
-	fs.StringVar(&o.scoreModel, "score-model", audit.ScoreModelWeighted, "scoring model: weighted (severity x evidence tier) or flat (legacy)")
-	fs.IntVar(&o.top, "top", 10, "how many findings to show in the fix list")
-	fs.StringVar(&minSeverity, "min-severity", string(audit.SeverityLow), "lowest finding severity to show: low, medium, high or critical")
-	fs.StringVar(&o.configPath, "config", "", fmt.Sprintf("config file path (default: %s when present)", config.DefaultPath))
+	fs.StringVar(&o.outDir, "o", ".", "directory to write the report into")
+	fs.BoolVar(&o.quiet, "q", false, "hide the prioritized fix list")
+	fs.StringVar(&o.keyphrase, "k", "", "focus keyphrase; adds checks for the title, description, H1 and body")
+	fs.BoolVar(&o.crawl, "crawl", false, "follow internal links, up to -limit pages")
+	fs.BoolVar(&o.site, "site", false, "also check robots.txt, AI crawlers and /llms.txt (unscored)")
+	fs.StringVar(&o.sitemap, "sitemap", "", "audit the pages listed in this sitemap URL, up to -limit")
+	fs.IntVar(&o.limit, "limit", 20, "maximum pages for -crawl or -sitemap")
+	fs.BoolVar(&o.allowPrivate, "allow-private", false, "allow localhost and private-network targets (disables the SSRF guard)")
+	fs.IntVar(&o.failUnder, "fail-under", 0, "exit 1 when any page's overall score is below N (0 disables the gate)")
+	fs.StringVar(&o.scoreModel, "score-model", audit.ScoreModelWeighted, "weighted (severity x evidence tier) or flat (passed/total)")
+	fs.IntVar(&o.top, "top", 10, "maximum findings to print in the fix list")
+	fs.StringVar(&minSeverity, "min-severity", string(audit.SeverityLow), "lowest severity to print: low, medium, high or critical")
+	fs.StringVar(&o.configPath, "config", "", fmt.Sprintf("JSON config file (default %s when that file exists)", config.DefaultPath))
 	return fs.String("format", string(report.FormatCSV), "report format: csv, json or sarif"), minSeverity
 }
 
@@ -92,12 +92,12 @@ func finishOptions(o *options, format, minSeverity string) {
 
 func legacyMain(args []string) {
 	var o options
-	fs := flag.CommandLine
+	fs := flag.NewFlagSet("findable", flag.ContinueOnError)
 	format, minSeverity := registerAuditFlags(fs, &o)
-	fs.StringVar(&o.serve, "serve", "", "run HTTP API server on [host]:port")
-	fs.BoolVar(&o.mcp, "mcp", false, "run MCP server over stdio")
-	fs.Usage = func() { fmt.Fprintln(os.Stderr, usageLine) }
-	_ = fs.Parse(args)
+	fs.StringVar(&o.serve, "serve", "", "legacy: run the HTTP API on host:port (prefer \"findable serve\")")
+	fs.BoolVar(&o.mcp, "mcp", false, "legacy: run the MCP server on stdio (prefer \"findable mcp\")")
+	commandUsage(fs, usageLine)
+	parseCommand(fs, args)
 	finishOptions(&o, *format, minSeverity)
 	client := newClient(o.allowPrivate)
 
@@ -107,24 +107,26 @@ func legacyMain(args []string) {
 	case o.serve != "":
 		serveHTTP(o.serve)
 	default:
-		runAuditTarget(client, fs.Args(), o)
+		runAuditTarget(client, fs.Args(), o, usageLine)
 	}
 }
 
-// runAuditTarget handles the default (non -mcp/-serve) legacy path: sitemap
-// mode with no positional args, or exactly one target.
-func runAuditTarget(client *http.Client, args []string, o options) {
+// runAuditTarget handles the default (non -mcp/-serve) path: sitemap mode
+// with no positional args, or exactly one target.
+func runAuditTarget(client *http.Client, args []string, o options, usage string) {
 	if o.sitemap != "" {
 		if len(args) != 0 {
-			fmt.Fprintln(os.Stderr, usageLine)
-			os.Exit(exitUsage)
+			failUsage("-sitemap does not take a positional argument; pass the sitemap URL as the flag value", usage)
 		}
 		runSitemap(client, o)
 		return
 	}
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, usageLine)
-		os.Exit(exitUsage)
+		problem := "need one URL or HTML file"
+		if len(args) > 1 {
+			problem = fmt.Sprintf("got %d arguments, want one URL or HTML file", len(args))
+		}
+		failUsage(problem, usage)
 	}
 	runAudit(client, args[0], o)
 }
