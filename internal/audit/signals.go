@@ -120,7 +120,10 @@ func containsElement(n *html.Node, names ...string) bool {
 var tagsWithText = map[string]bool{"a": true, "button": true, tagStyle: true, "label": true, "h1": true, "h2": true, "h3": true, "h4": true, "h5": true, "h6": true, "p": true, "li": true}
 
 var (
-	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b)`)
+	// statRegex captures quantitative evidence: currency, percentages, units,
+	// counts and sample sizes (n=123). Percent needs its own alternative
+	// because a \b after % never holds (% is not a word character).
+	statRegex = regexp.MustCompile(`(?:\$\s*\d+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*%|\b\d+(?:\.\d+)?\s*(?:ms|s|MB|GB|KB|px|M|B|k|users|queries|hours|pages)\b|\bn=\d+\b)`)
 	yearRegex = regexp.MustCompile(`\b202[4-9]\b`)
 )
 
@@ -154,8 +157,14 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 			sig.DOMSize++
 			countDuplicateIDs(&sig, n, seenIDs)
 			recordTag(&sig, n, inHead(sel), sel)
-			if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
-				collect(&sig, n)
+			// Collectors extract HTML semantics (page title, headings, links…);
+			// SVG/MathML elements that share a name (<svg><title>, svg <style>,
+			// SVG2 <a>) would otherwise overwrite them — e.g. an inline icon's
+			// <title> replacing the page title.
+			if n.Namespace == "" {
+				if collect, ok := elementCollectors[strings.ToLower(n.Data)]; ok {
+					collect(&sig, n)
+				}
 			}
 		}
 		var counts map[string]int
@@ -385,7 +394,7 @@ func collectAnchor(sig *PageSignals, n *html.Node) {
 	}
 	if strings.ToLower(trimmedAttr(a, "target")) == "_blank" {
 		sig.TargetBlankCount++
-		if !strings.Contains(rel, "noopener") && !strings.Contains(rel, "noreferrer") {
+		if !safeBlankRel(rel) {
 			sig.MissingOpenerCount++
 		}
 	}
@@ -393,6 +402,15 @@ func collectAnchor(sig *PageSignals, n *html.Node) {
 	if strings.Contains(strings.ToLower(collectText(n)), "skip to") {
 		sig.HasSkipLink = true
 	}
+}
+
+func safeBlankRel(rel string) bool {
+	for _, token := range strings.Fields(strings.ToLower(rel)) {
+		if token == "noopener" || token == "noreferrer" {
+			return true
+		}
+	}
+	return false
 }
 
 var nonNavigableHrefPrefixes = []string{"#", "javascript:", "mailto:", "tel:"}

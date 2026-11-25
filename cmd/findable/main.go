@@ -7,12 +7,18 @@ import (
 	"strings"
 )
 
+const (
+	formatText = "text"
+	formatJSON = "json"
+)
+
 const usageLine = "findable: is your site findable by Google and by AI answer engines?\n" +
 	"usage: findable [command] [flags] <url or file>\n" +
 	"\n" +
 	"commands:\n" +
 	"  audit    (default) audit one page, a crawl or a sitemap\n" +
 	"  bots     probe how AI crawlers are actually treated by the server\n" +
+	"  diff     compare a JSON report against a baseline and flag regressions\n" +
 	"  mcp      run MCP server over stdio\n" +
 	"  serve    run HTTP API server\n" +
 	"  simulate ask a configured answer engine and report citations\n" +
@@ -25,6 +31,7 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 var subcommands = map[string]func([]string){
 	"audit":    auditCmd,
 	"bots":     botsCmd,
+	"diff":     diffCmd,
 	"mcp":      mcpCmd,
 	"serve":    serveCmd,
 	"simulate": simulateCmd,

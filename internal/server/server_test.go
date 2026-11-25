@@ -390,3 +390,14 @@ func TestServerServesCheckTextPerLanguage(t *testing.T) {
 		}
 	}
 }
+
+func TestServerScanRejectsMalformedURLsAsBadRequest(t *testing.T) {
+	mux := newTestMux()
+	for _, target := range []string{"https://", "http://exa mple.com/", "https://:443/", "http://[::1"} {
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, newRequest(http.MethodPost, "/api/scan", `{"url":"`+target+`"}`))
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("%q: status %d, want 400 (%s)", target, rec.Code, rec.Body.String())
+		}
+	}
+}

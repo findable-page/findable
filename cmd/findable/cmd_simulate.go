@@ -19,7 +19,7 @@ func simulateCmd(args []string) {
 	brand := fs.String("brand", "", "brand name to look for in the answer")
 	domain := fs.String("domain", "", "site host that counts as a direct citation")
 	engine := fs.String("engine", os.Getenv("FINDABLE_SIMULATE_ENGINE"), "answer engine URL (or FINDABLE_SIMULATE_ENGINE)")
-	format := fs.String("format", "text", "output format: text or json")
+	format := fs.String("format", formatText, "output format: text or json")
 	fs.Usage = func() { fmt.Fprintln(os.Stderr, simulateUsage) }
 	if err := fs.Parse(args); err != nil {
 		os.Exit(exitUsage)
@@ -34,9 +34,9 @@ func simulateCmd(args []string) {
 	}
 	result := simulate.ReadAnswer(answer, *query, *engine, *brand, *domain)
 	switch strings.ToLower(*format) {
-	case "json":
+	case formatJSON:
 		fmt.Print(report.EncodeJSON(result))
-	case "text":
+	case formatText:
 		printSimulation(result)
 	default:
 		fmt.Fprintf(os.Stderr, "findable: unknown simulate format %q (want text or json)\n", *format)
