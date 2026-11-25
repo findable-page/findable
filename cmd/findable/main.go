@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+const (
+	formatText = "text"
+	formatJSON = "json"
+)
+
 const usageLine = "findable: is your site findable by Google and by AI answer engines?\n" +
 	"usage: findable [command] [flags] <url or file>\n" +
 	"\n" +
@@ -16,6 +21,7 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 	"  diff     compare a JSON report against a baseline and flag regressions\n" +
 	"  mcp      run MCP server over stdio\n" +
 	"  serve    run HTTP API server\n" +
+	"  simulate ask a configured answer engine and report citations\n" +
 	"\n" +
 	"legacy: findable [-o dir] [-format csv|json|sarif] [-fail-under N] [-q] [-k keyphrase] [-site] [-crawl] [-sitemap url] [-limit N] [-serve 127.0.0.1:8080] [-mcp] [-allow-private] <url or file>"
 
@@ -23,11 +29,12 @@ const usageLine = "findable: is your site findable by Google and by AI answer en
 // legacy flag parser, which exits 2 on an unexpected positional argument.
 // Entries are added as each Phase 1 slice lands.
 var subcommands = map[string]func([]string){
-	"audit": auditCmd,
-	"bots":  botsCmd,
-	"diff":  diffCmd,
-	"mcp":   mcpCmd,
-	"serve": serveCmd,
+	"audit":    auditCmd,
+	"bots":     botsCmd,
+	"diff":     diffCmd,
+	"mcp":      mcpCmd,
+	"serve":    serveCmd,
+	"simulate": simulateCmd,
 }
 
 func main() {

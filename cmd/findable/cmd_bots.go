@@ -17,7 +17,7 @@ func botsCmd(args []string) {
 	fs := flag.NewFlagSet("bots", flag.ContinueOnError)
 	bots := fs.String("bots", "", "comma-separated bot names to probe (default: all known bots)")
 	path := fs.String("path", "/", "page path to probe")
-	format := fs.String("format", "text", "output format: text or json")
+	format := fs.String("format", formatText, "output format: text or json")
 	allowPrivate := fs.Bool("allow-private", false, "allow probing localhost and private-network targets")
 	delayMs := fs.Int("delay-ms", 250, "pause between bot requests in milliseconds")
 	fs.Usage = func() {
@@ -32,7 +32,7 @@ func botsCmd(args []string) {
 		os.Exit(exitUsage)
 	}
 	*format = strings.ToLower(*format)
-	if *format != "text" && *format != "json" {
+	if *format != formatText && *format != formatJSON {
 		fmt.Fprintf(os.Stderr, "findable: unknown bots format %q (want text or json)\n", *format)
 		os.Exit(exitUsage)
 	}
@@ -48,7 +48,7 @@ func botsCmd(args []string) {
 	if err != nil {
 		failRuntime("%v", err)
 	}
-	if *format == "json" {
+	if *format == formatJSON {
 		fmt.Println(report.EncodeJSON(verdicts))
 	} else {
 		printBotVerdicts(verdicts)
