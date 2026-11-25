@@ -2,6 +2,7 @@ package audit
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -59,7 +60,16 @@ func firstHref(tags []TagInfo) string {
 }
 
 func pagePathKey(u *url.URL) string {
-	return strings.ToLower(u.Scheme) + "://" + strings.ToLower(u.Host) + strings.TrimSuffix(u.Path, "/")
+	return strings.ToLower(u.Scheme) + "://" + pageHostKey(u) + strings.TrimSuffix(u.Path, "/")
+}
+
+func pageHostKey(u *url.URL) string {
+	host := strings.ToLower(u.Hostname())
+	port := u.Port()
+	if port == "" || port == defaultPorts[strings.ToLower(u.Scheme)] {
+		return host
+	}
+	return net.JoinHostPort(host, port)
 }
 
 func seoCanonicalQuality(l *checkList, s *PageSignals) {
