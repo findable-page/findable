@@ -42,3 +42,16 @@ func TestCanonicalSelfIsSkippedForLocalFiles(t *testing.T) {
 		t.Errorf("canonical_absolute should still be evaluated for a local file, got %+v", abs)
 	}
 }
+
+func TestCanonicalSelfKeepsSchemeAndIgnoresDefaultPort(t *testing.T) {
+	same := `<!DOCTYPE html><html><head><title>t</title><link rel="canonical" href="https://Example.com:443/docs"></head><body></body></html>`
+	scan := Analyze("https://example.com/docs", same, "", make(http.Header), http.StatusOK)
+	if c := findCheck(scan.SEO.Checks, "canonical_self"); c == nil || !c.Pass {
+		t.Fatalf("default https port and host case should match, got %+v", c)
+	}
+	other := `<!DOCTYPE html><html><head><title>t</title><link rel="canonical" href="http://example.com/docs"></head><body></body></html>`
+	scan = Analyze("https://example.com/docs", other, "", make(http.Header), http.StatusOK)
+	if c := findCheck(scan.SEO.Checks, "canonical_self"); c == nil || c.Pass {
+		t.Fatalf("http canonical on an https page should fail, got %+v", c)
+	}
+}
