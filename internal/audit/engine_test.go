@@ -73,6 +73,16 @@ func TestCharsetDeclared(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "quoted http-equiv charset",
+			head: `<meta http-equiv="Content-Type" content='text/html; charset="UTF-8"'>`,
+			want: true,
+		},
+		{
+			name:   "spaced content-type response header",
+			header: http.Header{"Content-Type": []string{"text/html; charset = utf-8"}},
+			want:   true,
+		},
+		{
 			name: "no declaration",
 			head: "",
 			body: `<p>Hello world</p>`,

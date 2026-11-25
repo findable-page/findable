@@ -81,15 +81,20 @@ func seoTechnicalMeta(l *checkList, s *PageSignals) {
 // response header. Matching the raw HTML instead would false-pass on pages
 // that only mention the string in scripts or copy.
 func utf8Declared(s *PageSignals) bool {
-	if lowerContainsAny(s.Charset, "utf-8", "utf8") || lowerContainsAny(s.Headers.Get("Content-Type"), "charset=utf-8", "charset=utf8") {
+	if charsetIsUTF8(s.Charset) || charsetIsUTF8(s.Headers.Get("Content-Type")) {
 		return true
 	}
 	for _, m := range s.Tags["meta"] {
-		if strings.EqualFold(strings.TrimSpace(m.Attrs["http-equiv"]), "content-type") && lowerContainsAny(m.Attrs["content"], "charset=utf-8", "charset=utf8") {
+		if strings.EqualFold(strings.TrimSpace(m.Attrs["http-equiv"]), "content-type") && charsetIsUTF8(m.Attrs["content"]) {
 			return true
 		}
 	}
 	return false
+}
+
+func charsetIsUTF8(value string) bool {
+	compact := strings.ToLower(strings.NewReplacer(" ", "", `"`, "", "'", "").Replace(value))
+	return strings.Contains(compact, "utf-8") || strings.Contains(compact, "utf8")
 }
 
 func seoHeadings(l *checkList, s *PageSignals) {
