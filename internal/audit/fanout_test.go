@@ -54,3 +54,55 @@ func TestQueryFanoutDoesNotTreatEveryTableAsComparison(t *testing.T) {
 		}
 	}
 }
+
+func TestQueryFanoutNamesABlankTopic(t *testing.T) {
+	report := QueryFanout("https://example.com", `<!DOCTYPE html><html><body></body></html>`, "  ")
+	if report.Topic != "" || report.Total != 8 || report.Covered != 0 {
+		t.Fatalf("blank topic report = %+v", report)
+	}
+	if report.Intents[0].Query != "what is this topic" || report.Intents[0].Where != "" {
+		t.Fatalf("definition intent = %+v", report.Intents[0])
+	}
+}
+
+func TestQueryFanoutReportsTheFirstMatchingSpot(t *testing.T) {
+	page := `<!DOCTYPE html><html><body>
+	<h2>Pricing</h2>
+	<p>The price is also in the paragraph. e.g. a free tier.</p>
+	<table><tr><td>For example, a row.</td></tr></table>
+	</body></html>`
+	report := QueryFanout("https://example.com", page, "findable")
+	where := map[string]string{}
+	covered := map[string]bool{}
+	for _, intent := range report.Intents {
+		where[intent.ID] = intent.Where
+		covered[intent.ID] = intent.Covered
+	}
+	if where["pricing"] != "h2" {
+		t.Fatalf("pricing where = %q", where["pricing"])
+	}
+	if !covered["examples"] || where["examples"] != "p:1" {
+		t.Fatalf("examples intent where = %q covered = %v", where["examples"], covered["examples"])
+	}
+}
+
+func TestQueryFanoutDoesNotMatchIntentWordsInsideOtherWords(t *testing.T) {
+	embedded := `<!DOCTYPE html><html><body>
+	<h2>Priceless advice</h2>
+	<p>Alternatively, consider the accost of a stranger.</p>
+	</body></html>`
+	report := QueryFanout("https://example.com", embedded, "findable")
+	for _, intent := range report.Intents {
+		if intent.Covered && (intent.ID == "pricing" || intent.ID == "comparison") {
+			t.Fatalf("%s covered by an embedded word at %s", intent.ID, intent.Where)
+		}
+	}
+
+	plural := `<!DOCTYPE html><html><body><h2>Alternatives</h2></body></html>`
+	report = QueryFanout("https://example.com", plural, "findable")
+	for _, intent := range report.Intents {
+		if intent.ID == "comparison" && !intent.Covered {
+			t.Fatal("alternatives should cover comparison")
+		}
+	}
+}

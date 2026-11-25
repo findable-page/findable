@@ -3,6 +3,8 @@ package audit
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"golang.org/x/net/html"
 )
@@ -112,9 +114,57 @@ func tableTextSpots(raw string) []fanoutSpot {
 func spotMatches(text string, needles []string) bool {
 	lower := strings.ToLower(text)
 	for _, needle := range needles {
-		if strings.Contains(lower, strings.ToLower(needle)) {
+		needle = strings.ToLower(needle)
+		if strings.Contains(needle, " ") {
+			if strings.Contains(lower, needle) {
+				return true
+			}
+			continue
+		}
+		if wordCovers(lower, needle) {
 			return true
 		}
 	}
 	return false
+}
+
+// wordCovers matches needle on a letter boundary and allows one trailing s,
+// so "alternative" covers "alternatives" without covering "alternatively".
+func wordCovers(text, needle string) bool {
+	if needle == "" {
+		return false
+	}
+	for start := 0; start < len(text); {
+		rel := strings.Index(text[start:], needle)
+		if rel < 0 {
+			return false
+		}
+		at := start + rel
+		end := at + len(needle)
+		if fanoutEdge(text, at, false) && (fanoutEdge(text, end, true) || pluralAfter(text, end)) {
+			return true
+		}
+		start = at + 1
+	}
+	return false
+}
+
+func pluralAfter(text string, end int) bool {
+	if end >= len(text) || text[end] != 's' {
+		return false
+	}
+	return fanoutEdge(text, end+1, true)
+}
+
+func fanoutEdge(text string, i int, after bool) bool {
+	if (after && i >= len(text)) || (!after && i <= 0) {
+		return true
+	}
+	var r rune
+	if after {
+		r, _ = utf8.DecodeRuneInString(text[i:])
+	} else {
+		r, _ = utf8.DecodeLastRuneInString(text[:i])
+	}
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }
