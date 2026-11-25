@@ -182,7 +182,8 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 
 	sig.TextContent = extractVisibleText(doc)
 	sig.Words = strings.Fields(sig.TextContent)
-	sig.NumbersWithUnits = statRegex.FindAllString(sig.TextContent, -1)
+	// Fields already splits on nbsp, but the stat pattern's \s does not.
+	sig.NumbersWithUnits = statRegex.FindAllString(collapseSpaces(sig.TextContent), -1)
 	return sig
 }
 

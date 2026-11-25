@@ -3,6 +3,8 @@ package audit
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func evalAEO(s *PageSignals) []Check {
@@ -38,12 +40,45 @@ func aeoAnswerShape(l *checkList, s *PageSignals) {
 
 func hasQuestionHeading(headings []Heading) bool {
 	for _, h := range headings {
-		t := strings.ToLower(h.Text)
-		if strings.HasPrefix(t, "what") || strings.HasPrefix(t, "how") || strings.HasPrefix(t, "why") || strings.HasSuffix(t, "?") {
+		if questionHeading(h.Text) {
 			return true
 		}
 	}
 	return false
+}
+
+// questionHeading matches a heading that starts with the word What, How, or
+// Why, or ends with a question mark. "However" and "Whatever" do not.
+func questionHeading(text string) bool {
+	t := strings.ToLower(strings.TrimSpace(text))
+	if t == "" {
+		return false
+	}
+	if endsWithQuestion(t) {
+		return true
+	}
+	for _, lead := range []string{"what", "how", "why"} {
+		if hasWordPrefix(t, lead) {
+			return true
+		}
+	}
+	return false
+}
+
+func endsWithQuestion(text string) bool {
+	r, _ := utf8.DecodeLastRuneInString(text)
+	return r == '?' || r == '？' || r == '؟'
+}
+
+func hasWordPrefix(text, word string) bool {
+	if !strings.HasPrefix(text, word) {
+		return false
+	}
+	if len(text) == len(word) {
+		return true
+	}
+	r, _ := utf8.DecodeRuneInString(text[len(word):])
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }
 
 func aeoFormatting(l *checkList, s *PageSignals) {
@@ -56,16 +91,66 @@ func aeoFormatting(l *checkList, s *PageSignals) {
 }
 
 func aeoReadability(l *checkList, s *PageSignals) {
-	lowerText := strings.ToLower(s.TextContent)
+	lowerText := collapseSpaces(strings.ToLower(s.TextContent))
 	pronouns := strings.Count(lowerText, " you ") + strings.Count(lowerText, " your ") + strings.Count(lowerText, " we ")
 	l.add("aeo_conversational", "Conversational tone with user pronouns ('you', 'your', 'we')", pronouns >= 3)
 
-	sentences := strings.Split(s.TextContent, ".")
-	avgSentenceLen := float64(len(s.Words)) / float64(len(sentences))
+	avgSentenceLen := averageSentenceWords(s.TextContent, len(s.Words))
 	l.add("aeo_reading_level", fmt.Sprintf("Average sentence length: %.1f words (<20 is AI-friendly)", avgSentenceLen), avgSentenceLen <= 22.0)
 	l.add("aeo_short_sentences", "Concise sentence structures dominant", avgSentenceLen <= 20.0)
 
 	l.add("aeo_summary", "Summary or Key Takeaways section present", lowerContainsAny(s.TextContent, "key takeaway", "summary", "conclusion"))
+}
+
+func averageSentenceWords(text string, words int) float64 {
+	n := countSentences(text)
+	if n == 0 {
+		return 0
+	}
+	return float64(words) / float64(n)
+}
+
+// countSentences splits on Latin and CJK sentence marks. A trailing mark
+// is not an extra sentence, and a decimal point (78.4) is not a boundary.
+func countSentences(text string) int {
+	n := 0
+	open := false
+	for i, r := range text {
+		if sentenceBoundary(text, i, r) {
+			if open {
+				n++
+				open = false
+			}
+			continue
+		}
+		if !unicode.IsSpace(r) {
+			open = true
+		}
+	}
+	if open {
+		n++
+	}
+	return n
+}
+
+func sentenceBoundary(text string, byteIndex int, r rune) bool {
+	switch r {
+	case '!', '?', '。', '！', '？', '…':
+		return true
+	case '.':
+		return !decimalPoint(text, byteIndex)
+	default:
+		return false
+	}
+}
+
+func decimalPoint(text string, byteIndex int) bool {
+	if byteIndex == 0 || byteIndex+1 >= len(text) {
+		return false
+	}
+	prev, _ := utf8.DecodeLastRuneInString(text[:byteIndex])
+	next, _ := utf8.DecodeRuneInString(text[byteIndex+1:])
+	return unicode.IsDigit(prev) && unicode.IsDigit(next)
 }
 
 func aeoSemantics(l *checkList, s *PageSignals) {

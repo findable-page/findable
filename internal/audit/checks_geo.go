@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func evalGEO(s *PageSignals) []Check {
@@ -120,7 +122,7 @@ func buildGeoSections(s *PageSignals) []geoSection {
 		sec := &secs[bounds[cur].sec]
 		if t.p {
 			sec.words += len(strings.Fields(t.text))
-			sec.stats += len(statRegex.FindAllString(t.text, -1))
+			sec.stats += len(statRegex.FindAllString(collapseSpaces(t.text), -1))
 			sec.text.WriteString(t.text)
 		} else if isExternalHref(s, t.href) {
 			sec.external = true
@@ -379,10 +381,13 @@ func firstH1Text(headings []Heading) string {
 }
 
 func titleMatchesHeading(title, h1 string) bool {
-	firstHeading := strings.ToLower(h1)
+	heading := strings.ToLower(h1)
 	matches := 0
 	for _, word := range strings.Fields(strings.ToLower(title)) {
-		if len(word) > 3 && strings.Contains(firstHeading, word) {
+		word = strings.TrimFunc(word, func(r rune) bool {
+			return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+		})
+		if utf8.RuneCountInString(word) > 3 && strings.Contains(heading, word) {
 			matches++
 		}
 	}

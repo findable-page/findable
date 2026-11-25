@@ -4,6 +4,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"unicode"
 )
 
 func Analyze(targetURL, rawHTML, keyphrase string, headers http.Header, statusCode int) Scan {
@@ -119,10 +120,31 @@ func runChecks(s *PageSignals, groups ...func(*checkList, *PageSignals)) []Check
 	return checks
 }
 
+// collapseSpaces maps every unicode space (including nbsp) to a single ASCII
+// space. Leading and trailing spaces are kept, so a needle such as " is a "
+// still requires a real separator on each side.
+func collapseSpaces(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	space := false
+	for _, r := range s {
+		if unicode.IsSpace(r) {
+			if !space {
+				b.WriteByte(' ')
+				space = true
+			}
+			continue
+		}
+		space = false
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
 func lowerContainsAny(text string, needles ...string) bool {
-	lower := strings.ToLower(text)
+	lower := collapseSpaces(strings.ToLower(text))
 	for _, n := range needles {
-		if strings.Contains(lower, n) {
+		if strings.Contains(lower, collapseSpaces(strings.ToLower(n))) {
 			return true
 		}
 	}
