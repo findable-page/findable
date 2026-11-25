@@ -53,7 +53,21 @@ func registerAuditFlags(fs *flag.FlagSet, o *options) (*string, string) {
 	return fs.String("format", string(report.FormatCSV), "report format: csv, json or sarif"), minSeverity
 }
 
+func validateNumbers(o options) error {
+	if o.failUnder < 0 || o.failUnder > 100 {
+		return fmt.Errorf("-fail-under must be between 0 and 100, got %d", o.failUnder)
+	}
+	if o.limit < 1 {
+		return fmt.Errorf("-limit must be at least 1, got %d", o.limit)
+	}
+	return nil
+}
+
 func finishOptions(o *options, format, minSeverity string) {
+	if err := validateNumbers(*o); err != nil {
+		fmt.Fprintln(os.Stderr, "findable:", err)
+		os.Exit(exitUsage)
+	}
 	f, err := report.ParseFormat(format)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "findable:", err)

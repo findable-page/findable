@@ -121,3 +121,18 @@ func TestAuditSubcommandRequiresTarget(t *testing.T) {
 		t.Fatalf("exit = %d, want %d", code, exitUsage)
 	}
 }
+
+func TestOutOfRangeNumericFlagsExitUsage(t *testing.T) {
+	const missingPage = "x.html"
+	for _, args := range [][]string{
+		{"audit", "-fail-under", "150", missingPage},
+		{"audit", "-fail-under", "-5", missingPage},
+		{"audit", "-crawl", "-limit", "0", missingPage},
+		{"audit", "-sitemap", "https://example.com/sitemap.xml", "-limit", "-3"},
+	} {
+		_, code := runFindable(t, t.TempDir(), args...)
+		if code != exitUsage {
+			t.Fatalf("%v exit = %d, want %d", args, code, exitUsage)
+		}
+	}
+}
