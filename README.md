@@ -105,15 +105,24 @@ findable -q -format sarif -fail-under 70 https://example.com
 findable -sitemap https://example.com/sitemap.xml -limit 50
 findable -site -crawl -limit 10 https://example.com
 findable -q -format json https://example.com -o baseline
-findable diff -fail-on-regression baseline.json <current-report>.json
+findable diff -fail-on-regression baseline.json current.json
+findable fanout -query "offline seo scanner" page.html
+findable hydrate -rendered rendered.html page.html
+findable simulate -query "best offline seo scanner" -brand findable -domain findable.page -engine "$FINDABLE_SIMULATE_ENGINE"
 findable bots -bots OAI-SearchBot,Claude-SearchBot https://example.com
 ```
+
+`diff`, `fanout`, `hydrate` and `simulate` are Go CLI commands. `FINDABLE_SIMULATE_TOKEN` is sent as a bearer token and is left out of the report. `npx -y findable` starts the MCP server described below.
 
 Bot probes use spoofed user agents from **your IP**, not vendor IP ranges. A WAF may treat the real bot differently. Exit codes: `0` success, `1` score gate failed, `2` invalid usage, `3` runtime/network or report-write error.
 
 ## MCP for agents
 
-No Go toolchain? Use the npm package, which calls `https://findable.page/api/scan`:
+No Go toolchain? The npm package `findable` publishes one binary, `findable-mcp`, which calls `https://findable.page/api/scan`:
+
+```bash
+npx -y findable
+```
 
 ```json
 { "mcpServers": { "findable": { "command": "npx", "args": ["-y", "findable"] } } }
@@ -125,7 +134,7 @@ Or run the local Go engine, including file and raw-HTML audits, with no network 
 { "mcpServers": { "findable": { "command": "findable", "args": ["mcp"] } } }
 ```
 
-The npm server exposes `audit_page`, `crawl_site` and the `seo_audit_prompt` prompt. The Go server adds `audit_html_content` (raw HTML, no network) and `generate_csv_report`. `findable -mcp` is the same as `findable mcp`.
+The npm server exposes `audit_page`, `crawl_site` and the `seo_audit_prompt` prompt. The Go server adds `audit_html_content` (raw HTML, no network) and `generate_csv_report`. `findable -mcp` is the same as `findable mcp`. `simulate`, `hydrate`, `fanout` and `diff` are CLI commands on the Go binary. The MCP servers do not expose them.
 
 ## API
 
