@@ -704,3 +704,21 @@ func TestAEOHeadingSemanticSpecificity(t *testing.T) {
 		t.Errorf("expected not applicable without h2/h3, got %+v", c)
 	}
 }
+
+// Words that merely end in "by" (nearby, standby, a baby) are not an author
+// byline; only the standalone word "by" counts.
+func TestGeoAuthorCredentialsNeedsStandaloneBy(t *testing.T) {
+	noByline := `<!DOCTYPE html><html lang="en"><head><title>Lamp study</title></head>` +
+		`<body><h1>Lamp study</h1><p>The dog sleeps nearby and the standby lamp glows.</p></body></html>`
+	res := Analyze("https://example.com", noByline, "", make(http.Header), 200)
+	if c := findCheck(res.GEO.Checks, "geo_author_credentials"); c == nil || c.Pass {
+		t.Errorf("words ending in 'by' must not count as a byline, got %+v", c)
+	}
+
+	byline := `<!DOCTYPE html><html lang="en"><head><title>Lamp study</title></head>` +
+		`<body><h1>Lamp study</h1><p>Written by Ada Lovelace, Senior Researcher.</p></body></html>`
+	res = Analyze("https://example.com", byline, "", make(http.Header), 200)
+	if c := findCheck(res.GEO.Checks, "geo_author_credentials"); c == nil || !c.Pass {
+		t.Errorf("a visible 'by <name>' byline should pass, got %+v", c)
+	}
+}

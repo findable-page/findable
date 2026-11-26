@@ -34,7 +34,7 @@ GEO is 25% of your findable score. It has 34 checks on citability: numbers, tabl
 | `geo_definitions` | " is a ", " is the " or " defined as " | Define key terms plainly |
 | `geo_passage_citability` | A paragraph of 40 to 120 words | Write self-contained paragraphs |
 | `geo_author_schema` | Person schema or author in schema | Add author to JSON-LD |
-| `geo_author_credentials` | A visible "by " byline or schema author | Show who wrote it |
+| `geo_author_credentials` | A visible "by" byline or schema author | Show who wrote it |
 | `geo_author_credential_depth` | Author Person schema lists a credential (N/A without author Person schema) | Add `jobTitle`, `alumniOf`, `hasCredential` or a profile `sameAs` |
 | `geo_org_schema` | Organization or LocalBusiness schema | Add Organization JSON-LD |
 | `geo_knowledge_graph` | `sameAs` links in schema | Link your profiles |

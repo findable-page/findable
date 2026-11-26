@@ -3,6 +3,7 @@ package audit
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -168,11 +169,17 @@ func isExternalHref(s *PageSignals, href string) bool {
 	return resolved.Host != "" && resolved.Host != s.URL.Host
 }
 
+// bylineRegex matches the standalone word "by" in lowercased visible text
+// so ordinary words that merely end in "by" (nearby, standby, a baby)
+// cannot fake a visible author byline. ponytail: does not verify a name
+// follows "by"; add a capitalized-name heuristic if false negatives matter.
+var bylineRegex = regexp.MustCompile(`\bby\b`)
+
 func geoAuthority(l *checkList, s *PageSignals) {
 	hasPerson := hasSchemaType(s.SchemaTypes, "Person")
 	hasOrg := hasSchemaType(s.SchemaTypes, "Organization", "Bakery", "LocalBusiness")
 	l.add("geo_author_schema", "Author schema markup found", hasPerson || s.AuthorInSchema != "")
-	l.add("geo_author_credentials", "Visible author byline with credentials or dates", lowerContainsAny(s.TextContent, "by ") || s.AuthorInSchema != "")
+	l.add("geo_author_credentials", "Visible author byline with credentials or dates", bylineRegex.MatchString(strings.ToLower(s.TextContent)) || s.AuthorInSchema != "")
 	l.add("geo_org_schema", "Organization or Business schema markup declared", hasOrg)
 	l.add("geo_knowledge_graph", fmt.Sprintf("%d sameAs entity links in schema", len(s.SameAsLinks)), len(s.SameAsLinks) > 0)
 	geoEntityAuthoritativeSameAs(l, s)

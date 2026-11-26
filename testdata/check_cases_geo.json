@@ -155,6 +155,24 @@
       }
     ]
   },
+  "geo_author_credentials": {
+    "pass": [
+      {
+        "body": "<h1>Study</h1><p>Written by Ada Lovelace, Senior Researcher.</p>"
+      },
+      {
+        "head": "<script type='application/ld+json'>{\"@type\":\"Article\",\"author\":{\"@type\":\"Person\",\"name\":\"Ada Lovelace\"}}</script>"
+      }
+    ],
+    "fail": [
+      {
+        "body": "<h1>Lamps</h1><p>The dog sleeps nearby and the standby lamp glows.</p>"
+      },
+      {
+        "body": "<h1>Babies</h1><p>A baby sleeps. There is no byline on this page at all.</p>"
+      }
+    ]
+  },
   "geo_assertion_evidence_pairing": {
     "pass": [
       {},
