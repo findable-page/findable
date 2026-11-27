@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -137,5 +140,37 @@ func TestMCPAuditPageAddsSiteChecksOnlyWhenAsked(t *testing.T) {
 	}
 	if text := auditPageText(t, srv.Client(), map[string]any{argURL: srv.URL, "site": true}); !strings.Contains(text, `"llms-txt"`) {
 		t.Errorf("audit_page with site must include site checks: %s", text[:min(200, len(text))])
+	}
+}
+
+func TestMCPCSVReportUsesHostNotURL(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("<html><head><title>x</title></head></html>"))
+	}))
+	t.Cleanup(srv.Close)
+	u, err := url.Parse(srv.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text, isErr := executeTool("generate_csv_report", map[string]any{argURL: srv.URL}, srv.Client())
+	if isErr {
+		t.Fatalf("generate_csv_report failed: %s", text)
+	}
+	if want := "\ufeffSEO/AEO/GEO Report," + u.Host + ","; !strings.HasPrefix(text, want) {
+		t.Errorf("csv header should name the host %q, got %q", u.Host, text[:min(len(want)+20, len(text))])
+	}
+}
+
+func TestMCPCSVReportLocalFileNamesFile(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "local.html")
+	if err := os.WriteFile(file, []byte("<html><head><title>x</title></head></html>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	text, isErr := executeTool("generate_csv_report", map[string]any{argURL: file}, http.DefaultClient)
+	if isErr {
+		t.Fatalf("generate_csv_report failed: %s", text)
+	}
+	if want := "\ufeffSEO/AEO/GEO Report,local.html,"; !strings.HasPrefix(text, want) {
+		t.Errorf("csv header should name the file base, got %q", text[:min(60, len(text))])
 	}
 }

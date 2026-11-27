@@ -245,5 +245,6 @@ func toolCSVReport(a toolArgs, client *http.Client) (text string, isError bool) 
 	if err != nil {
 		return fmt.Sprintf("Error generating CSV for %s: %v", targetURL, err), true
 	}
-	return report.CSV(targetURL, res), false
+	host, _ := report.HostName(targetURL)
+	return report.CSV(host, res), false
 }
