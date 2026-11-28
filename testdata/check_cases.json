@@ -314,5 +314,30 @@
         "head": "<meta name='robots' content='max-video-preview:0'>"
       }
     ]
+  },
+  "html_doctype": {
+    "pass": [
+      {},
+      {
+        "doc": "\ufeff<!DOCTYPE html><html><body>x</body></html>"
+      },
+      {
+        "doc": "<!-- generated --><!DOCTYPE html><html><body>x</body></html>"
+      },
+      {
+        "doc": "<!-- a --><!-- b -->\n  <!DOCTYPE html><html><body>x</body></html>"
+      }
+    ],
+    "fail": [
+      {
+        "doc": "\ufeff<html><body>x</body></html>"
+      },
+      {
+        "doc": "<!-- generated --><html><body>x</body></html>"
+      },
+      {
+        "doc": "<html><body>x</body></html>"
+      }
+    ]
   }
 }
