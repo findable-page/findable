@@ -143,12 +143,13 @@ func extractSignals(targetURL, rawHTML string, headers http.Header, statusCode i
 	if headers == nil {
 		sig.Headers = make(http.Header)
 	}
-	sig.HTMLDoctype = strings.HasPrefix(strings.ToLower(strings.TrimSpace(rawHTML)), "<!doctype html")
-
-	doc, err := html.Parse(strings.NewReader(rawHTML))
+	// Browsers strip a leading BOM before tokenizing; without the same strip
+	// here the doctype node is lost and the BOM leaks into the first text node.
+	doc, err := html.Parse(strings.NewReader(strings.TrimPrefix(rawHTML, "\ufeff")))
 	if err != nil {
 		return sig
 	}
+	sig.HTMLDoctype = doctypeInDocument(doc)
 
 	seenIDs := make(map[string]int)
 	var walk func(*html.Node, string)
@@ -240,6 +241,20 @@ func recordTag(sig *PageSignals, n *html.Node, inHead bool, selector string) {
 // with the head path (appendSelector keeps head, trims html/body).
 func inHead(sel string) bool {
 	return sel == "head" || strings.HasPrefix(sel, "head >")
+}
+
+// doctypeInDocument reports whether the parsed document declares a doctype
+// before its root element. Browsers keep standards mode when whitespace or
+// comments precede the <!DOCTYPE html>, so the raw prefix check was wrong;
+// a doctype after the first element is ignored by the parser and fails.
+func doctypeInDocument(doc *html.Node) bool {
+	for n := doc.FirstChild; n != nil; n = n.NextSibling {
+		if n.Type == html.CommentNode {
+			continue
+		}
+		return n.Type == html.DoctypeNode
+	}
+	return false
 }
 
 var selectorSkipTags = map[string]bool{"html": true, "body": true}

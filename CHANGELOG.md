@@ -24,6 +24,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Site checks now distinguish AI search retrieval crawlers (`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, `Googlebot`) from AI model training crawlers (`GPTBot`, `ClaudeBot`, `Google-Extended`, `Applebot-Extended`, `meta-externalagent`), with labels explaining that blocking training bots does not affect AI search citations and that `Google-Extended` governs Gemini training, not AI Overviews.
 
 ### Fixed
+- `html_doctype` no longer fails when a UTF-8 BOM or an HTML comment precedes `<!DOCTYPE html>` (browsers keep standards mode in both cases): detection now reads the parsed document's doctype node instead of a raw prefix match, and a doctype after the first element correctly fails. A leading BOM is also stripped before parsing so it no longer leaks into the first text node's content.
 - Percentages like `9%.` never matched the quantitative-statistics pattern because a word boundary after `%` can never hold; percentages are now a dedicated alternative, so they count toward `geo_statistics_density` and section evidence.
 - `link_noopener` now matches whole `rel` tokens; values such as `notnoopener` no longer hide unsafe `_blank` links.
 - Signal extraction no longer runs HTML element collectors on SVG/MathML elements: an inline SVG icon's `<title>` (an accessibility label for the graphic) no longer overwrites the page `<title>` used by `title_exists`, `title_length`, `keyphrase_in_title` and `geo_intent_clarity`.
